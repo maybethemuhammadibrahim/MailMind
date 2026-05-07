@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Orders - AI Assistant{% endblock %}
+
+{% block header_title %}Orders{% endblock %}
+
+{% block content %}
+<div class="flex flex-col gap-gutter max-w-7xl mx-auto w-full">
+    <!-- Spending Overview Section (Asymmetric Bento layout) -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+        <!-- Primary Overview Card -->
+        <div class="md:col-span-2 bg-surface-container-lowest rounded-xl p-card-padding shadow-[0px_4px_20px_rgba(0,0,0,0.03)] border border-surface-container flex flex-col justify-between">
+            <div>
+                <h2 class="font-body-md text-body-md text-on-surface-variant mb-2">Total Spending This Year</h2>
+                <div class="font-h1 text-h1 text-on-surface">$12,450.00</div>
+            </div>
+            <!-- Abstract Chart Visual -->
+            <div class="mt-8 flex items-end gap-2 h-24 w-full">
+                <div class="w-full bg-surface-container-highest rounded-t-sm h-[30%] relative group"><div class="absolute inset-0 bg-primary opacity-0 group-hover:opacity-20 transition-opacity"></div></div>
+                <div class="w-full bg-surface-container-highest rounded-t-sm h-[50%] relative group"><div class="absolute inset-0 bg-primary opacity-0 group-hover:opacity-20 transition-opacity"></div></div>
+                <div class="w-full bg-primary-container rounded-t-sm h-[80%] relative group"><div class="absolute inset-0 bg-primary opacity-20 group-hover:opacity-40 transition-opacity"></div></div>
+                <div class="w-full bg-surface-container-highest rounded-t-sm h-[40%] relative group"><div class="absolute inset-0 bg-primary opacity-0 group-hover:opacity-20 transition-opacity"></div></div>
+                <div class="w-full bg-primary rounded-t-sm h-[100%] shadow-[0_0_15px_rgba(1,2,3,0.3)] relative"></div>
+                <div class="w-full bg-surface-container-highest rounded-t-sm h-[60%] relative group"><div class="absolute inset-0 bg-primary opacity-0 group-hover:opacity-20 transition-opacity"></div></div>
+                <div class="w-full bg-surface-container-highest rounded-t-sm h-[70%] relative group"><div class="absolute inset-0 bg-primary opacity-0 group-hover:opacity-20 transition-opacity"></div></div>
+            </div>
+        </div>
+        <!-- Secondary Stat Cards -->
+        <div class="flex flex-col gap-gutter">
+            <div class="bg-surface-container-lowest rounded-xl p-card-padding shadow-[0px_4px_20px_rgba(0,0,0,0.03)] border border-surface-container flex-1 flex flex-col justify-center">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="p-2 rounded-lg bg-surface-container-low text-primary">
+                        <span class="material-symbols-outlined text-[20px]">local_shipping</span>
+                    </div>
+                    <h3 class="font-body-md text-body-md text-on-surface-variant">Active Deliveries</h3>
+                </div>
+                <div class="font-h2 text-h2 text-on-surface">4 Orders</div>
+            </div>
+            <div class="bg-surface-container-lowest rounded-xl p-card-padding shadow-[0px_4px_20px_rgba(0,0,0,0.03)] border border-surface-container flex-1 flex flex-col justify-center">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="p-2 rounded-lg bg-surface-container-low text-primary">
+                        <span class="material-symbols-outlined text-[20px]">receipt_long</span>
+                    </div>
+                    <h3 class="font-body-md text-body-md text-on-surface-variant">Monthly Average</h3>
+                </div>
+                <div class="font-h2 text-h2 text-on-surface">$1,037.50</div>
+            </div>
+        </div>
+    </section>
+    <!-- Recent Orders Section -->
+    <section class="flex flex-col gap-6 mt-4">
+        <h2 class="font-h2 text-h2 text-on-surface">Recent Orders</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter">
+            <!-- Order Card 1 -->
+            <div class="bg-surface-container-lowest rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.03)] border border-surface-container overflow-hidden group">
+                <div class="h-48 bg-surface-container-low relative overflow-hidden">
+                    <img alt="Office Chair" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFRtn8iJEn8MQSPnDQu59Ohg9UeAb_OgVu5F8Es-81N5IQwFCtSVM5znY7GTA7U7Jf_ER8L8-38USyS2WOpSOQtpDX6wB3XoXFxIia2glw50RjZ5KbzUwe-yg0FRtUyCgPYqm7aqTXNq34HNVGn_Zo9gnBRdaazKgJaDjw79iznhGmSF8qB-5IJUnw-tu3TBPt47bCCawD0g5fJSTgIdX3EeCWCSWN7QuiNzTgLfvAUeDtFpFIedQI_cKX5cCSb4kNVC5sdybCF5Zt"/>
+                    <div class="absolute top-3 left-3 bg-surface-container-lowest/90 backdrop-blur-sm px-2 py-1 rounded-md border border-surface-variant">
+                        <span class="font-label-md text-label-md text-on-surface">Shipped</span>
+                    </div>
+                </div>
+                <div class="p-card-padding flex flex-col gap-4">
+                    <div>
+                        <h3 class="font-body-lg text-body-lg font-semibold text-on-surface truncate">Aeron Ergonomic Office Chair</h3>
+                        <p class="font-body-md text-body-md text-on-surface-variant mt-1">Arriving on Oct 24, 2023</p>
+                    </div>
+                    <button class="w-full py-2.5 rounded-lg border border-outline-variant text-primary font-label-md text-label-md hover:bg-surface-container-low transition-colors flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">location_on</span>
+                        Track Order
+                    </button>
+                </div>
+            </div>
+            <!-- Order Card 2 -->
+            <div class="bg-surface-container-lowest rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.03)] border border-surface-container overflow-hidden group">
+                <div class="h-48 bg-surface-container-low relative overflow-hidden">
+                    <img alt="Laptop Stand" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCKrRKw6GUBZBXkJbn0oeYURDf3CY1SEcTwyFRy4-4xqbpyxh434cbEkm5WXwQDt3kDnU2aBSV4PHeVJ2TFuUMcUiUaZRNnDoGC_sShYENI7glVs-P7a6KS1gEMgAVTJlerHiorZ1jTisT4_evx_6L6_NcVDd7c9gm93MUkmJX-R4E1E4LiDN2szlq0FjUHbppHQ8cG3pJqh4dt-t3lgaAaD7ySojI-RHRVQGmzGKRVVRygE-iZlArAOARXfae0DjojMtR2dnWOMrvi"/>
+                    <div class="absolute top-3 left-3 bg-tertiary-fixed-dim/90 backdrop-blur-sm px-2 py-1 rounded-md border border-tertiary-container/20">
+                        <span class="font-label-md text-label-md text-on-tertiary-fixed-variant">Processing</span>
+                    </div>
+                </div>
+                <div class="p-card-padding flex flex-col gap-4">
+                    <div>
+                        <h3 class="font-body-lg text-body-lg font-semibold text-on-surface truncate">Aluminum Laptop Riser Pro</h3>
+                        <p class="font-body-md text-body-md text-on-surface-variant mt-1">Arriving on Oct 28, 2023</p>
+                    </div>
+                    <button class="w-full py-2.5 rounded-lg border border-outline-variant text-primary font-label-md text-label-md hover:bg-surface-container-low transition-colors flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">location_on</span>
+                        Track Order
+                    </button>
+                </div>
+            </div>
+            <!-- Order Card 3 -->
+            <div class="bg-surface-container-lowest rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.03)] border border-surface-container overflow-hidden group">
+                <div class="h-48 bg-surface-container-low relative overflow-hidden">
+                    <img alt="Headphones" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMR_6BsvE7e01RzxFz4DNf8DdLayua20BVXCR3QxC1pxYb-pznQ21g9iaA30HdVBcIQfLJCulWRVw8GAzFpS7EeH4wfRP6ZKnHIAd-IAnnWBkV6SDSYo8NPz0X2tDgDQH_hjeVgha_OCz9bcdHoJrobQ4mk0c9i2pnQkSSm1fWBSdwsaioSdXhM0yyilVeh9dq7PYa6pjEglwOqhc25ZJuZMVdoiNUAo7FjFW5CTmLkbb9nppP7-xELAsQSKYy3eJpV-1-L3kcmQob"/>
+                    <div class="absolute top-3 left-3 bg-surface-container-highest/90 backdrop-blur-sm px-2 py-1 rounded-md border border-surface-variant">
+                        <span class="font-label-md text-label-md text-on-surface-variant">Delivered</span>
+                    </div>
+                </div>
+                <div class="p-card-padding flex flex-col gap-4">
+                    <div>
+                        <h3 class="font-body-lg text-body-lg font-semibold text-on-surface truncate">Noise-Cancelling Headphones</h3>
+                        <p class="font-body-md text-body-md text-outline mt-1">Delivered on Oct 12, 2023</p>
+                    </div>
+                    <button class="w-full py-2.5 rounded-lg border border-surface-variant text-on-surface-variant font-label-md text-label-md hover:bg-surface-container-low transition-colors flex items-center justify-center gap-2 opacity-70">
+                        <span class="material-symbols-outlined text-[18px]">receipt</span>
+                        View Receipt
+                    </button>
+                </div>
+            </div>
+            <!-- Order Card 4 -->
+            <div class="bg-surface-container-lowest rounded-xl shadow-[0px_4px_20px_rgba(0,0,0,0.03)] border border-surface-container overflow-hidden group">
+                <div class="h-48 bg-surface-container-low relative overflow-hidden">
+                    <img alt="Keyboard" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBUjtZ3sRA3RpB2cJVKBBw0oiqYoQbOlxbTGDtqHpsI0_uETNXe_7MZGjC9DPfBsnp9SDldlpySLSjI7Bd3kcjMzOR7jJjpbJARW7NAWz2lu1e4uAuFbglpkFxHtqBHLb9vSLxzTMt89atIgyS3FXUwPEKyGG9boR1SyjOJwmdTXAxS_8cvIK9DEDX26eXyasPmG2hP_FPlAyNkxG9_yANbh3GGAVDOvd_r6xKzh8BPbnpez3xASOw5jyV5YlFztMgEOpxMOPxF8Y7L"/>
+                    <div class="absolute top-3 left-3 bg-surface-container-lowest/90 backdrop-blur-sm px-2 py-1 rounded-md border border-surface-variant">
+                        <span class="font-label-md text-label-md text-on-surface">Shipped</span>
+                    </div>
+                </div>
+                <div class="p-card-padding flex flex-col gap-4">
+                    <div>
+                        <h3 class="font-body-lg text-body-lg font-semibold text-on-surface truncate">Mechanical Wireless Keyboard</h3>
+                        <p class="font-body-md text-body-md text-on-surface-variant mt-1">Arriving on Nov 02, 2023</p>
+                    </div>
+                    <button class="w-full py-2.5 rounded-lg border border-outline-variant text-primary font-label-md text-label-md hover:bg-surface-container-low transition-colors flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">location_on</span>
+                        Track Order
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

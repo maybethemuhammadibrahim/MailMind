@@ -24,3 +24,7 @@ pydantic>=2.7.4
 
 # --- HTTP requests (used by google libs) ---
 requests==2.32.3
+
+# --- Templating and Forms ---
+jinja2>=3.1.4
+python-multipart>=0.0.9

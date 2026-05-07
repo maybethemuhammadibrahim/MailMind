@@ -9,7 +9,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 # Import each route module — these are separate files in routes/
-from routes import auth, emails, pipeline, todos, meetings, orders, analytics
+from routes import auth, emails, pipeline, todos, meetings, orders, analytics, pages
+from fastapi.staticfiles import StaticFiles
 
 def create_app():
     """
@@ -42,26 +43,32 @@ def create_app():
         allow_headers=["*"],          # Allow all headers
     )
 
-    # --- Register route modules ---
+    # --- Static Files ---
+    app.mount("/static", StaticFiles(directory="static"), name="static")
+
+    # --- Register UI routes ---
+    app.include_router(pages.router, tags=["Pages"])
+
+    # --- Register API route modules ---
     # Each router handles a group of related endpoints.
     # The prefix sets the URL path for all routes in that module.
     # The tag groups them together in the API docs at /docs.
-    app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
-    app.include_router(emails.router, prefix="/emails", tags=["Emails"])
-    app.include_router(pipeline.router, prefix="", tags=["AI Pipeline"])
-    app.include_router(todos.router, prefix="/todos", tags=["Todos"])
-    app.include_router(meetings.router, prefix="/meetings", tags=["Meetings"])
-    app.include_router(orders.router, prefix="/orders", tags=["Orders"])
-    app.include_router(analytics.router, prefix="/analytics", tags=["Analytics"])
+    app.include_router(auth.router, prefix="/api/auth", tags=["Authentication"])
+    app.include_router(emails.router, prefix="/api/emails", tags=["Emails"])
+    app.include_router(pipeline.router, prefix="/api", tags=["AI Pipeline"])
+    app.include_router(todos.router, prefix="/api/todos", tags=["Todos"])
+    app.include_router(meetings.router, prefix="/api/meetings", tags=["Meetings"])
+    app.include_router(orders.router, prefix="/api/orders", tags=["Orders"])
+    app.include_router(analytics.router, prefix="/api/analytics", tags=["Analytics"])
 
     return app
-
 
 # Create the app instance — uvicorn looks for this variable
 app = create_app()
 
 
-@app.get("/")
+
+@app.get("/api/health")
 def root():
     """
     Health-check endpoint. Returns a simple JSON message to confirm
