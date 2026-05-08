@@ -1,68 +1,53 @@
-{% extends "base.html" %}
-
-{% block title %}Home - AI Assistant{% endblock %}
-
-{% block header_title %}Dashboard{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}Home - MailMind{% endblock %} {%
+block header_title %}Dashboard{% endblock %} {% block content %}
 <!-- Header Section -->
 <div class="flex items-center justify-between mb-2">
     <div>
-        <h2 class="font-h1 text-h1 text-on-surface mb-1">Good evening, Alex.</h2>
-        <p class="font-body-md text-body-md text-on-surface-variant">Here is your daily communication breakdown.</p>
+        <h2 class="font-h1 text-h1 text-on-surface mb-1">Good morning.</h2>
+        <p class="font-body-md text-body-md text-on-surface-variant">
+            Here is your daily communication breakdown.
+        </p>
     </div>
-    <button class="bg-primary text-on-primary font-label-sm text-label-sm py-2 px-6 rounded-full hover:bg-surface-tint transition-colors shadow-sm flex items-center gap-2">
+    <a
+        href="/crafter"
+        class="bg-primary text-on-primary font-label-sm text-label-sm py-2 px-6 rounded-full hover:bg-surface-tint transition-colors shadow-sm flex items-center gap-2"
+    >
         <span class="material-symbols-outlined text-[16px]">edit</span>
         New Email
-    </button>
+    </a>
 </div>
 
 <!-- Dashboard Grid -->
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
     <!-- Left Column: My Tasks -->
     <div class="lg:col-span-4 flex flex-col gap-gutter">
-        <div class="bg-surface-container-lowest rounded-xl p-card-padding shadow-sm border border-surface-variant h-full flex flex-col">
+        <div
+            class="bg-surface-container-lowest rounded-xl p-card-padding shadow-sm border border-surface-variant h-full flex flex-col"
+        >
             <div class="flex items-center justify-between mb-6">
                 <h3 class="font-h2 text-h2 text-on-surface">My Tasks</h3>
-                <button class="h-8 w-8 rounded-full bg-surface-container-low text-primary flex items-center justify-center hover:bg-primary hover:text-on-primary transition-colors">
+                <button
+                    class="h-8 w-8 rounded-full bg-surface-container-low text-primary flex items-center justify-center hover:bg-primary hover:text-on-primary transition-colors"
+                >
                     <span class="material-symbols-outlined">add</span>
                 </button>
             </div>
-            <div class="flex flex-col gap-4 flex-1">
-                <!-- Task Item -->
-                <label class="flex items-start gap-3 cursor-pointer group">
-                    <div class="relative flex items-center mt-1">
-                        <input class="peer h-5 w-5 border-2 border-outline-variant rounded bg-surface-container-lowest text-primary focus:ring-primary/20 focus:ring-offset-0 transition-colors cursor-pointer" type="checkbox"/>
-                    </div>
-                    <div class="flex-1">
-                        <p class="font-body-md text-body-md text-on-surface font-semibold group-hover:text-primary transition-colors">Review Q3 Marketing Deck</p>
-                        <p class="font-label-md text-label-md text-on-surface-variant mt-0.5">Due Tomorrow, 10:00 AM</p>
-                    </div>
-                    <span class="px-2 py-1 bg-error-container text-on-error-container font-label-sm text-label-sm rounded-md">Urgent</span>
-                </label>
-                <hr class="border-surface-variant"/>
-                <!-- Task Item -->
-                <label class="flex items-start gap-3 cursor-pointer group">
-                    <div class="relative flex items-center mt-1">
-                        <input class="peer h-5 w-5 border-2 border-outline-variant rounded bg-surface-container-lowest text-primary focus:ring-primary/20 focus:ring-offset-0 transition-colors cursor-pointer" type="checkbox"/>
-                    </div>
-                    <div class="flex-1">
-                        <p class="font-body-md text-body-md text-on-surface font-semibold group-hover:text-primary transition-colors">Approve Crafter AI Drafts</p>
-                        <p class="font-label-md text-label-md text-on-surface-variant mt-0.5">5 Pending Emails</p>
-                    </div>
-                    <span class="px-2 py-1 bg-surface-container text-on-surface-variant font-label-sm text-label-sm rounded-md">AI-Drafted</span>
-                </label>
-                <hr class="border-surface-variant"/>
-                <!-- Task Item -->
-                <label class="flex items-start gap-3 cursor-pointer group">
-                    <div class="relative flex items-center mt-1">
-                        <input checked="" class="peer h-5 w-5 border-2 border-outline-variant rounded bg-surface-container-lowest text-primary focus:ring-primary/20 focus:ring-offset-0 transition-colors cursor-pointer" type="checkbox"/>
-                    </div>
-                    <div class="flex-1">
-                        <p class="font-body-md text-body-md text-on-surface-variant line-through transition-colors">Follow up with Sarah on Design</p>
-                        <p class="font-label-md text-label-md text-outline mt-0.5">Completed Today</p>
-                    </div>
-                </label>
+            <!-- Empty State: Tasks -->
+            <div
+                class="flex-1 flex flex-col items-center justify-center py-8 text-center"
+            >
+                <span
+                    class="material-symbols-outlined text-[48px] text-on-surface-variant/30 mb-3"
+                    >checklist</span
+                >
+                <p class="font-body-md text-body-md text-on-surface-variant">
+                    No tasks yet
+                </p>
+                <p
+                    class="font-body-md text-body-md text-outline mt-1 text-[13px]"
+                >
+                    Tasks extracted from your emails will appear here
+                </p>
             </div>
         </div>
     </div>
@@ -70,93 +55,71 @@
     <!-- Right Column: Meetings & Analytics -->
     <div class="lg:col-span-8 flex flex-col gap-gutter">
         <!-- Meeting Overview -->
-        <div class="bg-surface-container-lowest rounded-xl p-card-padding shadow-sm border border-surface-variant">
+        <div
+            class="bg-surface-container-lowest rounded-xl p-card-padding shadow-sm border border-surface-variant"
+        >
             <div class="flex items-center justify-between mb-6">
-                <h3 class="font-h2 text-h2 text-on-surface flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary">event_note</span>
+                <h3
+                    class="font-h2 text-h2 text-on-surface flex items-center gap-2"
+                >
+                    <span class="material-symbols-outlined text-primary"
+                        >event_note</span
+                    >
                     Meeting Overview
                 </h3>
-                <a class="font-label-md text-label-md text-primary hover:underline" href="#">View Calendar</a>
+                <a
+                    class="font-label-md text-label-md text-primary hover:underline"
+                    href="#"
+                    >View Calendar</a
+                >
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <!-- Meeting Card -->
-                <div class="flex items-center gap-4 p-4 rounded-lg bg-surface-container-lowest border border-surface-variant hover:shadow-md transition-shadow">
-                    <div class="h-12 w-12 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center flex-shrink-0">
-                        <span class="material-symbols-outlined">view_kanban</span>
-                    </div>
-                    <div>
-                        <p class="font-label-md text-label-md text-on-surface-variant font-semibold">Today, 6:45 PM</p>
-                        <p class="font-body-md text-body-md text-on-surface font-semibold">App Project Sync</p>
-                    </div>
-                </div>
-                <!-- Meeting Card -->
-                <div class="flex items-center gap-4 p-4 rounded-lg bg-surface-container-lowest border border-surface-variant hover:shadow-md transition-shadow">
-                    <div class="h-12 w-12 rounded-full bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center flex-shrink-0">
-                        <span class="material-symbols-outlined">group</span>
-                    </div>
-                    <div>
-                        <p class="font-label-md text-label-md text-on-surface-variant font-semibold">Today, 8:00 PM</p>
-                        <p class="font-body-md text-body-md text-on-surface font-semibold">User Research Review</p>
-                    </div>
-                </div>
+            <!-- Empty State: Meetings -->
+            <div
+                class="flex flex-col items-center justify-center py-8 text-center"
+            >
+                <span
+                    class="material-symbols-outlined text-[48px] text-on-surface-variant/30 mb-3"
+                    >event_busy</span
+                >
+                <p class="font-body-md text-body-md text-on-surface-variant">
+                    No upcoming meetings
+                </p>
+                <p
+                    class="font-body-md text-body-md text-outline mt-1 text-[13px]"
+                >
+                    Meetings detected in your emails will appear here
+                </p>
             </div>
         </div>
 
         <!-- Email Analytics -->
-        <div class="bg-surface-container-lowest rounded-xl p-card-padding shadow-sm border border-surface-variant flex-1">
-            <h3 class="font-h2 text-h2 text-on-surface mb-6 flex items-center gap-2">
-                <span class="material-symbols-outlined text-primary">donut_large</span>
+        <div
+            class="bg-surface-container-lowest rounded-xl p-card-padding shadow-sm border border-surface-variant flex-1"
+        >
+            <h3
+                class="font-h2 text-h2 text-on-surface mb-6 flex items-center gap-2"
+            >
+                <span class="material-symbols-outlined text-primary"
+                    >donut_large</span
+                >
                 Email Analytics
             </h3>
-            <div class="flex flex-col md:flex-row items-center justify-around gap-gutter mt-4">
-                <!-- Chart Area -->
-                <div class="relative w-48 h-48 flex-shrink-0">
-                    <!-- SVG Donut Chart Representation -->
-                    <svg class="w-full h-full transform -rotate-90" viewbox="0 0 100 100">
-                        <!-- Background circle (Work) -->
-                        <circle class="text-surface-container-high" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-width="16"></circle>
-                        <!-- Segment 1 (Outlook) -->
-                        <circle class="text-secondary" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-dasharray="251.2" stroke-dashoffset="150" stroke-width="16"></circle>
-                        <!-- Segment 2 (Gmail) -->
-                        <circle class="text-primary" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" stroke-dasharray="251.2" stroke-dashoffset="80" stroke-width="16"></circle>
-                    </svg>
-                    <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
-                        <span class="font-h1 text-h1 text-on-surface">248</span>
-                        <span class="font-label-md text-label-md text-on-surface-variant">Total Emails</span>
-                    </div>
-                </div>
-                <!-- Legend & Data -->
-                <div class="flex flex-col gap-4 w-full md:w-auto min-w-[200px]">
-                    <div class="flex items-center justify-between gap-4">
-                        <div class="flex items-center gap-2">
-                            <div class="w-3 h-3 rounded-full bg-primary"></div>
-                            <span class="font-body-md text-body-md text-on-surface">Gmail</span>
-                        </div>
-                        <span class="font-label-sm text-label-sm text-on-surface-variant">68%</span>
-                    </div>
-                    <div class="flex items-center justify-between gap-4">
-                        <div class="flex items-center gap-2">
-                            <div class="w-3 h-3 rounded-full bg-secondary"></div>
-                            <span class="font-body-md text-body-md text-on-surface">Outlook</span>
-                        </div>
-                        <span class="font-label-sm text-label-sm text-on-surface-variant">22%</span>
-                    </div>
-                    <div class="flex items-center justify-between gap-4">
-                        <div class="flex items-center gap-2">
-                            <div class="w-3 h-3 rounded-full bg-surface-container-high"></div>
-                            <span class="font-body-md text-body-md text-on-surface">Work</span>
-                        </div>
-                        <span class="font-label-sm text-label-sm text-on-surface-variant">10%</span>
-                    </div>
-                    <hr class="border-surface-variant my-2"/>
-                    <div class="flex items-center justify-between gap-4">
-                        <div class="flex items-center gap-2">
-                            <span class="material-symbols-outlined text-[16px] text-error">gpp_bad</span>
-                            <span class="font-body-md text-body-md text-on-surface">Spam / Fake</span>
-                        </div>
-                        <span class="font-label-sm text-label-sm text-error">42 blocked</span>
-                    </div>
-                </div>
+            <!-- Empty State: Analytics -->
+            <div
+                class="flex flex-col items-center justify-center py-8 text-center"
+            >
+                <span
+                    class="material-symbols-outlined text-[48px] text-on-surface-variant/30 mb-3"
+                    >bar_chart</span
+                >
+                <p class="font-body-md text-body-md text-on-surface-variant">
+                    No analytics data yet
+                </p>
+                <p
+                    class="font-body-md text-body-md text-outline mt-1 text-[13px]"
+                >
+                    Process emails through the pipeline to see stats
+                </p>
             </div>
         </div>
     </div>

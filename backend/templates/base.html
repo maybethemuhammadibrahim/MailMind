@@ -1,83 +1,143 @@
-<!DOCTYPE html>
+<!doctype html>
 <html class="light" lang="en">
-<head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>{% block title %}AI Assistant Dashboard{% endblock %}</title>
-    
-    <!-- Link to the Tailwind compiled CSS -->
-    <link href="/static/style.css" rel="stylesheet"/>
-    
-    <!-- Google Fonts & Material Symbols -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-</head>
-<body class="bg-surface-bright text-on-surface font-body-md min-h-screen flex flex-col">
-    <!-- SideNavBar -->
-    <aside class="fixed left-0 top-0 h-full w-[80px] bg-surface-container-lowest dark:bg-inverse-surface shadow-sm flex flex-col items-center py-2 z-50">
-        <!-- Brand/Logo Area -->
-        <div class="mb-gutter mt-2">
-            <span class="material-symbols-outlined font-h1 text-h1 font-bold text-primary dark:text-primary-fixed-dim" style="font-variation-settings: 'FILL' 1;">
-                cruelty_free
-            </span>
-        </div>
-        <nav class="flex flex-col gap-2 w-full items-center flex-1 mt-gutter">
-            <!-- Home -->
-            <a href="/" class="relative flex flex-col items-center justify-center p-2 text-on-surface-variant dark:text-surface-variant transition-all duration-200 active:scale-95 w-full hover:bg-surface-container-low dark:hover:bg-surface-container-highest">
-                <span class="material-symbols-outlined mb-1">home</span>
-                <span class="font-label-sm text-label-sm">Home</span>
-            </a>
-            <!-- Email -->
-            <a href="/email" class="relative flex flex-col items-center justify-center p-2 text-on-surface-variant dark:text-surface-variant transition-all duration-200 active:scale-95 w-full hover:bg-surface-container-low dark:hover:bg-surface-container-highest">
-                <span class="material-symbols-outlined mb-1">mail</span>
-                <span class="font-label-sm text-label-sm">Email</span>
-            </a>
-            <!-- Crafter -->
-            <a href="/crafter" class="relative flex flex-col items-center justify-center p-2 text-on-surface-variant dark:text-surface-variant transition-all duration-200 active:scale-95 w-full hover:bg-surface-container-low dark:hover:bg-surface-container-highest">
-                <span class="material-symbols-outlined mb-1">auto_awesome</span>
-                <span class="font-label-sm text-label-sm">Crafter</span>
-            </a>
-            <!-- Orders -->
-            <a href="/orders" class="relative flex flex-col items-center justify-center p-2 text-on-surface-variant dark:text-surface-variant transition-all duration-200 active:scale-95 w-full hover:bg-surface-container-low dark:hover:bg-surface-container-highest">
-                <span class="material-symbols-outlined mb-1">shopping_cart</span>
-                <span class="font-label-sm text-label-sm">Orders</span>
-            </a>
-            <!-- Settings -->
-            <a href="/settings" class="relative flex flex-col items-center justify-center p-2 text-on-surface-variant dark:text-surface-variant transition-all duration-200 active:scale-95 w-full hover:bg-surface-container-low dark:hover:bg-surface-container-highest mt-auto mb-gutter">
-                <span class="material-symbols-outlined mb-1">settings</span>
-                <span class="font-label-sm text-label-sm">Settings</span>
-            </a>
-        </nav>
-    </aside>
+    <head>
+        <meta charset="utf-8" />
+        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+        <title>{% block title %}AI Assistant Dashboard{% endblock %}</title>
 
-    <!-- TopNavBar -->
-    <header class="fixed top-0 right-0 w-[calc(100%-80px)] h-16 bg-surface/80 dark:bg-inverse-surface/80 backdrop-blur-md shadow-sm flex justify-between items-center px-container-margin z-40">
-        <div class="flex items-center gap-gutter">
-            <h1 class="font-h2 text-h2 font-semibold text-on-surface dark:text-inverse-on-surface">{% block header_title %}Dashboard{% endblock %}</h1>
-            <div class="relative hidden md:block w-64 focus-within:ring-2 focus-within:ring-primary/20 rounded-full transition-all duration-200">
-                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">search</span>
-                <input class="w-full bg-surface-container-lowest border border-outline-variant rounded-full py-2 pl-10 pr-4 font-label-md text-label-md text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary" placeholder="Search..." type="text"/>
+        <!-- Link to the Tailwind compiled CSS -->
+        <link href="/static/style.css" rel="stylesheet" />
+
+        <!-- Google Fonts & Material Symbols -->
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+            rel="stylesheet"
+        />
+    </head>
+    <body
+        class="bg-surface-bright text-on-surface font-body-md min-h-screen flex flex-col"
+    >
+        <!-- SideNavBar -->
+        <aside
+            class="fixed left-0 top-0 h-full w-[80px] bg-surface-container-lowest dark:bg-inverse-surface shadow-sm flex flex-col items-center py-2 z-50"
+        >
+            <!-- Brand/Logo Area -->
+            <div class="mb-gutter mt-2">
+                <span
+                    class="material-symbols-outlined font-h1 text-h1 font-bold text-primary dark:text-primary-fixed-dim"
+                    style="font-variation-settings: &quot;FILL&quot; 1"
+                >
+                    cruelty_free
+                </span>
             </div>
-        </div>
-        <div class="flex items-center gap-2">
-            <button class="p-2 text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors rounded-full hover:bg-surface-container-low">
-                <span class="material-symbols-outlined">notifications</span>
-            </button>
-            <button class="p-2 text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors rounded-full hover:bg-surface-container-low">
-                <span class="material-symbols-outlined">help</span>
-            </button>
-            <div class="h-8 w-8 rounded-full overflow-hidden ml-2 border border-outline-variant">
-                <img alt="User avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDr5UOu6gMQiqKbkHvCl7NB4ctnKSl0QQw6O9rohPTXptB-qezdxWTKDmFLntEsMJuvgLXg8bPT_cu5f_p03-xvJZRROPW0WVsOnB2NeoKidSJcSYD6O4uzfmDJ6IKUhbxx2bHYG2uuIxMGQ7aE_JMMQWTzdRsDGhpLgSVXrzTv94F43DEKZkTE6U1PEkh4HR4ECeftA-NreRY3e_uqJT0xuRh9TzwxmVjfyVu0iLIN99ElVCEWjoQFaL8jRsKcwshk35VfPZqnszMv"/>
+            <nav
+                class="flex flex-col gap-2 w-full items-center flex-1 mt-gutter"
+            >
+                <!-- Home -->
+                <a
+                    href="/"
+                    class="relative flex flex-col items-center justify-center p-2 text-on-surface-variant dark:text-surface-variant transition-all duration-200 active:scale-95 w-full hover:bg-surface-container-low dark:hover:bg-surface-container-highest"
+                >
+                    <span class="material-symbols-outlined mb-1">home</span>
+                    <span class="font-label-sm text-label-sm">Home</span>
+                </a>
+                <!-- Email -->
+                <a
+                    href="/email"
+                    class="relative flex flex-col items-center justify-center p-2 text-on-surface-variant dark:text-surface-variant transition-all duration-200 active:scale-95 w-full hover:bg-surface-container-low dark:hover:bg-surface-container-highest"
+                >
+                    <span class="material-symbols-outlined mb-1">mail</span>
+                    <span class="font-label-sm text-label-sm">Email</span>
+                </a>
+                <!-- Crafter -->
+                <a
+                    href="/crafter"
+                    class="relative flex flex-col items-center justify-center p-2 text-on-surface-variant dark:text-surface-variant transition-all duration-200 active:scale-95 w-full hover:bg-surface-container-low dark:hover:bg-surface-container-highest"
+                >
+                    <span class="material-symbols-outlined mb-1"
+                        >auto_awesome</span
+                    >
+                    <span class="font-label-sm text-label-sm">Crafter</span>
+                </a>
+                <!-- Orders -->
+                <a
+                    href="/orders"
+                    class="relative flex flex-col items-center justify-center p-2 text-on-surface-variant dark:text-surface-variant transition-all duration-200 active:scale-95 w-full hover:bg-surface-container-low dark:hover:bg-surface-container-highest"
+                >
+                    <span class="material-symbols-outlined mb-1"
+                        >shopping_cart</span
+                    >
+                    <span class="font-label-sm text-label-sm">Orders</span>
+                </a>
+                <!-- Settings -->
+                <a
+                    href="/settings"
+                    class="relative flex flex-col items-center justify-center p-2 text-on-surface-variant dark:text-surface-variant transition-all duration-200 active:scale-95 w-full hover:bg-surface-container-low dark:hover:bg-surface-container-highest mt-auto mb-gutter"
+                >
+                    <span class="material-symbols-outlined mb-1">settings</span>
+                    <span class="font-label-sm text-label-sm">Settings</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- TopNavBar -->
+        <header
+            class="fixed top-0 right-0 w-[calc(100%-80px)] h-16 bg-surface/80 dark:bg-inverse-surface/80 backdrop-blur-md shadow-sm flex justify-between items-center px-container-margin z-40"
+        >
+            <div class="flex items-center gap-gutter">
+                <h1
+                    class="font-h2 text-h2 font-semibold text-on-surface dark:text-inverse-on-surface"
+                >
+                    {% block header_title %}Dashboard{% endblock %}
+                </h1>
+                <div
+                    class="relative hidden md:block w-64 focus-within:ring-2 focus-within:ring-primary/20 rounded-full transition-all duration-200"
+                >
+                    <span
+                        class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant"
+                        >search</span
+                    >
+                    <input
+                        class="w-full bg-surface-container-lowest border border-outline-variant rounded-full py-2 pl-10 pr-4 font-label-md text-label-md text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary"
+                        placeholder="Search..."
+                        type="text"
+                    />
+                </div>
             </div>
-        </div>
-    </header>
+            <div class="flex items-center gap-2">
+                <button
+                    class="p-2 text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors rounded-full hover:bg-surface-container-low"
+                >
+                    <span class="material-symbols-outlined">notifications</span>
+                </button>
+                <button
+                    class="p-2 text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors rounded-full hover:bg-surface-container-low"
+                >
+                    <span class="material-symbols-outlined">help</span>
+                </button>
+                <div
+                    class="h-8 w-8 rounded-full ml-2 border border-outline-variant bg-surface-container-high flex items-center justify-center"
+                >
+                    <span
+                        class="material-symbols-outlined text-[20px] text-on-surface-variant"
+                        >person</span
+                    >
+                </div>
+            </div>
+        </header>
 
-    <!-- Main Content Canvas -->
-    <main class="ml-[80px] mt-16 p-container-margin flex flex-col gap-gutter flex-1 relative">
-        {% block content %}{% endblock %}
-    </main>
+        <!-- Main Content Canvas -->
+        <main
+            class="ml-[80px] mt-16 p-container-margin flex flex-col gap-gutter flex-1 relative"
+        >
+            {% block content %}{% endblock %}
+        </main>
 
-    <script src="/static/app.js"></script>
-    {% block scripts %}{% endblock %}
-</body>
+        <script src="/static/app.js"></script>
+        {% block scripts %}{% endblock %}
+    </body>
 </html>

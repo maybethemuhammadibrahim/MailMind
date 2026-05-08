@@ -1,167 +1,181 @@
-{% extends "base.html" %}
-
-{% block title %}Email - AI Assistant{% endblock %}
-
-{% block header_title %}Email{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}Email - MailMind{% endblock %} {%
+block header_title %}Email{% endblock %} {% block content %}
 <div class="flex flex-row gap-gutter h-full w-full flex-1 min-h-0">
     <!-- Left Panel: Inbox List -->
-    <section class="w-80 flex-shrink-0 flex flex-col bg-surface-container-lowest rounded-xl border border-surface-dim shadow-[0px_4px_20px_rgba(0,0,0,0.03)] overflow-hidden">
+    <section
+        class="w-80 flex-shrink-0 flex flex-col bg-surface-container-lowest rounded-xl border border-surface-dim shadow-[0px_4px_20px_rgba(0,0,0,0.03)] overflow-hidden"
+    >
         <!-- Tabs Header -->
         <div class="flex border-b border-surface-dim px-4 pt-2">
-            <button class="px-4 py-3 font-label-md text-label-md text-primary border-b-2 border-primary">Important</button>
-            <button class="px-4 py-3 font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors">All</button>
+            <button
+                class="px-4 py-3 font-label-md text-label-md text-primary border-b-2 border-primary"
+            >
+                Important
+            </button>
+            <button
+                class="px-4 py-3 font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors"
+            >
+                All
+            </button>
             <div class="ml-auto flex items-center">
-                <button class="p-1 text-outline hover:text-primary transition-colors"><span class="material-symbols-outlined text-[20px]">filter_list</span></button>
+                <button
+                    class="p-1 text-outline hover:text-primary transition-colors"
+                >
+                    <span class="material-symbols-outlined text-[20px]"
+                        >filter_list</span
+                    >
+                </button>
             </div>
         </div>
-        <!-- Email List Scrollable Area -->
-        <div class="flex-1 overflow-y-auto">
-            <!-- Active Email Item -->
-            <div class="flex flex-col gap-1 p-4 bg-surface-container-low border-l-4 border-primary cursor-pointer transition-colors relative">
-                <div class="flex justify-between items-start mb-1">
-                    <div class="flex items-center gap-2">
-                        <div class="h-8 w-8 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center font-label-md text-label-md">EW</div>
-                        <span class="font-h2 text-body-lg text-on-surface line-clamp-1">Elena Woods</span>
-                    </div>
-                    <span class="font-body-md text-body-md text-outline whitespace-nowrap">10:42 AM</span>
-                </div>
-                <span class="font-h2 text-body-md text-on-surface line-clamp-1">Q4 Strategy Review &amp; Next Steps</span>
-                <p class="font-body-md text-body-md text-on-surface-variant line-clamp-2">Hi team, following up on our meeting yesterday. I've compiled the notes and draft proposal for...</p>
-                <!-- AI Badge Indicator -->
-                <div class="absolute bottom-4 right-4 text-primary bg-primary-fixed-dim/30 rounded-full p-1 flex items-center justify-center" title="AI Draft Available">
-                    <span class="material-symbols-outlined text-[14px]">auto_awesome</span>
-                </div>
-            </div>
-            <!-- Inactive Email Item -->
-            <div class="flex flex-col gap-1 p-4 hover:bg-surface-bright border-l-4 border-transparent cursor-pointer transition-colors border-b border-surface-dim/50">
-                <div class="flex justify-between items-start mb-1">
-                    <div class="flex items-center gap-2">
-                        <div class="h-8 w-8 rounded-full bg-tertiary-fixed text-on-tertiary-fixed flex items-center justify-center font-label-md text-label-md">MC</div>
-                        <span class="font-body-lg font-semibold text-on-surface line-clamp-1">Marketing Comm</span>
-                    </div>
-                    <span class="font-body-md text-body-md text-outline whitespace-nowrap">Yesterday</span>
-                </div>
-                <span class="font-body-md font-semibold text-on-surface line-clamp-1">Weekly Metrics Report</span>
-                <p class="font-body-md text-body-md text-on-surface-variant line-clamp-2">Attached is the weekly performance report for the main campaigns. We saw a slight dip in engagement...</p>
-            </div>
-            <!-- Inactive Email Item -->
-            <div class="flex flex-col gap-1 p-4 hover:bg-surface-bright border-l-4 border-transparent cursor-pointer transition-colors border-b border-surface-dim/50 opacity-70">
-                <div class="flex justify-between items-start mb-1">
-                    <div class="flex items-center gap-2">
-                        <div class="h-8 w-8 rounded-full bg-surface-container-highest text-on-surface flex items-center justify-center font-label-md text-label-md">S</div>
-                        <span class="font-body-lg font-semibold text-on-surface line-clamp-1">System Alerts</span>
-                    </div>
-                    <span class="font-body-md text-body-md text-outline whitespace-nowrap">Oct 12</span>
-                </div>
-                <span class="font-body-md text-on-surface line-clamp-1">Security Update Notice</span>
-                <p class="font-body-md text-body-md text-on-surface-variant line-clamp-2">Please review the latest security policies updated in your dashboard settings to ensure compliance.</p>
-            </div>
+        <!-- Empty State: Inbox -->
+        <div
+            class="flex-1 flex flex-col items-center justify-center p-6 text-center"
+        >
+            <span
+                class="material-symbols-outlined text-[48px] text-on-surface-variant/30 mb-3"
+                >inbox</span
+            >
+            <p class="font-body-md text-body-md text-on-surface-variant">
+                No emails yet
+            </p>
+            <p class="font-body-md text-body-md text-outline mt-1 text-[13px]">
+                Unread emails from the last 24h will appear here once Gmail is
+                synced
+            </p>
         </div>
     </section>
-    <!-- Center Panel: Selected Email View -->
-    <section class="flex-1 flex flex-col bg-surface-container-lowest rounded-xl border border-surface-dim shadow-[0px_4px_20px_rgba(0,0,0,0.03)] overflow-hidden">
-        <!-- Email Header / Actions -->
-        <div class="flex items-center justify-between p-card-padding border-b border-surface-dim bg-surface-bright/50">
+
+    <!-- Center Panel: Email View -->
+    <section
+        class="flex-1 flex flex-col bg-surface-container-lowest rounded-xl border border-surface-dim shadow-[0px_4px_20px_rgba(0,0,0,0.03)] overflow-hidden"
+    >
+        <!-- Toolbar (always visible for layout consistency) -->
+        <div
+            class="flex items-center justify-between p-card-padding border-b border-surface-dim bg-surface-bright/50"
+        >
             <div class="flex items-center gap-3">
-                <button class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-full hover:bg-surface-container-low"><span class="material-symbols-outlined">archive</span></button>
-                <button class="p-2 text-on-surface-variant hover:text-error transition-colors rounded-full hover:bg-error-container/50"><span class="material-symbols-outlined">delete</span></button>
+                <button
+                    class="p-2 text-on-surface-variant/40 rounded-full cursor-default"
+                    disabled
+                >
+                    <span class="material-symbols-outlined">archive</span>
+                </button>
+                <button
+                    class="p-2 text-on-surface-variant/40 rounded-full cursor-default"
+                    disabled
+                >
+                    <span class="material-symbols-outlined">delete</span>
+                </button>
                 <div class="h-4 w-px bg-surface-dim mx-1"></div>
-                <button class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-full hover:bg-surface-container-low"><span class="material-symbols-outlined">mark_email_unread</span></button>
+                <button
+                    class="p-2 text-on-surface-variant/40 rounded-full cursor-default"
+                    disabled
+                >
+                    <span class="material-symbols-outlined"
+                        >mark_email_unread</span
+                    >
+                </button>
             </div>
             <div class="flex items-center gap-2">
-                <button class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-full hover:bg-surface-container-low"><span class="material-symbols-outlined">print</span></button>
-                <button class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-full hover:bg-surface-container-low"><span class="material-symbols-outlined">open_in_new</span></button>
+                <button
+                    class="p-2 text-on-surface-variant/40 rounded-full cursor-default"
+                    disabled
+                >
+                    <span class="material-symbols-outlined">print</span>
+                </button>
+                <button
+                    class="p-2 text-on-surface-variant/40 rounded-full cursor-default"
+                    disabled
+                >
+                    <span class="material-symbols-outlined">open_in_new</span>
+                </button>
             </div>
         </div>
-        <!-- Email Content Scrollable Area -->
-        <div class="flex-1 overflow-y-auto p-card-padding">
-            <h2 class="font-h1 text-h2 font-bold text-on-surface mb-6">Q4 Strategy Review &amp; Next Steps</h2>
-            <!-- Sender Info -->
-            <div class="flex items-center justify-between mb-8">
-                <div class="flex items-center gap-4">
-                    <div class="h-12 w-12 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center font-h2 text-h2">EW</div>
-                    <div>
-                        <div class="flex items-baseline gap-2">
-                            <span class="font-h2 text-body-lg text-on-surface">Elena Woods</span>
-                            <span class="font-body-md text-body-md text-on-surface-variant">&lt;elena.woods@example.com&gt;</span>
-                        </div>
-                        <span class="font-body-md text-body-md text-outline">to me, Design Team • Oct 24, 10:42 AM</span>
-                    </div>
-                </div>
-                <button aria-label="Reply" class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-full hover:bg-surface-container-low"><span class="material-symbols-outlined">reply</span></button>
-            </div>
-            <!-- Email Body -->
-            <div class="font-body-lg text-body-lg text-on-surface-variant space-y-4 max-w-3xl leading-relaxed">
-                <p>Hi team,</p>
-                <p>Following up on our productive meeting yesterday. I've compiled the notes and drafted the initial proposal for our Q4 product push.</p>
-                <p>The main focus will be on streamlining the user onboarding experience, as discussed. I believe incorporating the new AI assistant features right at the beginning will significantly boost our retention metrics.</p>
-                <p>Could you please review the attached document and provide your feedback by end of day Thursday? I want to make sure we are all aligned before presenting to the executive board next Monday.</p>
-                <p>Specific areas I need your input on:</p>
-                <ul class="list-disc pl-6 space-y-2 text-on-surface">
-                    <li>The proposed timeline for the beta rollout.</li>
-                    <li>Resource allocation for the frontend engineering tasks.</li>
-                    <li>Any potential risks you foresee with the current API limits.</li>
-                </ul>
-                <p>Thanks for your hard work on this.</p>
-                <p class="mt-8 font-semibold text-on-surface">Best,<br/>Elena</p>
-            </div>
-            <!-- Attachments Mockup -->
-            <div class="mt-8 pt-6 border-t border-surface-dim flex gap-4">
-                <div class="flex items-center gap-3 p-3 rounded-lg border border-surface-dim bg-surface-bright hover:bg-surface-container-low cursor-pointer transition-colors w-64">
-                    <span class="material-symbols-outlined text-primary text-[32px]">description</span>
-                    <div class="flex flex-col">
-                        <span class="font-body-md font-semibold text-on-surface line-clamp-1">Q4_Proposal_Draft_v1.pdf</span>
-                        <span class="font-label-md text-label-md text-outline">2.4 MB</span>
-                    </div>
-                </div>
-            </div>
+        <!-- Empty State: No Email Selected -->
+        <div
+            class="flex-1 flex flex-col items-center justify-center text-center p-8"
+        >
+            <span
+                class="material-symbols-outlined text-[64px] text-on-surface-variant/20 mb-4"
+                >mark_email_read</span
+            >
+            <p class="font-body-lg text-body-lg text-on-surface-variant">
+                Select an email to read it
+            </p>
+            <p class="font-body-md text-body-md text-outline mt-2 text-[13px]">
+                Your email content will appear here
+            </p>
         </div>
     </section>
+
     <!-- Right Panel: AI Draft Assistant -->
-    <section class="w-80 flex-shrink-0 flex flex-col bg-surface-container-lowest rounded-xl border border-surface-dim shadow-[0px_4px_20px_rgba(0,0,0,0.03)] overflow-hidden relative">
-        <!-- Decorative gradient top border to signify AI context -->
-        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-secondary-container via-primary to-primary-container"></div>
+    <section
+        class="w-80 flex-shrink-0 flex flex-col bg-surface-container-lowest rounded-xl border border-surface-dim shadow-[0px_4px_20px_rgba(0,0,0,0.03)] overflow-hidden relative"
+    >
+        <!-- Decorative gradient top border -->
+        <div
+            class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-secondary-container via-primary to-primary-container"
+        ></div>
         <!-- AI Header -->
-        <div class="flex items-center gap-3 p-4 border-b border-surface-dim bg-primary-fixed/30 mt-1">
-            <div class="h-8 w-8 rounded-full bg-primary text-on-primary flex items-center justify-center">
-                <span class="material-symbols-outlined text-[18px]">auto_awesome</span>
+        <div
+            class="flex items-center gap-3 p-4 border-b border-surface-dim bg-primary-fixed/30 mt-1"
+        >
+            <div
+                class="h-8 w-8 rounded-full bg-primary text-on-primary flex items-center justify-center"
+            >
+                <span class="material-symbols-outlined text-[18px]"
+                    >auto_awesome</span
+                >
             </div>
-            <span class="font-h2 text-body-lg font-semibold text-on-primary-fixed">AI Draft Assistant</span>
+            <span
+                class="font-h2 text-body-lg font-semibold text-on-primary-fixed"
+                >AI Draft Assistant</span
+            >
         </div>
-        <!-- Content Area -->
-        <div class="flex-1 flex flex-col p-4 overflow-y-auto">
-            <div class="mb-4">
-                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-surface-container-low font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-2">Context Analyzed</span>
-                <p class="font-body-md text-body-md text-outline">Drafted a positive response acknowledging receipt, agreeing to the timeline, and promising feedback on the specified areas by Thursday.</p>
-            </div>
-            <!-- Editable Draft Box (Glassmorphism inspired light box) -->
-            <div class="flex-1 bg-surface-bright rounded-lg border border-surface-dim p-4 flex flex-col focus-within:ring-2 focus-within:ring-primary/30 focus-within:border-primary transition-all shadow-inner">
-                <div class="flex justify-between items-center mb-3">
-                    <span class="font-label-md text-label-md text-outline">SUGGESTED REPLY</span>
-                    <button class="text-outline hover:text-primary transition-colors" title="Copy to clipboard"><span class="material-symbols-outlined text-[16px]">content_copy</span></button>
-                </div>
-                <textarea class="w-full flex-1 bg-transparent border-none p-0 resize-none font-body-lg text-body-lg text-on-surface focus:ring-0" placeholder="AI is drafting..." spellcheck="false">Hi Elena,
-
-Thanks for sending this over. The proposal looks solid at first glance, and I agree that prioritizing the AI assistant onboarding is the right move for retention.
-
-I'll review the specifics regarding the timeline, frontend resources, and API limits, and get my detailed feedback to you by EOD Thursday so we're ready for Monday's executive meeting.
-
-Best,</textarea>
-            </div>
+        <!-- Empty State: No Email for AI to Draft -->
+        <div
+            class="flex-1 flex flex-col items-center justify-center p-6 text-center"
+        >
+            <span
+                class="material-symbols-outlined text-[48px] text-on-surface-variant/30 mb-3"
+                >auto_awesome</span
+            >
+            <p class="font-body-md text-body-md text-on-surface-variant">
+                No email selected
+            </p>
+            <p class="font-body-md text-body-md text-outline mt-1 text-[13px]">
+                Select an email to generate an AI-drafted reply
+            </p>
         </div>
-        <!-- AI Actions -->
-        <div class="p-4 border-t border-surface-dim bg-surface-container-lowest flex flex-col gap-3">
-            <button class="w-full py-2.5 rounded-lg bg-primary text-on-primary font-h2 text-body-lg font-semibold hover:bg-on-primary-fixed-variant transition-colors shadow-sm flex items-center justify-center gap-2">
-                <span class="material-symbols-outlined text-[18px]">send</span> Send Reply
+        <!-- Action Bar (always visible) -->
+        <div
+            class="p-4 border-t border-surface-dim bg-surface-container-lowest flex flex-col gap-3"
+        >
+            <button
+                disabled
+                class="w-full py-2.5 rounded-lg bg-on-surface/20 text-on-surface-variant font-h2 text-body-lg font-semibold cursor-not-allowed flex items-center justify-center gap-2"
+            >
+                <span class="material-symbols-outlined text-[18px]">send</span>
+                Send Reply
             </button>
             <div class="flex gap-3">
-                <button class="flex-1 py-2 rounded-lg border border-surface-dim text-on-surface-variant font-body-lg font-medium hover:bg-surface-container-low transition-colors flex items-center justify-center gap-1">
-                    <span class="material-symbols-outlined text-[18px]">edit</span> Edit
+                <button
+                    disabled
+                    class="flex-1 py-2 rounded-lg border border-surface-dim text-on-surface-variant/40 font-body-lg font-medium cursor-not-allowed flex items-center justify-center gap-1"
+                >
+                    <span class="material-symbols-outlined text-[18px]"
+                        >edit</span
+                    >
+                    Edit
                 </button>
-                <button class="flex-1 py-2 rounded-lg border border-surface-dim text-primary font-body-lg font-medium hover:bg-primary-fixed transition-colors flex items-center justify-center gap-1">
-                    <span class="material-symbols-outlined text-[18px]">refresh</span> Regenerate
+                <button
+                    disabled
+                    class="flex-1 py-2 rounded-lg border border-surface-dim text-on-surface-variant/40 font-body-lg font-medium cursor-not-allowed flex items-center justify-center gap-1"
+                >
+                    <span class="material-symbols-outlined text-[18px]"
+                        >refresh</span
+                    >
+                    Regenerate
                 </button>
             </div>
         </div>

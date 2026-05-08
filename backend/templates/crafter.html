@@ -1,60 +1,135 @@
-{% extends "base.html" %}
-
-{% block title %}Crafter - AI Assistant{% endblock %}
-
-{% block header_title %}Crafter{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}Crafter - MailMind{% endblock %} {%
+block header_title %}Crafter{% endblock %} {% block content %}
 <div class="flex flex-row gap-gutter w-full h-full flex-1 min-h-0">
     <!-- Editor Canvas -->
-    <div class="flex-1 bg-surface-container-lowest rounded-xl shadow-sm border border-surface-variant p-card-padding flex flex-col">
+    <div
+        class="flex-1 bg-surface-container-lowest rounded-xl shadow-sm border border-surface-variant p-card-padding flex flex-col"
+    >
         <!-- Header Fields -->
-        <div class="flex flex-col gap-4 mb-6 pb-6 border-b border-surface-variant">
+        <div
+            class="flex flex-col gap-4 mb-6 pb-6 border-b border-surface-variant"
+        >
             <div class="flex items-center gap-4">
-                <label class="w-16 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">To</label>
-                <div class="flex-1 flex gap-2 items-center bg-surface-container-lowest border border-outline-variant rounded-lg px-3 py-2 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
-                    <div class="bg-surface-container-low text-on-surface px-2 py-1 rounded text-sm flex items-center gap-1">
-                        alex@client.com
-                        <button class="text-on-surface-variant hover:text-error"><span class="material-symbols-outlined text-[14px]">close</span></button>
-                    </div>
-                    <input class="flex-1 bg-transparent border-none focus:ring-0 p-0 text-body-lg text-on-surface" placeholder="Add recipients..." type="text"/>
+                <label
+                    class="w-16 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider"
+                    >To</label
+                >
+                <div
+                    class="flex-1 flex gap-2 items-center bg-surface-container-lowest border border-outline-variant rounded-lg px-3 py-2 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all"
+                >
+                    <input
+                        class="flex-1 bg-transparent border-none focus:ring-0 p-0 text-body-lg text-on-surface"
+                        placeholder="Add recipients..."
+                        type="text"
+                    />
                 </div>
             </div>
             <div class="flex items-center gap-4">
-                <label class="w-16 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Subject</label>
-                <input class="flex-1 bg-surface-container-lowest border border-outline-variant rounded-lg px-3 py-2 text-h2 font-h2 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-on-surface" placeholder="Project Update &amp; Next Steps" type="text"/>
+                <label
+                    class="w-16 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider"
+                    >Subject</label
+                >
+                <input
+                    class="flex-1 bg-surface-container-lowest border border-outline-variant rounded-lg px-3 py-2 text-h2 font-h2 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-on-surface"
+                    placeholder="Subject"
+                    type="text"
+                />
             </div>
         </div>
         <!-- Editor Body -->
         <div class="flex-1 relative flex flex-col">
-            <div class="flex items-center gap-2 mb-4 p-2 bg-surface-container-low rounded-lg border border-surface-variant">
-                <button class="p-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded transition-colors"><span class="material-symbols-outlined text-[20px]">format_bold</span></button>
-                <button class="p-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded transition-colors"><span class="material-symbols-outlined text-[20px]">format_italic</span></button>
-                <button class="p-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded transition-colors"><span class="material-symbols-outlined text-[20px]">format_underlined</span></button>
+            <div
+                class="flex items-center gap-2 mb-4 p-2 bg-surface-container-low rounded-lg border border-surface-variant"
+            >
+                <button
+                    class="p-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded transition-colors"
+                >
+                    <span class="material-symbols-outlined text-[20px]"
+                        >format_bold</span
+                    >
+                </button>
+                <button
+                    class="p-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded transition-colors"
+                >
+                    <span class="material-symbols-outlined text-[20px]"
+                        >format_italic</span
+                    >
+                </button>
+                <button
+                    class="p-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded transition-colors"
+                >
+                    <span class="material-symbols-outlined text-[20px]"
+                        >format_underlined</span
+                    >
+                </button>
                 <div class="w-px h-6 bg-outline-variant mx-1"></div>
-                <button class="p-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded transition-colors"><span class="material-symbols-outlined text-[20px]">format_list_bulleted</span></button>
-                <button class="p-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded transition-colors"><span class="material-symbols-outlined text-[20px]">format_list_numbered</span></button>
+                <button
+                    class="p-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded transition-colors"
+                >
+                    <span class="material-symbols-outlined text-[20px]"
+                        >format_list_bulleted</span
+                    >
+                </button>
+                <button
+                    class="p-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded transition-colors"
+                >
+                    <span class="material-symbols-outlined text-[20px]"
+                        >format_list_numbered</span
+                    >
+                </button>
                 <div class="w-px h-6 bg-outline-variant mx-1"></div>
-                <button class="p-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded transition-colors"><span class="material-symbols-outlined text-[20px]">link</span></button>
+                <button
+                    class="p-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded transition-colors"
+                >
+                    <span class="material-symbols-outlined text-[20px]"
+                        >link</span
+                    >
+                </button>
             </div>
-            <textarea class="flex-1 w-full resize-none border-none focus:ring-0 p-0 text-body-lg text-on-surface bg-transparent leading-relaxed" placeholder="Start typing or use AI to craft your message..."></textarea>
+            <textarea
+                class="flex-1 w-full resize-none border-none focus:ring-0 p-0 text-body-lg text-on-surface bg-transparent leading-relaxed"
+                placeholder="Start typing or use AI to craft your message..."
+            ></textarea>
             <!-- Floating AI Action -->
             <div class="absolute bottom-4 right-4">
-                <button class="bg-primary text-on-primary px-6 py-3 rounded-full shadow-lg hover:bg-surface-tint transition-all active:scale-95 flex items-center gap-2 font-label-md text-label-md tracking-wide">
-                    <span class="material-symbols-outlined text-[18px]" data-weight="fill" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+                <button
+                    class="bg-primary text-on-primary px-6 py-3 rounded-full shadow-lg hover:bg-surface-tint transition-all active:scale-95 flex items-center gap-2 font-label-md text-label-md tracking-wide"
+                >
+                    <span
+                        class="material-symbols-outlined text-[18px]"
+                        data-weight="fill"
+                        style="font-variation-settings: &quot;FILL&quot; 1"
+                        >auto_awesome</span
+                    >
                     Compose with AI
                 </button>
             </div>
         </div>
         <!-- Bottom Action Bar -->
-        <div class="mt-6 pt-4 border-t border-surface-variant flex justify-between items-center">
-            <button class="text-on-surface-variant hover:text-error transition-colors flex items-center gap-1 text-sm font-label-md">
-                <span class="material-symbols-outlined text-[18px]">delete</span> Discard
+        <div
+            class="mt-6 pt-4 border-t border-surface-variant flex justify-between items-center"
+        >
+            <button
+                class="text-on-surface-variant hover:text-error transition-colors flex items-center gap-1 text-sm font-label-md"
+            >
+                <span class="material-symbols-outlined text-[18px]"
+                    >delete</span
+                >
+                Discard
             </button>
             <div class="flex gap-3">
-                <button class="px-4 py-2 rounded-lg border border-outline-variant text-on-surface hover:bg-surface-container-low transition-colors font-label-md text-label-md">Save Draft</button>
-                <button class="px-6 py-2 rounded-lg bg-on-surface text-surface-container-lowest hover:bg-on-surface/90 transition-colors font-label-md text-label-md flex items-center gap-2">
-                    Send <span class="material-symbols-outlined text-[16px]">send</span>
+                <button
+                    class="px-4 py-2 rounded-lg border border-outline-variant text-on-surface hover:bg-surface-container-low transition-colors font-label-md text-label-md"
+                >
+                    Save Draft
+                </button>
+                <button
+                    class="px-6 py-2 rounded-lg bg-on-surface text-surface-container-lowest hover:bg-on-surface/90 transition-colors font-label-md text-label-md flex items-center gap-2"
+                >
+                    Send
+                    <span class="material-symbols-outlined text-[16px]"
+                        >send</span
+                    >
                 </button>
             </div>
         </div>
@@ -62,56 +137,137 @@
     <!-- AI Assistant Sidebar -->
     <aside class="w-80 flex flex-col gap-gutter shrink-0">
         <!-- AI Prompt Input -->
-        <div class="bg-surface-container-low rounded-xl p-card-padding border border-surface-variant shadow-sm relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-32 h-32 bg-tertiary-fixed-dim/20 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"></div>
-            <h3 class="font-h2 text-h2 text-on-surface mb-3 flex items-center gap-2">
-                <span class="material-symbols-outlined text-[20px] text-primary" data-weight="fill" style="font-variation-settings: 'FILL' 1;">auto_awesome</span> AI Writer
+        <div
+            class="bg-surface-container-low rounded-xl p-card-padding border border-surface-variant shadow-sm relative overflow-hidden"
+        >
+            <div
+                class="absolute top-0 right-0 w-32 h-32 bg-tertiary-fixed-dim/20 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"
+            ></div>
+            <h3
+                class="font-h2 text-h2 text-on-surface mb-3 flex items-center gap-2"
+            >
+                <span
+                    class="material-symbols-outlined text-[20px] text-primary"
+                    data-weight="fill"
+                    style="font-variation-settings: &quot;FILL&quot; 1"
+                    >auto_awesome</span
+                >
+                AI Writer
             </h3>
-            <p class="font-body-md text-body-md text-on-surface-variant mb-4">Briefly describe what you want to say, and let the AI draft it for you.</p>
-            <textarea class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none h-24 mb-3 text-on-surface" placeholder="e.g., Ask Alex for an update on the Q3 report and suggest a meeting next Tuesday."></textarea>
-            <button class="w-full bg-primary text-on-primary py-2.5 rounded-lg font-label-md text-label-md hover:bg-surface-tint transition-colors flex justify-center items-center gap-2">
-                Generate Draft <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+            <p class="font-body-md text-body-md text-on-surface-variant mb-4">
+                Briefly describe what you want to say, and let the AI draft it
+                for you.
+            </p>
+            <textarea
+                class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none h-24 mb-3 text-on-surface"
+                placeholder="e.g., Ask Alex for an update on the Q3 report and suggest a meeting next Tuesday."
+            ></textarea>
+            <button
+                class="w-full bg-primary text-on-primary py-2.5 rounded-lg font-label-md text-label-md hover:bg-surface-tint transition-colors flex justify-center items-center gap-2"
+            >
+                Generate Draft
+                <span class="material-symbols-outlined text-[16px]"
+                    >arrow_forward</span
+                >
             </button>
         </div>
         <!-- Tone Modifiers -->
-        <div class="bg-surface-container-lowest rounded-xl p-card-padding border border-surface-variant shadow-sm">
-            <h4 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-4">Tone &amp; Style</h4>
+        <div
+            class="bg-surface-container-lowest rounded-xl p-card-padding border border-surface-variant shadow-sm"
+        >
+            <h4
+                class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-4"
+            >
+                Tone &amp; Style
+            </h4>
             <div class="flex flex-wrap gap-2">
-                <button class="px-3 py-1.5 rounded-full border border-primary bg-primary/10 text-primary font-body-md text-body-md hover:bg-primary/20 transition-colors">Professional</button>
-                <button class="px-3 py-1.5 rounded-full border border-outline-variant text-on-surface-variant font-body-md text-body-md hover:bg-surface-container-low transition-colors">Casual</button>
-                <button class="px-3 py-1.5 rounded-full border border-outline-variant text-on-surface-variant font-body-md text-body-md hover:bg-surface-container-low transition-colors">Direct</button>
-                <button class="px-3 py-1.5 rounded-full border border-outline-variant text-on-surface-variant font-body-md text-body-md hover:bg-surface-container-low transition-colors">Persuasive</button>
+                <button
+                    class="px-3 py-1.5 rounded-full border border-primary bg-primary/10 text-primary font-body-md text-body-md hover:bg-primary/20 transition-colors"
+                >
+                    Professional
+                </button>
+                <button
+                    class="px-3 py-1.5 rounded-full border border-outline-variant text-on-surface-variant font-body-md text-body-md hover:bg-surface-container-low transition-colors"
+                >
+                    Casual
+                </button>
+                <button
+                    class="px-3 py-1.5 rounded-full border border-outline-variant text-on-surface-variant font-body-md text-body-md hover:bg-surface-container-low transition-colors"
+                >
+                    Direct
+                </button>
+                <button
+                    class="px-3 py-1.5 rounded-full border border-outline-variant text-on-surface-variant font-body-md text-body-md hover:bg-surface-container-low transition-colors"
+                >
+                    Persuasive
+                </button>
             </div>
         </div>
         <!-- Quick Templates -->
-        <div class="bg-surface-container-lowest rounded-xl p-card-padding border border-surface-variant shadow-sm flex-1">
-            <h4 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-4">Quick Prompts</h4>
+        <div
+            class="bg-surface-container-lowest rounded-xl p-card-padding border border-surface-variant shadow-sm flex-1"
+        >
+            <h4
+                class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-4"
+            >
+                Quick Prompts
+            </h4>
             <div class="flex flex-col gap-2">
-                <button class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container-low border border-transparent hover:border-outline-variant/30 transition-all text-left w-full group">
-                    <span class="p-2 bg-secondary-fixed text-on-secondary-fixed rounded-lg group-hover:bg-secondary-fixed-dim transition-colors">
-                        <span class="material-symbols-outlined text-[18px]">replay</span>
+                <button
+                    class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container-low border border-transparent hover:border-outline-variant/30 transition-all text-left w-full group"
+                >
+                    <span
+                        class="p-2 bg-secondary-fixed text-on-secondary-fixed rounded-lg group-hover:bg-secondary-fixed-dim transition-colors"
+                    >
+                        <span class="material-symbols-outlined text-[18px]"
+                            >replay</span
+                        >
                     </span>
                     <div>
-                        <div class="font-body-md font-semibold text-on-surface">Follow up</div>
-                        <div class="text-[11px] text-on-surface-variant">Polite nudge on previous email</div>
+                        <div class="font-body-md font-semibold text-on-surface">
+                            Follow up
+                        </div>
+                        <div class="text-[11px] text-on-surface-variant">
+                            Polite nudge on previous email
+                        </div>
                     </div>
                 </button>
-                <button class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container-low border border-transparent hover:border-outline-variant/30 transition-all text-left w-full group">
-                    <span class="p-2 bg-tertiary-fixed text-on-tertiary-fixed rounded-lg group-hover:bg-tertiary-fixed-dim transition-colors">
-                        <span class="material-symbols-outlined text-[18px]">calendar_month</span>
+                <button
+                    class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container-low border border-transparent hover:border-outline-variant/30 transition-all text-left w-full group"
+                >
+                    <span
+                        class="p-2 bg-tertiary-fixed text-on-tertiary-fixed rounded-lg group-hover:bg-tertiary-fixed-dim transition-colors"
+                    >
+                        <span class="material-symbols-outlined text-[18px]"
+                            >calendar_month</span
+                        >
                     </span>
                     <div>
-                        <div class="font-body-md font-semibold text-on-surface">Schedule Meeting</div>
-                        <div class="text-[11px] text-on-surface-variant">Propose times to connect</div>
+                        <div class="font-body-md font-semibold text-on-surface">
+                            Schedule Meeting
+                        </div>
+                        <div class="text-[11px] text-on-surface-variant">
+                            Propose times to connect
+                        </div>
                     </div>
                 </button>
-                <button class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container-low border border-transparent hover:border-outline-variant/30 transition-all text-left w-full group">
-                    <span class="p-2 bg-error-container text-on-error-container rounded-lg group-hover:bg-error-container/80 transition-colors">
-                        <span class="material-symbols-outlined text-[18px]">close</span>
+                <button
+                    class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container-low border border-transparent hover:border-outline-variant/30 transition-all text-left w-full group"
+                >
+                    <span
+                        class="p-2 bg-error-container text-on-error-container rounded-lg group-hover:bg-error-container/80 transition-colors"
+                    >
+                        <span class="material-symbols-outlined text-[18px]"
+                            >close</span
+                        >
                     </span>
                     <div>
-                        <div class="font-body-md font-semibold text-on-surface">Polite Decline</div>
-                        <div class="text-[11px] text-on-surface-variant">Gracefully say no to an offer</div>
+                        <div class="font-body-md font-semibold text-on-surface">
+                            Polite Decline
+                        </div>
+                        <div class="text-[11px] text-on-surface-variant">
+                            Gracefully say no to an offer
+                        </div>
                     </div>
                 </button>
             </div>

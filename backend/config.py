@@ -6,11 +6,12 @@
 # ---------------------------------------------------------------
 
 import os
+
 from dotenv import load_dotenv
 
 # Load the .env file located one directory above backend/
 # This makes all values available via os.getenv()
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))
 
 # --- OpenAI ---
 # The API key used to call GPT-4o / GPT-4o-mini for email processing
@@ -20,7 +21,8 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 # These three values come from the Google Cloud Console credentials page
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
-REDIRECT_URI = os.getenv("REDIRECT_URI", "http://localhost:8000/auth/callback")
+# Must match exactly what you set in Google Cloud Console → Credentials → Authorized redirect URIs
+REDIRECT_URI = os.getenv("REDIRECT_URI", "http://localhost:8000/api/auth/callback")
 
 # --- App Secrets ---
 # A random string used to sign session cookies / tokens

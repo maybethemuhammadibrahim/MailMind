@@ -5,12 +5,15 @@
 # registers all route modules under their URL prefixes.
 # ---------------------------------------------------------------
 
+# Import the database initializer — creates all tables on first run
+from db.sqlite import initialize_database
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 # Import each route module — these are separate files in routes/
-from routes import auth, emails, pipeline, todos, meetings, orders, analytics, pages
-from fastapi.staticfiles import StaticFiles
+from routes import analytics, auth, emails, meetings, orders, pages, pipeline, todos
+
 
 def create_app():
     """
@@ -25,7 +28,7 @@ def create_app():
     app = FastAPI(
         title="MailMind API",
         description="AI-powered email assistant backend",
-        version="0.1.0"
+        version="0.1.0",
     )
 
     # --- CORS configuration ---
@@ -35,12 +38,12 @@ def create_app():
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[
-            "http://localhost:5173",   # Vite dev server
+            "http://localhost:5173",  # Vite dev server
             "http://127.0.0.1:5173",  # Alternative localhost
         ],
-        allow_credentials=True,       # Allow cookies / auth headers
-        allow_methods=["*"],          # Allow all HTTP methods (GET, POST, etc.)
-        allow_headers=["*"],          # Allow all headers
+        allow_credentials=True,  # Allow cookies / auth headers
+        allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
+        allow_headers=["*"],  # Allow all headers
     )
 
     # --- Static Files ---
@@ -61,11 +64,25 @@ def create_app():
     app.include_router(orders.router, prefix="/api/orders", tags=["Orders"])
     app.include_router(analytics.router, prefix="/api/analytics", tags=["Analytics"])
 
+    # --- Startup: initialize the database ---
+    # This runs initialize_database() the moment the app starts.
+    # It uses CREATE TABLE IF NOT EXISTS, so it's safe to call every
+    # time — it only creates tables that don't exist yet.
+    @app.on_event("startup")
+    def on_startup():
+        """
+        Runs once when uvicorn starts the app. Ensures all SQLite
+        tables exist before the first request is handled.
+        """
+        print("[STARTUP] Initializing database...")
+        initialize_database()
+        print("[STARTUP] Database ready.")
+
     return app
+
 
 # Create the app instance — uvicorn looks for this variable
 app = create_app()
-
 
 
 @app.get("/api/health")
