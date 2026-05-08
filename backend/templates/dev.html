@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>MailMind — Developer Console</title>
+        <link href="/static/style.css" rel="stylesheet" />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            pre {
+                white-space: pre-wrap;
+                word-break: break-all;
+            }
+            .dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                display: inline-block;
+                flex-shrink: 0;
+            }
+            .dot-green {
+                background: #22c55e;
+                box-shadow: 0 0 6px #22c55e88;
+            }
+            .dot-red {
+                background: #ef4444;
+                box-shadow: 0 0 6px #ef444488;
+            }
+            .dot-yellow {
+                background: #f59e0b;
+                box-shadow: 0 0 6px #f59e0b88;
+            }
+        </style>
+    </head>
+    <body class="bg-surface-bright text-on-surface font-body-md min-h-screen">
+        <!-- ── Header ─────────────────────────────────────────────────────────── -->
+        <header
+            class="bg-surface-container-lowest border-b border-surface-dim px-8 py-4 flex items-center justify-between sticky top-0 z-10"
+        >
+            <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-primary text-[24px]"
+                    >terminal</span
+                >
+                <h1 class="font-h2 text-[18px] font-bold text-on-surface">
+                    Developer Console
+                </h1>
+                <span
+                    class="text-[11px] font-bold px-2 py-0.5 bg-error-container text-on-error-container rounded-full uppercase tracking-wider"
+                    >Dev Only</span
+                >
+            </div>
+            <a
+                href="/"
+                class="flex items-center gap-1 text-[13px] text-on-surface-variant hover:text-primary transition-colors"
+            >
+                <span class="material-symbols-outlined text-[16px]"
+                    >arrow_back</span
+                >
+                Back to App
+            </a>
+        </header>
+
+        <div class="max-w-7xl mx-auto px-8 py-6 flex flex-col gap-6">
+            <!-- ── Status Cards ─────────────────────────────────────────────── -->
+            <section>
+                <h2
+                    class="font-label-md text-[11px] font-bold text-on-surface-variant uppercase tracking-widest mb-3"
+                >
+                    System Status
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Gmail -->
+                    <div
+                        class="bg-surface-container-lowest border border-surface-dim rounded-xl p-4 flex flex-col gap-2"
+                    >
+                        <div class="flex items-center gap-2 mb-1">
+                            <span id="dot-gmail" class="dot dot-yellow"></span>
+                            <span
+                                class="font-body-md font-semibold text-[14px] text-on-surface"
+                                >Gmail OAuth</span
+                            >
+                        </div>
+                        <p
+                            id="status-gmail"
+                            class="font-body-md text-[12px] text-on-surface-variant"
+                        >
+                            Checking…
+                        </p>
+                        <a
+                            href="/api/auth/login"
+                            class="mt-2 text-[12px] text-primary hover:underline flex items-center gap-1 w-fit"
+                        >
+                            <span class="material-symbols-outlined text-[14px]"
+                                >open_in_new</span
+                            >
+                            Re-connect Gmail
+                        </a>
+                    </div>
+
+                    <!-- AI API -->
+                    <div
+                        class="bg-surface-container-lowest border border-surface-dim rounded-xl p-4 flex flex-col gap-2"
+                    >
+                        <div class="flex items-center gap-2 mb-1">
+                            <span id="dot-ai" class="dot dot-yellow"></span>
+                            <span
+                                class="font-body-md font-semibold text-[14px] text-on-surface"
+                                >Gemini AI API</span
+                            >
+                        </div>
+                        <p
+                            id="status-ai"
+                            class="font-body-md text-[12px] text-on-surface-variant"
+                        >
+                            Checking…
+                        </p>
+                        <a
+                            href="https://ai.google.dev/"
+                            target="_blank"
+                            class="mt-2 text-[12px] text-primary hover:underline flex items-center gap-1 w-fit"
+                        >
+                            <span class="material-symbols-outlined text-[14px]"
+                                >open_in_new</span
+                            >
+                            Get free API key
+                        </a>
+                    </div>
+
+                    <!-- Database -->
+                    <div
+                        class="bg-surface-container-lowest border border-surface-dim rounded-xl p-4 flex flex-col gap-2"
+                    >
+                        <div class="flex items-center gap-2 mb-1">
+                            <span id="dot-db" class="dot dot-yellow"></span>
+                            <span
+                                class="font-body-md font-semibold text-[14px] text-on-surface"
+                                >SQLite Database</span
+                            >
+                        </div>
+                        <p
+                            id="status-db"
+                            class="font-body-md text-[12px] text-on-surface-variant"
+                        >
+                            Checking…
+                        </p>
+                        <button
+                            onclick="loadDbStats()"
+                            class="mt-2 text-[12px] text-primary hover:underline flex items-center gap-1 w-fit"
+                        >
+                            <span class="material-symbols-outlined text-[14px]"
+                                >refresh</span
+                            >
+                            Refresh stats
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── Two-column grid ─────────────────────────────────────────── -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- ── Unread Emails ──────────────────────────────────────── -->
+                <section
+                    class="bg-surface-container-lowest border border-surface-dim rounded-xl overflow-hidden flex flex-col"
+                >
+                    <div
+                        class="flex items-center justify-between px-4 py-3 border-b border-surface-dim bg-surface-bright/50"
+                    >
+                        <h2
+                            class="font-body-md font-semibold text-[14px] text-on-surface flex items-center gap-2"
+                        >
+                            <span
+                                class="material-symbols-outlined text-[18px] text-primary"
+                                >mail</span
+                            >
+                            Unread Emails (last 24h)
+                        </h2>
+                        <button
+                            onclick="fetchEmails()"
+                            id="fetch-btn"
+                            class="flex items-center gap-1 px-3 py-1.5 bg-primary text-on-primary text-[12px] font-bold rounded-lg hover:opacity-90 transition-opacity"
+                        >
+                            <span class="material-symbols-outlined text-[14px]"
+                                >sync</span
+                            >
+                            Fetch
+                        </button>
+                    </div>
+
+                    <!-- Summary bar -->
+                    <div
+                        id="email-summary"
+                        class="hidden px-4 py-2 bg-surface-container-low border-b border-surface-dim text-[12px] text-on-surface-variant"
+                    ></div>
+
+                    <!-- Table -->
+                    <div class="flex-1 overflow-auto">
+                        <div
+                            id="email-loading"
+                            class="hidden px-4 py-8 text-center text-[13px] text-on-surface-variant"
+                        >
+                            <span
+                                class="material-symbols-outlined text-[32px] text-on-surface-variant/40 block mb-2"
+                                >hourglass_empty</span
+                            >
+                            Fetching from Gmail…
+                        </div>
+                        <div
+                            id="email-empty"
+                            class="px-4 py-8 text-center text-[13px] text-on-surface-variant"
+                        >
+                            <span
+                                class="material-symbols-outlined text-[32px] text-on-surface-variant/40 block mb-2"
+                                >inbox</span
+                            >
+                            Click Fetch to load emails
+                        </div>
+                        <table
+                            id="email-table"
+                            class="hidden w-full text-[12px]"
+                        >
+                            <thead
+                                class="bg-surface-container-low text-on-surface-variant text-[11px] uppercase tracking-wider"
+                            >
+                                <tr>
+                                    <th
+                                        class="px-4 py-2 text-left font-semibold"
+                                    >
+                                        Sender
+                                    </th>
+                                    <th
+                                        class="px-4 py-2 text-left font-semibold"
+                                    >
+                                        Subject
+                                    </th>
+                                    <th
+                                        class="px-4 py-2 text-left font-semibold"
+                                    >
+                                        Time
+                                    </th>
+                                    <th
+                                        class="px-4 py-2 text-center font-semibold"
+                                    >
+                                        In DB
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody
+                                id="email-tbody"
+                                class="divide-y divide-surface-dim"
+                            ></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- ── AI API Test ────────────────────────────────────────── -->
+                <section
+                    class="bg-surface-container-lowest border border-surface-dim rounded-xl overflow-hidden flex flex-col"
+                >
+                    <div
+                        class="flex items-center justify-between px-4 py-3 border-b border-surface-dim bg-surface-bright/50"
+                    >
+                        <h2
+                            class="font-body-md font-semibold text-[14px] text-on-surface flex items-center gap-2"
+                        >
+                            <span
+                                class="material-symbols-outlined text-[18px] text-primary"
+                                >auto_awesome</span
+                            >
+                            AI Classification Test
+                        </h2>
+                        <span
+                            id="ai-latency"
+                            class="hidden text-[11px] text-on-surface-variant bg-surface-container-low px-2 py-1 rounded-full"
+                        ></span>
+                    </div>
+
+                    <div class="p-4 flex flex-col gap-3 flex-1">
+                        <!-- Inputs -->
+                        <div class="flex flex-col gap-2">
+                            <input
+                                id="ai-subject"
+                                type="text"
+                                placeholder="Email subject…"
+                                class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                                value="Urgent: Q4 budget review meeting tomorrow at 9am"
+                            />
+                            <input
+                                id="ai-sender"
+                                type="text"
+                                placeholder="Sender email…"
+                                class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+                                value="cfo@company.com"
+                            />
+                            <textarea
+                                id="ai-body"
+                                rows="4"
+                                placeholder="Email body…"
+                                class="w-full bg-surface-container-low border border-outline-variant rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary resize-none"
+                            >
+Hi team, we need everyone in the finance review meeting tomorrow at 9am sharp. Please bring your Q4 projections and be ready to present. This is mandatory attendance. Reply to confirm you received this.</textarea
+                            >
+                        </div>
+
+                        <button
+                            onclick="testAI()"
+                            id="ai-btn"
+                            class="flex items-center justify-center gap-2 px-4 py-2 bg-primary text-on-primary text-[13px] font-bold rounded-lg hover:opacity-90 transition-opacity"
+                        >
+                            <span class="material-symbols-outlined text-[16px]"
+                                >bolt</span
+                            >
+                            Run Classification
+                        </button>
+
+                        <!-- Result -->
+                        <div
+                            id="ai-result-wrap"
+                            class="flex-1 flex flex-col gap-2 hidden"
+                        >
+                            <div class="flex items-center justify-between">
+                                <span
+                                    class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant"
+                                    >Response</span
+                                >
+                                <span
+                                    id="ai-model-label"
+                                    class="text-[11px] text-on-surface-variant"
+                                ></span>
+                            </div>
+                            <pre
+                                id="ai-result"
+                                class="flex-1 bg-surface-container-high rounded-lg p-3 text-[12px] font-mono text-on-surface overflow-auto min-h-[120px]"
+                            ></pre>
+                        </div>
+
+                        <div
+                            id="ai-error"
+                            class="hidden p-3 bg-error-container text-on-error-container rounded-lg text-[13px]"
+                        ></div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- ── Database Stats ──────────────────────────────────────────── -->
+            <section
+                class="bg-surface-container-lowest border border-surface-dim rounded-xl overflow-hidden"
+            >
+                <div
+                    class="px-4 py-3 border-b border-surface-dim bg-surface-bright/50 flex items-center gap-2"
+                >
+                    <span
+                        class="material-symbols-outlined text-[18px] text-primary"
+                        >database</span
+                    >
+                    <h2
+                        class="font-body-md font-semibold text-[14px] text-on-surface"
+                    >
+                        Database Tables
+                    </h2>
+                </div>
+                <div
+                    id="db-stats"
+                    class="grid grid-cols-2 md:grid-cols-5 divide-x divide-y divide-surface-dim"
+                >
+                    <!-- populated by JS -->
+                </div>
+            </section>
+        </div>
+        <!-- /max-w -->
+
+        <script>
+            // ─── Helpers ──────────────────────────────────────────────────────────────
+
+            function setDot(id, ok) {
+                const el = document.getElementById(id);
+                el.className =
+                    "dot " +
+                    (ok === true
+                        ? "dot-green"
+                        : ok === false
+                          ? "dot-red"
+                          : "dot-yellow");
+            }
+
+            function fmtTime(isoStr) {
+                if (!isoStr) return "—";
+                const d = new Date(isoStr);
+                return d.toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                });
+            }
+
+            // ─── Status check ─────────────────────────────────────────────────────────
+
+            async function loadStatus() {
+                try {
+                    const res = await fetch("/api/dev/status");
+                    const data = await res.json();
+
+                    // Gmail
+                    setDot("dot-gmail", data.gmail.ok);
+                    document.getElementById("status-gmail").textContent =
+                        data.gmail.detail;
+
+                    // AI
+                    setDot("dot-ai", data.ai.ok);
+                    document.getElementById("status-ai").textContent =
+                        data.ai.detail +
+                        (data.ai.model ? " · " + data.ai.model : "");
+
+                    // DB
+                    setDot("dot-db", data.db.ok);
+                    document.getElementById("status-db").textContent =
+                        data.db.detail;
+                } catch (err) {
+                    console.error("Status check failed:", err);
+                }
+            }
+
+            // ─── DB Stats ─────────────────────────────────────────────────────────────
+
+            async function loadDbStats() {
+                const wrap = document.getElementById("db-stats");
+                wrap.innerHTML =
+                    '<div class="col-span-5 px-4 py-4 text-[13px] text-on-surface-variant text-center">Loading…</div>';
+                try {
+                    const res = await fetch("/api/dev/db-stats");
+                    const data = await res.json();
+
+                    if (data.error) {
+                        wrap.innerHTML = `<div class="col-span-5 px-4 py-4 text-[13px] text-error">${data.error}</div>`;
+                        return;
+                    }
+
+                    wrap.innerHTML = Object.entries(data)
+                        .map(
+                            ([table, count]) => `
+            <div class="px-6 py-4 flex flex-col gap-1">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">${table.replace("_", " ")}</span>
+                <span class="font-h2 text-[22px] font-bold text-on-surface">${count}</span>
+                <span class="text-[11px] text-on-surface-variant">rows</span>
+            </div>`,
+                        )
+                        .join("");
+                } catch (err) {
+                    wrap.innerHTML = `<div class="col-span-5 px-4 py-4 text-[13px] text-error">Failed: ${err}</div>`;
+                }
+            }
+
+            // ─── Fetch Emails ─────────────────────────────────────────────────────────
+
+            async function fetchEmails() {
+                const btn = document.getElementById("fetch-btn");
+                const empty = document.getElementById("email-empty");
+                const load = document.getElementById("email-loading");
+                const table = document.getElementById("email-table");
+                const tbody = document.getElementById("email-tbody");
+                const sumBar = document.getElementById("email-summary");
+
+                btn.disabled = true;
+                empty.classList.add("hidden");
+                table.classList.add("hidden");
+                load.classList.remove("hidden");
+                sumBar.classList.add("hidden");
+
+                try {
+                    const res = await fetch("/api/dev/emails");
+                    const data = await res.json();
+                    load.classList.add("hidden");
+
+                    if (data.error) {
+                        empty.textContent = "⚠ " + data.error;
+                        empty.classList.remove("hidden");
+                        btn.disabled = false;
+                        return;
+                    }
+
+                    if (!data.emails || data.emails.length === 0) {
+                        empty.textContent = "No unread emails in the last 24h.";
+                        empty.classList.remove("hidden");
+                        btn.disabled = false;
+                        return;
+                    }
+
+                    // Summary bar
+                    sumBar.textContent = `${data.total} email(s) found · ${data.already_in_db} already processed in DB · ${data.total - data.already_in_db} new`;
+                    sumBar.classList.remove("hidden");
+
+                    // Table rows
+                    tbody.innerHTML = data.emails
+                        .map(
+                            (e) => `
+            <tr class="hover:bg-surface-bright/60 transition-colors">
+                <td class="px-4 py-2 max-w-[140px] truncate" title="${e.sender_email}">
+                    <span class="font-semibold">${e.sender || e.sender_email}</span>
+                </td>
+                <td class="px-4 py-2 max-w-[200px] truncate" title="${e.subject}">${e.subject}</td>
+                <td class="px-4 py-2 whitespace-nowrap text-on-surface-variant">${fmtTime(e.timestamp)}</td>
+                <td class="px-4 py-2 text-center">
+                    ${
+                        e.in_db
+                            ? '<span class="text-[10px] font-bold px-1.5 py-0.5 bg-green-100 text-green-700 rounded">✓ yes</span>'
+                            : '<span class="text-[10px] font-bold px-1.5 py-0.5 bg-surface-container-high text-on-surface-variant rounded">no</span>'
+                    }
+                </td>
+            </tr>`,
+                        )
+                        .join("");
+
+                    table.classList.remove("hidden");
+                } catch (err) {
+                    load.classList.add("hidden");
+                    empty.textContent = "⚠ Request failed: " + err;
+                    empty.classList.remove("hidden");
+                }
+                btn.disabled = false;
+            }
+
+            // ─── AI Test ──────────────────────────────────────────────────────────────
+
+            async function testAI() {
+                const btn = document.getElementById("ai-btn");
+                const resWrap = document.getElementById("ai-result-wrap");
+                const resPre = document.getElementById("ai-result");
+                const errDiv = document.getElementById("ai-error");
+                const latency = document.getElementById("ai-latency");
+                const modelLbl = document.getElementById("ai-model-label");
+
+                btn.disabled = true;
+                btn.textContent = "Running…";
+                resWrap.classList.add("hidden");
+                errDiv.classList.add("hidden");
+                latency.classList.add("hidden");
+
+                const payload = {
+                    subject: document.getElementById("ai-subject").value,
+                    sender: document.getElementById("ai-sender").value,
+                    body: document.getElementById("ai-body").value,
+                };
+
+                try {
+                    const res = await fetch("/api/dev/test-ai", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload),
+                    });
+
+                    // Read raw text first so we can show it if JSON.parse fails
+                    const raw = await res.text();
+                    let data;
+                    try {
+                        data = JSON.parse(raw);
+                    } catch (_) {
+                        errDiv.textContent = `⚠ Server returned non-JSON (HTTP ${res.status}):\n${raw.slice(0, 300)}`;
+                        errDiv.classList.remove("hidden");
+                        btn.disabled = false;
+                        btn.innerHTML =
+                            '<span class="material-symbols-outlined text-[16px]">bolt</span> Run Classification';
+                        return;
+                    }
+
+                    if (data.ok) {
+                        resPre.textContent = JSON.stringify(
+                            data.result,
+                            null,
+                            2,
+                        );
+                        modelLbl.textContent = data.model;
+                        latency.textContent = data.latency_ms + " ms";
+                        latency.classList.remove("hidden");
+                        resWrap.classList.remove("hidden");
+                    } else {
+                        errDiv.textContent =
+                            "⚠ " + (data.error || "Unknown error");
+                        errDiv.classList.remove("hidden");
+                    }
+                } catch (err) {
+                    errDiv.textContent = "⚠ Request failed: " + err;
+                    errDiv.classList.remove("hidden");
+                }
+
+                btn.disabled = false;
+                btn.innerHTML =
+                    '<span class="material-symbols-outlined text-[16px]">bolt</span> Run Classification';
+            }
+
+            // ─── Init ──────────────────────────────────────────────────────────────────
+
+            loadStatus();
+            loadDbStats();
+        </script>
+    </body>
+</html>

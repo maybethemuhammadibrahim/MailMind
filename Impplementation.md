@@ -476,9 +476,9 @@ Here's your optimised, comprehensive prompt:
 > ## Final deliverable checklist (add to README)
 >
 > ```
-> Phase 1  - [ ] Project runs, sidebar navigation works, all pages load
-> Phase 2  - [ ] Gmail OAuth login works, unread emails fetched
-> Phase 3  - [ ] Classify / summarize / draft pipeline returns correct JSON
+> Phase 1  - [ DONE ] Project runs, sidebar navigation works, all pages load
+> Phase 2  - [ DONE ] Gmail OAuth login works, unread emails fetched
+> Phase 3  - [ DONE ] Classify / summarize / draft pipeline returns correct JSON
 > Phase 4  - [ ] Todos and meetings extracted and stored in SQLite
 > Phase 5  - [ ] Order emails detected and structured data stored
 > Phase 6  - [ ] Analytics endpoint returns correct stats

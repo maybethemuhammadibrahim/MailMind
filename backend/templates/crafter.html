@@ -18,8 +18,9 @@ block header_title %}Crafter{% endblock %} {% block content %}
                     class="flex-1 flex gap-2 items-center bg-surface-container-lowest border border-outline-variant rounded-lg px-3 py-2 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all"
                 >
                     <input
+                        id="crafter-to"
                         class="flex-1 bg-transparent border-none focus:ring-0 p-0 text-body-lg text-on-surface"
-                        placeholder="Add recipients..."
+                        placeholder="Add recipient..."
                         type="text"
                     />
                 </div>
@@ -30,6 +31,7 @@ block header_title %}Crafter{% endblock %} {% block content %}
                     >Subject</label
                 >
                 <input
+                    id="crafter-subject"
                     class="flex-1 bg-surface-container-lowest border border-outline-variant rounded-lg px-3 py-2 text-h2 font-h2 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-on-surface"
                     placeholder="Subject"
                     type="text"
@@ -87,6 +89,7 @@ block header_title %}Crafter{% endblock %} {% block content %}
                 </button>
             </div>
             <textarea
+                id="crafter-body"
                 class="flex-1 w-full resize-none border-none focus:ring-0 p-0 text-body-lg text-on-surface bg-transparent leading-relaxed"
                 placeholder="Start typing or use AI to craft your message..."
             ></textarea>
@@ -124,6 +127,8 @@ block header_title %}Crafter{% endblock %} {% block content %}
                     Save Draft
                 </button>
                 <button
+                    id="crafter-send-btn"
+                    onclick="sendCrafterEmail()"
                     class="px-6 py-2 rounded-lg bg-on-surface text-surface-container-lowest hover:bg-on-surface/90 transition-colors font-label-md text-label-md flex items-center gap-2"
                 >
                     Send
@@ -133,6 +138,10 @@ block header_title %}Crafter{% endblock %} {% block content %}
                 </button>
             </div>
         </div>
+        <p
+            id="crafter-send-status"
+            class="hidden mt-3 text-sm text-on-surface-variant"
+        ></p>
     </div>
     <!-- AI Assistant Sidebar -->
     <aside class="w-80 flex flex-col gap-gutter shrink-0">
@@ -274,4 +283,56 @@ block header_title %}Crafter{% endblock %} {% block content %}
         </div>
     </aside>
 </div>
+{% endblock %}
+{% block scripts %}
+<script>
+    function setCrafterStatus(message, isError = false) {
+        const el = document.getElementById("crafter-send-status");
+        el.textContent = message;
+        el.classList.remove("hidden");
+        el.className = `mt-3 text-sm ${isError ? "text-error" : "text-primary"}`;
+    }
+
+    async function sendCrafterEmail() {
+        const to = document.getElementById("crafter-to").value.trim();
+        const subject = document.getElementById("crafter-subject").value.trim();
+        const body = document.getElementById("crafter-body").value.trim();
+        const btn = document.getElementById("crafter-send-btn");
+        const original = btn.innerHTML;
+
+        if (!to || !subject || !body) {
+            setCrafterStatus("To, subject, and message body are required.", true);
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML =
+            '<span class="material-symbols-outlined text-[16px] animate-spin">autorenew</span> Sending...';
+
+        try {
+            const res = await fetch("/api/emails/send", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ to, subject, body }),
+            });
+            const data = await res.json();
+
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            setCrafterStatus("Email sent successfully.");
+            btn.innerHTML =
+                'Sent <span class="material-symbols-outlined text-[16px]">check</span>';
+            setTimeout(() => {
+                btn.innerHTML = original;
+                btn.disabled = false;
+            }, 1500);
+        } catch (err) {
+            setCrafterStatus(err.message || "Failed to send email.", true);
+            btn.innerHTML = original;
+            btn.disabled = false;
+        }
+    }
+</script>
 {% endblock %}

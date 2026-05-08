@@ -2,11 +2,11 @@
 # ---------------------------------------------------------------
 # Handles all SQLite database operations for MailMind. Creates
 # tables on first run and provides helper functions for CRUD
-# operations on processed emails, todos, meetings, and orders.
+# operations on emails, pipeline results, todos, meetings, orders.
 # ---------------------------------------------------------------
 
+import json
 import sqlite3
-import os
 
 # Import the database path from our central config
 from config import DATABASE_PATH
@@ -38,6 +38,7 @@ def initialize_database():
     with IF NOT EXISTS so it's safe to call multiple times.
 
     Tables created:
+        - emails: full email content + cached AI pipeline results
         - processed_emails: tracks which emails have been processed
         - todos: to-do items extracted from emails
         - meetings: meeting events extracted from emails
@@ -46,6 +47,30 @@ def initialize_database():
     """
     connection = get_connection()
     cursor = connection.cursor()
+
+    # --- Emails ---
+    # Stores the full content of fetched Gmail messages so the email
+    # page can load instantly from DB instead of hitting the Gmail API
+    # on every visit. Also caches AI pipeline results (classification,
+    # summary, draft) so they persist across page reloads and are only
+    # regenerated when the user explicitly clicks "Regenerate".
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS emails (
+            email_id        TEXT PRIMARY KEY,
+            subject         TEXT,
+            sender          TEXT,
+            sender_email    TEXT,
+            body_plain      TEXT,
+            thread_id       TEXT,
+            timestamp       TEXT,
+            classification  TEXT,
+            summary         TEXT,
+            draft_reply     TEXT,
+            draft_confidence REAL,
+            draft_subject   TEXT,
+            fetched_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
 
     # --- Processed Emails ---
     # Tracks which emails have already been through the AI pipeline
@@ -184,3 +209,200 @@ def mark_processed(email_id, subject, sender, category, priority_score, is_spam=
 
     connection.commit()
     connection.close()
+
+
+# ---------------------------------------------------------------------------
+# Email storage helpers — used by the email page for instant loads
+# ---------------------------------------------------------------------------
+
+
+def save_email(email_dict):
+    """
+    Saves a fetched Gmail message to the emails table.
+
+    Uses INSERT OR IGNORE so that re-syncing the same email does NOT
+    overwrite any AI results (classification, summary, draft) that
+    were already stored from a previous pipeline run.
+
+    Args:
+        email_dict (dict): keys must include email_id, subject, sender,
+                           sender_email, body_plain, thread_id, timestamp
+    """
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    # Accept either "id" (Gmail payload shape) or "email_id" keys.
+    email_id = email_dict.get("id") or email_dict.get("email_id")
+    if not email_id:
+        raise ValueError("save_email requires 'id' or 'email_id'")
+
+    # IGNORE means: if this email_id already exists, skip silently.
+    # This preserves any cached AI results on the existing row.
+    cursor.execute(
+        """INSERT OR IGNORE INTO emails
+           (email_id, subject, sender, sender_email, body_plain, thread_id, timestamp)
+           VALUES (?, ?, ?, ?, ?, ?, ?)""",
+        (
+            email_id,
+            email_dict.get("subject", ""),
+            email_dict.get("sender", ""),
+            email_dict.get("sender_email", ""),
+            email_dict.get("body_plain", ""),
+            email_dict.get("thread_id", ""),
+            email_dict.get("timestamp", ""),
+        ),
+    )
+
+    connection.commit()
+    connection.close()
+
+
+def get_recent_emails(limit=5):
+    """
+    Returns the most recent emails from the local database.
+
+    Each row is converted to a dict with nested classification,
+    summary, and draft objects parsed from their JSON strings.
+
+    Args:
+        limit (int): maximum number of emails to return (default 5)
+
+    Returns:
+        list[dict]: emails ordered by timestamp descending
+    """
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute(
+        "SELECT * FROM emails ORDER BY timestamp DESC LIMIT ?",
+        (limit,),
+    )
+    rows = cursor.fetchall()
+    connection.close()
+
+    emails = []
+    for row in rows:
+        email = {
+            "id": row["email_id"],
+            "subject": row["subject"],
+            "sender": row["sender"],
+            "sender_email": row["sender_email"],
+            "body_plain": row["body_plain"],
+            "thread_id": row["thread_id"],
+            "timestamp": row["timestamp"],
+        }
+
+        # Parse cached AI results if they exist
+        # classification and summary are stored as JSON strings
+        if row["classification"]:
+            try:
+                email["classification"] = json.loads(row["classification"])
+            except (json.JSONDecodeError, TypeError):
+                email["classification"] = None
+        else:
+            email["classification"] = None
+
+        if row["summary"]:
+            try:
+                email["summary"] = json.loads(row["summary"])
+            except (json.JSONDecodeError, TypeError):
+                email["summary"] = None
+        else:
+            email["summary"] = None
+
+        # Draft fields are plain values, not JSON
+        if row["draft_reply"]:
+            email["draft"] = {
+                "draft_reply": row["draft_reply"],
+                "confidence_score": row["draft_confidence"],
+                "suggested_subject": row["draft_subject"],
+            }
+        else:
+            email["draft"] = None
+
+        emails.append(email)
+
+    return emails
+
+
+def get_email(email_id):
+    """
+    Fetches a single email by its Gmail message ID.
+
+    Args:
+        email_id (str): the Gmail message ID
+
+    Returns:
+        dict | None: the email row as a dict, or None if not found
+    """
+    connection = get_connection()
+    cursor = connection.cursor()
+    cursor.execute("SELECT * FROM emails WHERE email_id = ?", (email_id,))
+    row = cursor.fetchone()
+    connection.close()
+
+    if row is None:
+        return None
+
+    return dict(row)
+
+
+def save_pipeline_result(email_id, classification, summary, draft):
+    """
+    Persists the full AI pipeline output (classify + summarize + draft)
+    to the emails table so results survive page reloads.
+
+    Args:
+        email_id       (str):  Gmail message ID
+        classification (dict): output from classify_email()
+        summary        (dict): output from summarize_email()
+        draft          (dict): output from draft_reply()
+    """
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """UPDATE emails
+           SET classification = ?, summary = ?,
+               draft_reply = ?, draft_confidence = ?, draft_subject = ?
+           WHERE email_id = ?""",
+        (
+            json.dumps(classification),
+            json.dumps(summary),
+            draft.get("draft_reply", ""),
+            draft.get("confidence_score", 0.5),
+            draft.get("suggested_subject", ""),
+            email_id,
+        ),
+    )
+
+    connection.commit()
+    connection.close()
+    print(f"[DB] Saved pipeline results for {email_id}")
+
+
+def save_draft(email_id, draft_reply, confidence, subject):
+    """
+    Overwrites only the draft columns for an email. Called when
+    the user clicks "Regenerate" — updates the cached draft
+    without re-running classification or summarization.
+
+    Args:
+        email_id    (str):   Gmail message ID
+        draft_reply (str):   the new draft text
+        confidence  (float): confidence score 0.0-1.0
+        subject     (str):   suggested reply subject line
+    """
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """UPDATE emails
+           SET draft_reply = ?, draft_confidence = ?, draft_subject = ?
+           WHERE email_id = ?""",
+        (draft_reply, confidence, subject, email_id),
+    )
+
+    connection.commit()
+    connection.close()
+    print(f"[DB] Updated draft for {email_id}")

@@ -1,21 +1,21 @@
 # MailMind — Project Context
 
 ## Last updated
-Phase 2 — Gmail OAuth and Email Fetching (2026-05-07)
+Phase 3 — AI Pipeline: Classify, Summarize, Draft (2026-05-08)
 
 ## What has been built
 - Project directory structure configured for a FastAPI + Jinja2 monolith
-- Backend: FastAPI app with CORS, UI pages router (`routes/pages.py`), and 7 API route modules prefixed with `/api`
-- Backend: 6 pipeline modules (all with placeholder functions and full docstrings)
+- Backend: FastAPI app with CORS, UI pages router (`routes/pages.py`), and 8 API route modules prefixed with `/api`
+- Backend: 3 AI pipeline modules using **Google Gemini** (not OpenAI) via the native `google-genai` SDK
+- Backend: Shared Gemini client (`pipeline/gemini.py`) with JSON-mode, retry logic, and convenience aliases
 - Backend: SQLite database module with 5 tables (processed_emails, todos, meetings, orders, settings) and deduplication helpers
-- Backend: `config.py` loading env vars from `.env` via python-dotenv (REDIRECT_URI default fixed to `/api/auth/callback`)
-- Backend: `requirements.txt` with pinned Python dependencies (including `jinja2`)
-- Frontend/UI: Jinja2 templates (`base.html`, `home.html`, `email.html`, `crafter.html`, `orders.html`, `settings.html`) replacing React components
+- Backend: `config.py` loading env vars from `.env` via python-dotenv — uses `GEMINI_API_KEY` (no OpenAI key required)
+- Backend: `requirements.txt` with pinned Python dependencies including `google-genai>=2.0.0` (OpenAI dependency removed)
+- Frontend/UI: Jinja2 templates (`base.html`, `home.html`, `email.html`, `crafter.html`, `orders.html`, `settings.html`, `dev.html`)
 - Frontend/UI: Tailwind v4 integration via standalone CLI. `@theme` definitions in `static/input.css`
-- Frontend/UI: Vanilla JS inside `static/app.js` for interactivity and active link management
+- Frontend/UI: Vanilla JS inside templates for interactivity — pipeline calls, inbox sync, analytics rendering
 - Root: `README.md` with complete setup instructions
 - Root: `.env.example` with all required env vars
-- Root: `n8n/workflow.json` placeholder
 
 ### Phase 2 additions
 - **`backend/routes/auth.py`** — Full Gmail OAuth2 flow:
@@ -23,47 +23,97 @@ Phase 2 — Gmail OAuth and Email Fetching (2026-05-07)
   - `GET /api/auth/callback` — exchanges auth code for access + refresh tokens, saves both to `mailmind/token.json`
   - `GET /api/auth/status` — checks if `token.json` exists; used by the settings page JS to show connected/disconnected state
   - `GET /api/auth/logout` — deletes `token.json` to disconnect Gmail
-  - All endpoints have inline comments explaining OAuth2 concepts (scopes, access vs. refresh tokens, why `prompt=consent` is needed)
 - **`backend/routes/emails.py`** — Full Gmail API email fetching:
-  - `GET /api/emails/unread` — fetches unread emails from last 24h via `google-api-python-client`; skips already-processed emails via SQLite `is_processed()` check
-  - Returns list of dicts: `{ id, subject, sender, sender_email, body_plain, thread_id, timestamp }`
+  - `GET /api/emails/unread` — fetches unread emails from last 24h via `google-api-python-client`
   - Auto-refreshes expired access tokens using stored refresh token
-  - `_decode_body()` — recursive base64url decoder handling simple, multipart, and nested-multipart Gmail payloads
-  - `_parse_sender()` — splits From header into display name + email address
-  - `_list_messages()` — wraps Gmail messages.list with 1-retry on failure (2s delay)
   - `GET /api/emails/check/{email_id}` — returns `{"processed": bool}` for a given Gmail message ID
   - `POST /api/emails/mark-processed` — records an email as processed in SQLite
-- **`backend/templates/settings.html`** — Gmail connection card added:
-  - Shows "Connected" (green badge) or "Not connected" with dynamic JS status check on page load
-  - "Connect Gmail" button links to `/api/auth/login`
-  - "Disconnect" button calls `/api/auth/logout` and refreshes card state
-  - Success banner shown after OAuth redirect (`?auth=success`)
+- **`backend/templates/settings.html`** — Gmail connection card with live status check
+
+### Phase 3 additions
+- **`backend/pipeline/gemini.py`** — Shared Google Gemini client:
+  - Uses the native `google-genai` SDK (not the OpenAI compatibility wrapper)
+  - `call_gemini(prompt, system, model)` — JSON-mode call with `response_mime_type='application/json'`
+  - Automatic 1-retry with 2-second backoff on failure
+  - `call_fast()` — alias for the fast model (gemini-2.5-flash), used by classifier + summarizer
+  - `call_draft()` — alias for the draft model (gemini-2.5-flash, upgradeable to gemini-2.5-pro)
+- **`backend/pipeline/classifier.py`** — Email classification using Gemini:
+  - `classify_email(subject, sender, body)` with 4 few-shot examples
+  - Returns: `{ category, priority_score, requires_reply, is_spam, is_order_email, action_items }`
+  - Categories: urgent, action-required, meeting-request, order-update, newsletter, spam, fyi
+- **`backend/pipeline/summarizer.py`** — Email summarization using Gemini:
+  - `summarize_email(subject, body)`
+  - Returns: `{ one_line_summary, key_facts, action_items }`
+- **`backend/pipeline/drafter.py`** — Reply drafting using Gemini:
+  - `draft_reply(subject, body, classification, summary)` — injects classification + summary context
+  - Returns: `{ draft_reply, confidence_score, suggested_subject }`
+- **`backend/routes/pipeline.py`** — AI pipeline REST endpoints:
+  - `POST /api/classify` — classifies a single email, saves to DB via `mark_processed()`
+  - `POST /api/summarize` — summarizes an email (read-only, no DB write)
+  - `POST /api/draft` — drafts a reply given pre-computed classification + summary
+  - `POST /api/process-email` — runs all three stages in sequence, returns combined result
+  - All endpoints use Pydantic request models for validation
+- **`backend/routes/analytics.py`** — Dashboard analytics:
+  - `GET /api/analytics/summary` — returns `{ total_processed, categories, spam_blocked, requires_reply_count }` from real DB queries
+- **`backend/routes/dev.py`** — Developer sandbox endpoints:
+  - `GET /api/dev/status` — live status of Gmail, AI API, and DB
+  - `GET /api/dev/db-stats` — row counts for all 5 tables
+  - `POST /api/dev/test-ai` — sends a test email to Gemini, returns classification JSON + latency
+  - `GET /api/dev/emails` — fetches Gmail emails with `in_db` annotation
+- **`backend/templates/dev.html`** — Full developer console UI:
+  - System status cards (Gmail, Gemini AI, SQLite)
+  - Email fetch table with DB coverage flags
+  - AI classification test with live input fields
+  - Database table stats
+- **`backend/templates/email.html`** — Fully wired 3-pane inbox:
+  - Left panel: inbox list with Important/All tabs, sync button, loading/empty states
+  - Center panel: email content display with summary bar, category badges, sender info
+  - Right panel: AI Draft Assistant with editable textarea, confidence badge, copy/regenerate/send buttons
+  - JavaScript calls `/api/process-email` on email selection, caches results, supports re-drafting
+- **`backend/templates/home.html`** — Dashboard with live analytics:
+  - Quick-stats bar: Emails processed, Spam blocked, Needs reply
+  - Category breakdown bar chart (CSS-based, no chart library)
+  - Tasks and meetings remain as empty states (Phase 4)
+- **`backend/config.py`** — Updated for Gemini:
+  - `GEMINI_API_KEY` loaded from `.env`
+  - `AI_MODEL_FAST = "gemini-2.5-flash"` — for classify + summarize
+  - `AI_MODEL_DRAFT = "gemini-2.5-flash"` — for drafting (upgradeable to gemini-2.5-pro)
+  - OpenAI references removed
 
 ## What is working
 - Backend: All pages are routable via FastAPI Jinja2 template responses
-- Frontend: Sidebar navigation shows correct active state per route via Vanilla JS
-- Frontend: All pages render their mockup-matched layout shells with placeholder content via template inheritance
+- Frontend: Sidebar navigation shows correct active state per route
+- Frontend: All pages render their mockup-matched layout shells
 - Backend: All route modules are importable and registered in `main.py`
-- Backend: All pipeline modules have placeholder functions returning safe defaults
 - Backend: SQLite module can create all 5 tables
 - **Phase 2**: Gmail OAuth login → consent screen → callback → token saved to `token.json`
 - **Phase 2**: Gmail API email fetch (unread, last 24h) with token auto-refresh
 - **Phase 2**: Settings page shows real-time Gmail connection status
+- **Phase 3**: Gemini-powered email classification with few-shot prompting
+- **Phase 3**: Gemini-powered email summarization (one-line + key facts + action items)
+- **Phase 3**: Gemini-powered reply drafting with classification/summary context
+- **Phase 3**: Full pipeline endpoint (`POST /api/process-email`) runs classify → summarize → draft in sequence
+- **Phase 3**: Email page loads inbox, runs AI pipeline on click, displays draft with confidence score
+- **Phase 3**: Home dashboard shows live analytics from processed emails
+- **Phase 3**: Developer console with AI test, DB stats, Gmail fetch, and system status
 
 ## Known issues / incomplete
-- Tailwind CSS needs to be compiled using the npx command
-- No OpenAI API calls implemented (Phase 3)
-- No live data connections between UI and emails list yet (Phase 7)
-- All page content except settings Gmail card is placeholder — will be populated in Phases 7-11
+- Tailwind CSS may need recompilation when new utility classes are added (`npx @tailwindcss/cli -i static/input.css -o static/style.css`)
+- No todo/meeting extraction yet (Phase 4)
+- No order extraction yet (Phase 5)
+- No full analytics charts (Phase 6) — only summary stats
+- All page content except email + home + settings is placeholder — will be populated in Phases 7-11
 - n8n workflow is empty placeholder (Phase 12)
-- `token.json` is saved to project root — add it to `.gitignore` (contains OAuth secrets)
+- `token.json` is saved to project root — it is in `.gitignore` (contains OAuth secrets)
 
 ## Environment
 - Python version: 3.11+
 - n8n version: latest (install via `npm install -g n8n`)
 - Tailwind CSS version: 4.x via CLI (`npx @tailwindcss/cli`)
-- Key env vars required: OPENAI_API_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, REDIRECT_URI, SECRET_KEY, DATABASE_PATH
+- **AI: Google Gemini** via `google-genai` SDK (FREE tier: 1,500 req/day, 1M tokens/day, no credit card)
+- Key env vars required: GEMINI_API_KEY, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, REDIRECT_URI, SECRET_KEY, DATABASE_PATH
 - `REDIRECT_URI` must be set to `http://localhost:8000/api/auth/callback` (in .env AND in Google Cloud Console)
+- OpenAI is NOT used — all AI calls go through Gemini
 
 ## File map
 ```
@@ -74,34 +124,37 @@ mailmind/
 ├── token.json                           — OAuth tokens (auto-created after /api/auth/login — DO NOT COMMIT)
 ├── backend/
 │   ├── main.py                          — FastAPI entry point, Jinja config, routers
-│   ├── config.py                        — loads env vars from .env via python-dotenv
-│   ├── requirements.txt                 — pinned Python dependencies
+│   ├── config.py                        — loads env vars: GEMINI_API_KEY, AI_MODEL_FAST, AI_MODEL_DRAFT, etc.
+│   ├── requirements.txt                 — pinned Python deps (google-genai, fastapi, etc. — no openai)
 │   ├── db/
 │   │   └── sqlite.py                    — SQLite init, 5 tables, is_processed(), mark_processed()
 │   ├── routes/
-│   │   ├── pages.py                     — Jinja2 template UI routes
+│   │   ├── pages.py                     — Jinja2 template UI routes (/, /email, /crafter, /orders, /settings, /dev)
 │   │   ├── auth.py                      — Gmail OAuth2: /login, /callback, /status, /logout ✅ Phase 2
 │   │   ├── emails.py                    — Gmail fetch: /unread, /check, /mark-processed ✅ Phase 2
-│   │   ├── pipeline.py                  — classify/summarize/draft endpoints placeholder (Phase 3)
+│   │   ├── pipeline.py                  — AI endpoints: /classify, /summarize, /draft, /process-email ✅ Phase 3
+│   │   ├── analytics.py                 — Dashboard stats: /summary ✅ Phase 3 (full charts Phase 6)
+│   │   ├── dev.py                       — Developer sandbox: /status, /db-stats, /test-ai, /emails ✅ Phase 3
 │   │   ├── todos.py                     — todo CRUD placeholder (Phase 4)
 │   │   ├── meetings.py                  — meetings listing placeholder (Phase 4)
-│   │   ├── orders.py                    — order tracking placeholder (Phase 5)
-│   │   └── analytics.py                 — analytics stats placeholder (Phase 6)
+│   │   └── orders.py                    — order tracking placeholder (Phase 5)
 │   ├── templates/
-│   │   ├── base.html                    — layout shell
-│   │   ├── home.html                    — dashboard UI
-│   │   ├── email.html                   — inbox UI
-│   │   ├── crafter.html                 — compose UI
-│   │   ├── orders.html                  — purchases UI
-│   │   └── settings.html                — settings UI (Gmail card ✅ Phase 2)
+│   │   ├── base.html                    — layout shell (sidebar + topbar + content block)
+│   │   ├── home.html                    — dashboard with quick-stats + analytics bars ✅ Phase 3
+│   │   ├── email.html                   — 3-pane inbox with AI pipeline integration ✅ Phase 3
+│   │   ├── crafter.html                 — compose UI placeholder (Phase 9)
+│   │   ├── orders.html                  — purchases UI placeholder (Phase 10)
+│   │   ├── settings.html                — settings UI (Gmail card ✅ Phase 2)
+│   │   └── dev.html                     — developer console ✅ Phase 3
 │   ├── static/
 │   │   ├── input.css                    — Tailwind theme variables
 │   │   ├── style.css                    — Compiled Tailwind output
-│   │   └── app.js                       — Vanilla JavaScript
+│   │   └── app.js                       — Vanilla JavaScript (sidebar active state)
 │   └── pipeline/
-│       ├── classifier.py                — email classification placeholder (Phase 3)
-│       ├── summarizer.py                — email summarization placeholder (Phase 3)
-│       ├── drafter.py                   — reply drafting placeholder (Phase 3)
+│       ├── gemini.py                    — Shared Gemini client: call_fast(), call_draft() ✅ Phase 3
+│       ├── classifier.py                — classify_email() with few-shot prompting ✅ Phase 3
+│       ├── summarizer.py                — summarize_email() → headline + facts + actions ✅ Phase 3
+│       ├── drafter.py                   — draft_reply() with classification/summary context ✅ Phase 3
 │       ├── todo_extractor.py            — todo extraction placeholder (Phase 4)
 │       ├── meeting_extractor.py         — meeting extraction placeholder (Phase 4)
 │       └── order_extractor.py           — order extraction placeholder (Phase 5)
@@ -111,41 +164,41 @@ mailmind/
 
 ## Next phase instructions
 
-### Phase 3 — OpenAI Email Classification, Summarization, and Reply Drafting
+### Phase 4 — Todo and Meeting Extraction
 
 **Read CONTEXT.md first**, then implement:
 
-1. **`backend/pipeline/classifier.py`** — Replace placeholder with real GPT call:
-   - `classify_email(subject, sender, body)` — calls GPT-4o-mini with a structured prompt
-   - Returns dict: `{ category, priority_score, is_spam, confidence, reason }`
-   - `category` is one of: `"urgent"`, `"meeting"`, `"order"`, `"newsletter"`, `"personal"`, `"other"`
-   - `priority_score` is an integer 1–10
-   - Use `response_format={"type": "json_object"}` to get structured JSON back
+1. **`backend/pipeline/todo_extractor.py`** — Replace placeholder with real Gemini call:
+   - `extract_todos(subject, body, sender)` — calls Gemini Flash
+   - Returns dict: `{ todos: [{ title, due_date, priority, source_email_subject }] }`
+   - Use the shared `call_fast()` from `pipeline/gemini.py`
 
-2. **`backend/pipeline/summarizer.py`** — Replace placeholder with real GPT call:
-   - `summarize_email(subject, body)` — calls GPT-4o-mini
-   - Returns a 2–3 sentence plain-text summary as a string
-   - Keep the prompt tight (max 200 tokens in response)
+2. **`backend/pipeline/meeting_extractor.py`** — Replace placeholder with real Gemini call:
+   - `extract_meetings(subject, body, sender)` — calls Gemini Flash
+   - Returns dict: `{ meetings: [{ title, date, time, location_or_link, attendees, source_email_subject }] }`
+   - Use the shared `call_fast()` from `pipeline/gemini.py`
 
-3. **`backend/pipeline/drafter.py`** — Replace placeholder with real GPT call:
-   - `draft_reply(subject, body, tone="professional")` — calls GPT-4o-mini
-   - `tone` can be `"professional"`, `"casual"`, `"concise"`
-   - Returns the draft reply as a plain string
+3. **`backend/routes/todos.py`** — Wire up todo endpoints:
+   - `GET /api/todos` — returns all incomplete todos ordered by priority
+   - `PATCH /api/todos/{id}/done` — marks a todo as complete
+   - `POST /api/todos/extract` — accepts email fields, runs `extract_todos()`, saves to DB
 
-4. **`backend/routes/pipeline.py`** — Wire up the pipeline endpoints:
-   - `POST /api/classify` — accepts `{ email_id, subject, sender, body }`, calls `classify_email()`, saves result via `mark_processed()`, returns classification dict
-   - `POST /api/summarize` — accepts `{ subject, body }`, calls `summarize_email()`, returns `{ summary }`
-   - `POST /api/draft` — accepts `{ subject, body, tone }`, calls `draft_reply()`, returns `{ draft }`
-   - Wrap all calls in try/except with clear error messages
+4. **`backend/routes/meetings.py`** — Wire up meeting endpoints:
+   - `GET /api/meetings` — returns all upcoming meetings ordered by date
+   - `POST /api/meetings/extract` — accepts email fields, runs `extract_meetings()`, saves to DB
 
-5. **`backend/config.py`** — Already has `OPENAI_API_KEY`. Pass it to the OpenAI client in each pipeline module.
+5. **Update `db/sqlite.py`** — Add helper functions:
+   - `save_todo(title, due_date, priority, source_email_subject)` — inserts a todo
+   - `get_todos(include_done=False)` — fetches todos
+   - `mark_todo_done(todo_id)` — marks a todo as complete
+   - `save_meeting(...)` — inserts a meeting
+   - `get_meetings()` — fetches upcoming meetings
 
-6. **Update CONTEXT.md** with what was built, what works, and Phase 4 instructions.
+6. **Update CONTEXT.md** with what was built, what works, and Phase 5 instructions.
 
 **Important notes:**
-- Use `openai==1.35.3` (already in requirements.txt) — the v1 client API: `from openai import OpenAI; client = OpenAI(api_key=OPENAI_API_KEY)`
-- Model: `gpt-4o-mini` for all calls (cheap, fast, good enough for email tasks)
+- Use `google-genai` (already in requirements.txt) — NOT OpenAI
+- Use the shared `call_fast()` from `pipeline/gemini.py` for all Gemini calls
+- Model: `gemini-2.5-flash` for all calls (fast, free tier, good enough)
 - Every file must start with a 3-5 line comment block and every function must have a docstring
 - Use `print()` for logging, no logging libraries
-- Keep functions under 30 lines
-- Add `token.json` to `.gitignore` if not already there

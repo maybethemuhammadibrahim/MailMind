@@ -1,61 +1,208 @@
 # backend/routes/pipeline.py
 # ---------------------------------------------------------------
-# Exposes the AI pipeline (classify, summarize, draft) as REST
-# endpoints. Also provides a convenience endpoint that runs all
-# three stages in sequence. Phase 3 will implement the full logic.
+# FastAPI router exposing the AI pipeline (classify, summarize,
+# draft) as REST endpoints, plus a single /process-email route
+# that runs all three stages in sequence.
 # ---------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Why Pydantic?
+# Pydantic validates every incoming JSON request body automatically.
+# If a required field is missing or has the wrong type, FastAPI returns
+# a 422 Unprocessable Entity before our code ever runs -- keeping invalid
+# data out of the business logic entirely and making error messages clear.
+# ---------------------------------------------------------------------------
+
+from db.sqlite import (
+    is_processed,
+    mark_processed,
+    save_draft,
+    save_email,
+    save_pipeline_result,
+)
 from fastapi import APIRouter
+from pipeline.classifier import classify_email
+from pipeline.drafter import draft_reply
+from pipeline.summarizer import summarize_email
+from pydantic import BaseModel
 
 router = APIRouter()
 
 
+# ---------------------------------------------------------------------------
+# Pydantic request models -- one per endpoint
+# ---------------------------------------------------------------------------
+
+
+class ClassifyRequest(BaseModel):
+    """Fields required to classify a single email."""
+
+    email_id: str
+    subject: str
+    sender: str
+    body: str
+
+
+class SummarizeRequest(BaseModel):
+    """Fields required to summarise a single email."""
+
+    subject: str
+    body: str
+
+
+class DraftRequest(BaseModel):
+    """Fields required to draft a reply; classification and summary are pre-computed."""
+
+    subject: str
+    body: str
+    classification: dict
+    summary: dict
+    email_id: str | None = None
+
+
+class ProcessEmailRequest(BaseModel):
+    """All fields delivered by the n8n Gmail webhook for a full pipeline run."""
+
+    email_id: str
+    subject: str
+    sender: str
+    sender_email: str
+    body_plain: str
+    thread_id: str = ""
+    timestamp: str = ""
+
+
+# ---------------------------------------------------------------------------
+# Endpoints
+# ---------------------------------------------------------------------------
+
+
 @router.post("/classify")
-def classify_email():
+def classify(req: ClassifyRequest):
     """
-    Placeholder for the email classification endpoint.
-    Will call GPT-4o-mini to categorise an email and assign
-    a priority score.
+    Classifies a single email and records it as processed.
+
+    Calls Gemini Flash with few-shot examples to assign a category,
+    priority score, and spam/order flags, then persists the result
+    so the same email won't be re-processed on the next Gmail poll.
+
+    Args:
+        req (ClassifyRequest): validated request -- email_id, subject, sender, body
 
     Returns:
-        dict: placeholder message
+        dict: email_id merged with all classification fields
     """
-    return {"message": "Classify email — not yet implemented (Phase 3)"}
+    print(f"[Route /classify] email_id={req.email_id}")
+    result = classify_email(req.subject, req.sender, req.body)
+    mark_processed(
+        req.email_id,
+        req.subject,
+        req.sender,
+        result.get("category"),
+        result.get("priority_score"),
+        result.get("is_spam", False),
+    )
+    return {"email_id": req.email_id, **result}
 
 
 @router.post("/summarize")
-def summarize_email():
+def summarize(req: SummarizeRequest):
     """
-    Placeholder for the email summarization endpoint.
-    Will call GPT-4o-mini to produce a one-line summary
-    and key facts.
+    Summarises an email into a headline, key facts, and action items.
+
+    Purely read-only -- does not write to the database. Safe to call
+    independently of /classify, for example when the UI requests a
+    fresh summary for an already-processed email.
+
+    Args:
+        req (SummarizeRequest): validated request -- subject and body
 
     Returns:
-        dict: placeholder message
+        dict: one_line_summary, key_facts, action_items
     """
-    return {"message": "Summarize email — not yet implemented (Phase 3)"}
+    print(f"[Route /summarize] subject='{req.subject[:60]}'")
+    return summarize_email(req.subject, req.body)
 
 
 @router.post("/draft")
-def draft_reply():
+def draft(req: DraftRequest):
     """
-    Placeholder for the email draft endpoint.
-    Will call GPT-4o to generate a professional reply.
+    Generates a professional email reply draft.
+
+    Expects pre-computed classification and summary dicts so the model
+    has full context (urgency, tone, required actions) before composing.
+
+    Args:
+        req (DraftRequest): validated request -- subject, body,
+                            classification dict, summary dict
 
     Returns:
-        dict: placeholder message
+        dict: draft_reply, confidence_score, suggested_subject
     """
-    return {"message": "Draft reply — not yet implemented (Phase 3)"}
+    print(f"[Route /draft] subject='{req.subject[:60]}'")
+    result = draft_reply(req.subject, req.body, req.classification, req.summary)
+
+    # If email_id is provided, persist regenerate results for cache reuse.
+    if req.email_id:
+        save_draft(
+            email_id=req.email_id,
+            draft_reply=result.get("draft_reply", ""),
+            confidence=result.get("confidence_score", 0.5),
+            subject=result.get("suggested_subject", ""),
+        )
+
+    return result
 
 
 @router.post("/process-email")
-def process_email():
+def process_email(req: ProcessEmailRequest):
     """
-    Placeholder for the combined pipeline endpoint.
-    Will run classify → summarize → draft in sequence
-    and return the merged result.
+    Runs classify, summarize, and draft in sequence for one email.
+
+    Skips mark_processed if the email_id already exists in the database.
+    The pipeline always executes so callers receive fresh AI results.
+
+    Args:
+        req (ProcessEmailRequest): validated request with all email fields
 
     Returns:
-        dict: placeholder message
+        dict: email_id, classification, summary, draft, already_processed
     """
-    return {"message": "Process email (full pipeline) — not yet implemented (Phase 3)"}
+    print(
+        f"[Route /process-email] email_id={req.email_id}, subject='{req.subject[:60]}'"
+    )
+    already = is_processed(req.email_id)
+    classification = classify_email(req.subject, req.sender_email, req.body_plain)
+    summary = summarize_email(req.subject, req.body_plain)
+    draft = draft_reply(req.subject, req.body_plain, classification, summary)
+
+    # Ensure the source email row exists, then persist all AI outputs.
+    save_email(
+        {
+            "id": req.email_id,
+            "subject": req.subject,
+            "sender": req.sender,
+            "sender_email": req.sender_email,
+            "body_plain": req.body_plain,
+            "thread_id": req.thread_id,
+            "timestamp": req.timestamp,
+        }
+    )
+    save_pipeline_result(req.email_id, classification, summary, draft)
+
+    if not already:
+        mark_processed(
+            req.email_id,
+            req.subject,
+            req.sender_email,
+            classification.get("category"),
+            classification.get("priority_score"),
+            classification.get("is_spam", False),
+        )
+    return {
+        "email_id": req.email_id,
+        "classification": classification,
+        "summary": summary,
+        "draft": draft,
+        "already_processed": already,
+    }

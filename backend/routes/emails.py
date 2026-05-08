@@ -11,15 +11,27 @@ import json
 import os
 import time
 from datetime import datetime
+from email.mime.text import MIMEText
+from email.utils import parseaddr
 from typing import Optional
 
-from db.sqlite import is_processed, mark_processed
+from db.sqlite import get_recent_emails, is_processed, mark_processed, save_email
 from fastapi import APIRouter
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
+from pydantic import BaseModel
 
 router = APIRouter()
+
+class SendEmailRequest(BaseModel):
+    """Request body for sending a single email via Gmail API."""
+
+    to: str
+    subject: str
+    body: str
+    thread_id: str | None = None
+
 
 # Shared path to the OAuth token file written by auth.py after login
 TOKEN_PATH = os.path.abspath(
@@ -250,23 +262,35 @@ def _fetch_full_message(service, message_id: str) -> Optional[dict]:  # type: ig
 # ---------------------------------------------------------------------------
 
 
-@router.get("/unread")
-def get_unread_emails():
+@router.get("/recent")
+def get_recent_emails_from_db():
     """
-    Fetches up to 50 unread emails received in the last 24 hours.
+    Returns the most recent emails from local SQLite storage.
 
-    Gmail search query used: 'is:unread newer_than:1d'
-    (same as typing that in the Gmail search box)
-
-    Emails already recorded in the processed_emails SQLite table are
-    silently skipped — this prevents re-running the AI pipeline on
-    emails that have already been classified/summarized.
+    This endpoint is used by the email page on load so inbox rendering
+    is instant and does not require a Gmail API request.
 
     Returns:
-        list[dict]: list of email dicts, each with keys:
-                    id, subject, sender, sender_email, body_plain,
-                    thread_id, timestamp
-        dict: error dict if Gmail is not connected or the API call fails
+        list[dict]: up to 5 most recent emails, including cached AI fields
+    """
+    try:
+        return get_recent_emails(limit=5)
+    except Exception as e:
+        print(f"[EMAILS] Failed to load recent emails from DB: {e}")
+        return {"error": f"Failed to load recent emails: {str(e)}"}
+
+
+@router.post("/sync")
+def sync_recent_emails():
+    """
+    Fetches the latest 5 emails from Gmail and upserts them into SQLite.
+
+    Gmail query intentionally does not include 'is:unread' so both read
+    and unread recent emails can appear in the UI.
+
+    Returns:
+        list[dict]: the latest 5 emails from local DB after sync
+        dict: error dict if Gmail is not connected or sync fails
     """
     service = _build_gmail_service()
     if not service:
@@ -276,24 +300,19 @@ def get_unread_emails():
         }
 
     try:
-        refs = _list_messages(service, query="is:unread newer_than:1d")
-        print(f"[GMAIL] Gmail returned {len(refs)} unread message refs.")
+        refs = _list_messages(service, query="newer_than:1d", max_results=5)
+        print(f"[GMAIL] Gmail returned {len(refs)} recent message refs.")
     except Exception as e:
         return {"error": f"Failed to list messages from Gmail: {str(e)}"}
 
-    emails = []
     for ref in refs:
-        # Skip emails the pipeline has already processed (deduplication)
-        if is_processed(ref["id"]):
-            print(f"[GMAIL] Skipping already-processed message: {ref['id']}")
-            continue
-
         data = _fetch_full_message(service, ref["id"])
         if data:
-            emails.append(data)
+            save_email(data)
 
-    print(f"[GMAIL] Returning {len(emails)} new unread emails to caller.")
-    return emails
+    synced = get_recent_emails(limit=5)
+    print(f"[GMAIL] Sync complete. Returning {len(synced)} emails from DB.")
+    return synced
 
 
 @router.get("/check/{email_id}")
@@ -346,3 +365,52 @@ def mark_email_processed(email_id: str, subject: str = "", sender: str = ""):
     except Exception as e:
         print(f"[EMAILS] mark_processed error for {email_id}: {e}")
         return {"error": str(e)}
+
+
+@router.post("/send")
+def send_email(req: SendEmailRequest):
+    """
+    Sends a single email through the authenticated Gmail account.
+
+    Supports one recipient only (no comma-separated recipients).
+    """
+    recipient = req.to.strip()
+    subject = req.subject.strip()
+    body = req.body.strip()
+
+    if not recipient or not subject or not body:
+        return {"error": "to, subject, and body are required."}
+
+    if "," in recipient or ";" in recipient:
+        return {"error": "Only one recipient is allowed."}
+
+    _, parsed_email = parseaddr(recipient)
+    if not parsed_email or "@" not in parsed_email:
+        return {"error": "Invalid recipient email address."}
+
+    service = _build_gmail_service()
+    if not service:
+        return {
+            "error": "Gmail not connected.",
+            "hint": "Visit /api/auth/login to connect your Gmail account.",
+        }
+
+    try:
+        mime = MIMEText(body, _charset="utf-8")
+        mime["to"] = parsed_email
+        mime["subject"] = subject
+        raw = base64.urlsafe_b64encode(mime.as_bytes()).decode("utf-8")
+
+        payload = {"raw": raw}
+        if req.thread_id:
+            payload["threadId"] = req.thread_id
+
+        sent = service.users().messages().send(userId="me", body=payload).execute()
+        return {
+            "success": True,
+            "message_id": sent.get("id"),
+            "thread_id": sent.get("threadId"),
+        }
+    except Exception as e:
+        print(f"[GMAIL] Failed to send email: {e}")
+        return {"error": f"Failed to send email: {str(e)}"}

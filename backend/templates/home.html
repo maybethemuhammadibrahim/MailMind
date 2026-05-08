@@ -17,6 +17,73 @@ block header_title %}Dashboard{% endblock %} {% block content %}
     </a>
 </div>
 
+<!-- Quick Stats Bar -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter mb-2">
+    <!-- Emails Processed -->
+    <div
+        class="bg-surface-container-lowest rounded-xl p-card-padding shadow-sm border border-surface-variant flex items-center gap-4"
+    >
+        <div
+            class="h-12 w-12 rounded-full bg-primary/10 text-primary flex items-center justify-center flex-shrink-0"
+        >
+            <span class="material-symbols-outlined text-[24px]">mail</span>
+        </div>
+        <div>
+            <p
+                id="stat-total"
+                class="font-h1 text-[28px] font-bold text-on-surface leading-none"
+            >
+                —
+            </p>
+            <p class="font-body-md text-[13px] text-on-surface-variant mt-0.5">
+                Emails processed
+            </p>
+        </div>
+    </div>
+    <!-- Spam Blocked -->
+    <div
+        class="bg-surface-container-lowest rounded-xl p-card-padding shadow-sm border border-surface-variant flex items-center gap-4"
+    >
+        <div
+            class="h-12 w-12 rounded-full bg-error/10 text-error flex items-center justify-center flex-shrink-0"
+        >
+            <span class="material-symbols-outlined text-[24px]">block</span>
+        </div>
+        <div>
+            <p
+                id="stat-spam"
+                class="font-h1 text-[28px] font-bold text-on-surface leading-none"
+            >
+                —
+            </p>
+            <p class="font-body-md text-[13px] text-on-surface-variant mt-0.5">
+                Spam blocked
+            </p>
+        </div>
+    </div>
+    <!-- Needs Reply -->
+    <div
+        class="bg-surface-container-lowest rounded-xl p-card-padding shadow-sm border border-surface-variant flex items-center gap-4"
+    >
+        <div
+            class="h-12 w-12 rounded-full bg-secondary/10 text-secondary flex items-center justify-center flex-shrink-0"
+        >
+            <span class="material-symbols-outlined text-[24px]">reply</span>
+        </div>
+        <div>
+            <p
+                id="stat-reply"
+                class="font-h1 text-[28px] font-bold text-on-surface leading-none"
+            >
+                —
+            </p>
+            <p class="font-body-md text-[13px] text-on-surface-variant mt-0.5">
+                Needs reply
+            </p>
+        </div>
+    </div>
+</div>
+
 <!-- Dashboard Grid -->
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
     <!-- Left Column: My Tasks -->
@@ -104,9 +171,25 @@ block header_title %}Dashboard{% endblock %} {% block content %}
                 >
                 Email Analytics
             </h3>
-            <!-- Empty State: Analytics -->
+
+            <!-- Analytics: Loading state -->
             <div
+                id="analytics-loading"
                 class="flex flex-col items-center justify-center py-8 text-center"
+            >
+                <span
+                    class="material-symbols-outlined text-[48px] text-on-surface-variant/30 mb-3"
+                    >bar_chart</span
+                >
+                <p class="font-body-md text-body-md text-on-surface-variant">
+                    Loading analytics…
+                </p>
+            </div>
+
+            <!-- Analytics: Empty state -->
+            <div
+                id="analytics-empty"
+                class="hidden flex flex-col items-center justify-center py-8 text-center"
             >
                 <span
                     class="material-symbols-outlined text-[48px] text-on-surface-variant/30 mb-3"
@@ -118,10 +201,95 @@ block header_title %}Dashboard{% endblock %} {% block content %}
                 <p
                     class="font-body-md text-body-md text-outline mt-1 text-[13px]"
                 >
-                    Process emails through the pipeline to see stats
+                    Process emails through the AI pipeline to see stats
                 </p>
+            </div>
+
+            <!-- Analytics: Category breakdown -->
+            <div id="analytics-data" class="hidden flex flex-col gap-4">
+                <div id="category-bars" class="flex flex-col gap-3"></div>
             </div>
         </div>
     </div>
 </div>
+{% endblock %} {% block scripts %}
+<script>
+    // ─── Category display config ─────────────────────────────────────────────────
+    const CAT_COLORS = {
+        urgent: { bg: "bg-red-400", label: "Urgent" },
+        "action-required": { bg: "bg-orange-700", label: "Action Required" },
+        "meeting-request": { bg: "bg-blue-700", label: "Meeting Request" },
+        "order-update": { bg: "bg-purple-700", label: "Order Update" },
+        newsletter: { bg: "bg-surface-container-highest", label: "Newsletter" },
+        spam: { bg: "bg-red-700", label: "Spam" },
+        fyi: { bg: "bg-surface-container-high", label: "FYI" },
+    };
+
+    // ─── Load analytics summary from backend ─────────────────────────────────────
+    async function loadAnalytics() {
+        try {
+            const res = await fetch("/api/analytics/summary");
+            const data = await res.json();
+
+            // Update quick-stats bar
+            document.getElementById("stat-total").textContent =
+                data.total_processed || 0;
+            document.getElementById("stat-spam").textContent =
+                data.spam_blocked || 0;
+            document.getElementById("stat-reply").textContent =
+                data.requires_reply_count || 0;
+
+            // If no emails have been processed yet, show empty state
+            if (!data.total_processed || data.total_processed === 0) {
+                document
+                    .getElementById("analytics-loading")
+                    .classList.add("hidden");
+                document
+                    .getElementById("analytics-empty")
+                    .classList.remove("hidden");
+                return;
+            }
+
+            // Render category breakdown as horizontal bars
+            const categories = data.categories || {};
+            const maxCount = Math.max(...Object.values(categories), 1);
+            const barsEl = document.getElementById("category-bars");
+
+            barsEl.innerHTML = Object.entries(categories)
+                .sort((a, b) => b[1] - a[1])
+                .map(([cat, count]) => {
+                    const cfg = CAT_COLORS[cat] || CAT_COLORS["fyi"];
+                    const pct = Math.round((count / maxCount) * 100);
+                    return `
+                    <div class="flex items-center gap-3">
+                        <span class="text-[12px] font-semibold text-on-surface-variant w-32 text-right truncate">${cfg.label}</span>
+                        <div class="flex-1 bg-surface-container-low rounded-full h-5 overflow-hidden">
+                            <div class="${cfg.bg} h-full rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+                        </div>
+                        <span class="text-[13px] font-bold text-on-surface w-8 text-right">${count}</span>
+                    </div>`;
+                })
+                .join("");
+
+            // Show data, hide loading
+            document
+                .getElementById("analytics-loading")
+                .classList.add("hidden");
+            document
+                .getElementById("analytics-data")
+                .classList.remove("hidden");
+        } catch (err) {
+            console.error("Analytics load failed:", err);
+            document
+                .getElementById("analytics-loading")
+                .classList.add("hidden");
+            document
+                .getElementById("analytics-empty")
+                .classList.remove("hidden");
+        }
+    }
+
+    // ─── Boot ─────────────────────────────────────────────────────────────────────
+    loadAnalytics();
+</script>
 {% endblock %}

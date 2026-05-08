@@ -12,7 +12,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 # Import each route module — these are separate files in routes/
-from routes import analytics, auth, emails, meetings, orders, pages, pipeline, todos
+from routes import (
+    analytics,
+    auth,
+    dev,
+    emails,
+    meetings,
+    orders,
+    pages,
+    pipeline,
+    todos,
+)
 
 
 def create_app():
@@ -63,6 +73,7 @@ def create_app():
     app.include_router(meetings.router, prefix="/api/meetings", tags=["Meetings"])
     app.include_router(orders.router, prefix="/api/orders", tags=["Orders"])
     app.include_router(analytics.router, prefix="/api/analytics", tags=["Analytics"])
+    app.include_router(dev.router, prefix="/api/dev", tags=["Dev"])
 
     # --- Startup: initialize the database ---
     # This runs initialize_database() the moment the app starts.

@@ -1,34 +1,65 @@
 {% extends "base.html" %} {% block title %}Email - MailMind{% endblock %} {%
 block header_title %}Email{% endblock %} {% block content %}
 <div class="flex flex-row gap-gutter h-full w-full flex-1 min-h-0">
-    <!-- Left Panel: Inbox List -->
+    <!-- ══════════════════════════════════════════════════════════
+       LEFT PANEL — Inbox list
+  ══════════════════════════════════════════════════════════ -->
     <section
         class="w-80 flex-shrink-0 flex flex-col bg-surface-container-lowest rounded-xl border border-surface-dim shadow-[0px_4px_20px_rgba(0,0,0,0.03)] overflow-hidden"
     >
-        <!-- Tabs Header -->
-        <div class="flex border-b border-surface-dim px-4 pt-2">
+        <!-- Tab bar -->
+        <div class="flex border-b border-surface-dim px-4 pt-2 items-center">
             <button
-                class="px-4 py-3 font-label-md text-label-md text-primary border-b-2 border-primary"
+                id="tab-important"
+                onclick="setTab('important')"
+                class="px-4 py-3 font-label-md text-label-md text-primary border-b-2 border-primary transition-colors"
             >
                 Important
             </button>
             <button
+                id="tab-all"
+                onclick="setTab('all')"
                 class="px-4 py-3 font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors"
             >
                 All
             </button>
-            <div class="ml-auto flex items-center">
+            <div class="ml-auto flex items-center gap-1">
+                <span
+                    id="inbox-count"
+                    class="hidden text-[11px] font-bold text-on-surface-variant bg-surface-container-low px-2 py-0.5 rounded-full"
+                ></span>
                 <button
-                    class="p-1 text-outline hover:text-primary transition-colors"
+                    onclick="syncEmails()"
+                    title="Sync inbox"
+                    class="p-1.5 text-outline hover:text-primary transition-colors rounded-full hover:bg-surface-container-low"
                 >
-                    <span class="material-symbols-outlined text-[20px]"
-                        >filter_list</span
+                    <span
+                        id="sync-icon"
+                        class="material-symbols-outlined text-[20px]"
+                        >sync</span
                     >
                 </button>
             </div>
         </div>
-        <!-- Empty State: Inbox -->
+
+        <!-- Loading state -->
         <div
+            id="inbox-loading"
+            class="hidden flex-1 flex flex-col items-center justify-center p-6 text-center"
+        >
+            <span
+                class="material-symbols-outlined text-[40px] text-on-surface-variant/30 mb-3 animate-spin"
+                style="animation: spin 1.2s linear infinite"
+                >sync</span
+            >
+            <p class="font-body-md text-[13px] text-on-surface-variant">
+                Syncing your inbox…
+            </p>
+        </div>
+
+        <!-- Empty state -->
+        <div
+            id="inbox-empty"
             class="flex-1 flex flex-col items-center justify-center p-6 text-center"
         >
             <span
@@ -36,63 +67,80 @@ block header_title %}Email{% endblock %} {% block content %}
                 >inbox</span
             >
             <p class="font-body-md text-body-md text-on-surface-variant">
-                No emails yet
+                No recent emails
             </p>
             <p class="font-body-md text-body-md text-outline mt-1 text-[13px]">
-                Unread emails from the last 24h will appear here once Gmail is
-                synced
+                Click
+                <span class="material-symbols-outlined text-[14px] align-middle"
+                    >sync</span
+                >
+                to fetch from Gmail
             </p>
         </div>
+
+        <!-- Email list -->
+        <div id="inbox-list" class="hidden flex-1 overflow-y-auto"></div>
     </section>
 
-    <!-- Center Panel: Email View -->
+    <!-- ══════════════════════════════════════════════════════════
+       CENTER PANEL — Email content
+  ══════════════════════════════════════════════════════════ -->
     <section
-        class="flex-1 flex flex-col bg-surface-container-lowest rounded-xl border border-surface-dim shadow-[0px_4px_20px_rgba(0,0,0,0.03)] overflow-hidden"
+        class="flex-1 flex flex-col bg-surface-container-lowest rounded-xl border border-surface-dim shadow-[0px_4px_20px_rgba(0,0,0,0.03)] overflow-hidden min-w-0"
     >
-        <!-- Toolbar (always visible for layout consistency) -->
+        <!-- Toolbar -->
         <div
-            class="flex items-center justify-between p-card-padding border-b border-surface-dim bg-surface-bright/50"
+            class="flex items-center justify-between px-4 py-3 border-b border-surface-dim bg-surface-bright/50"
         >
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-1">
                 <button
-                    class="p-2 text-on-surface-variant/40 rounded-full cursor-default"
+                    id="btn-archive"
                     disabled
+                    title="Archive"
+                    class="p-2 text-on-surface-variant/40 rounded-full transition-colors disabled:cursor-not-allowed enabled:hover:text-primary enabled:hover:bg-surface-container-low"
                 >
-                    <span class="material-symbols-outlined">archive</span>
+                    <span class="material-symbols-outlined text-[20px]"
+                        >archive</span
+                    >
                 </button>
                 <button
-                    class="p-2 text-on-surface-variant/40 rounded-full cursor-default"
+                    id="btn-delete"
                     disabled
+                    title="Delete"
+                    class="p-2 text-on-surface-variant/40 rounded-full transition-colors disabled:cursor-not-allowed enabled:hover:text-error enabled:hover:bg-error-container/30"
                 >
-                    <span class="material-symbols-outlined">delete</span>
+                    <span class="material-symbols-outlined text-[20px]"
+                        >delete</span
+                    >
                 </button>
                 <div class="h-4 w-px bg-surface-dim mx-1"></div>
                 <button
-                    class="p-2 text-on-surface-variant/40 rounded-full cursor-default"
+                    id="btn-mark-unread"
                     disabled
+                    title="Mark unread"
+                    class="p-2 text-on-surface-variant/40 rounded-full transition-colors disabled:cursor-not-allowed enabled:hover:text-primary enabled:hover:bg-surface-container-low"
                 >
-                    <span class="material-symbols-outlined"
+                    <span class="material-symbols-outlined text-[20px]"
                         >mark_email_unread</span
                     >
                 </button>
             </div>
-            <div class="flex items-center gap-2">
-                <button
-                    class="p-2 text-on-surface-variant/40 rounded-full cursor-default"
-                    disabled
+            <div
+                id="email-processing-badge"
+                class="hidden flex items-center gap-2 text-[12px] text-primary font-medium bg-primary/5 px-3 py-1.5 rounded-full border border-primary/20"
+            >
+                <span
+                    class="material-symbols-outlined text-[14px] animate-spin"
+                    style="animation: spin 1s linear infinite"
+                    >autorenew</span
                 >
-                    <span class="material-symbols-outlined">print</span>
-                </button>
-                <button
-                    class="p-2 text-on-surface-variant/40 rounded-full cursor-default"
-                    disabled
-                >
-                    <span class="material-symbols-outlined">open_in_new</span>
-                </button>
+                Running AI pipeline…
             </div>
         </div>
-        <!-- Empty State: No Email Selected -->
+
+        <!-- Empty state (shown until email selected) -->
         <div
+            id="email-empty"
             class="flex-1 flex flex-col items-center justify-center text-center p-8"
         >
             <span
@@ -103,37 +151,126 @@ block header_title %}Email{% endblock %} {% block content %}
                 Select an email to read it
             </p>
             <p class="font-body-md text-body-md text-outline mt-2 text-[13px]">
-                Your email content will appear here
+                AI summary and draft will appear automatically
             </p>
+        </div>
+
+        <!-- Email content (shown when email selected) -->
+        <div
+            id="email-content"
+            class="hidden flex-1 overflow-y-auto flex flex-col"
+        >
+            <!-- Summary bar (shown after pipeline) -->
+            <div
+                id="summary-bar"
+                class="hidden mx-4 mt-4 p-3 bg-primary/5 border border-primary/15 rounded-lg"
+            >
+                <div class="flex items-start gap-3">
+                    <span
+                        class="material-symbols-outlined text-[18px] text-primary mt-0.5 flex-shrink-0"
+                        >summarize</span
+                    >
+                    <div class="flex-1 min-w-0">
+                        <p
+                            id="summary-headline"
+                            class="font-body-md text-[13px] font-semibold text-on-surface"
+                        ></p>
+                        <div
+                            id="summary-facts"
+                            class="mt-2 flex flex-wrap gap-2"
+                        ></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Email header -->
+            <div class="px-6 pt-5 pb-4">
+                <h2
+                    id="email-subject"
+                    class="font-h1 text-[22px] font-bold text-on-surface mb-5"
+                ></h2>
+                <div class="flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div
+                            id="email-avatar"
+                            class="h-11 w-11 rounded-full flex items-center justify-center font-label-md text-label-md flex-shrink-0 bg-secondary-fixed text-on-secondary-fixed text-[16px] font-bold"
+                        ></div>
+                        <div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span
+                                    id="email-sender-name"
+                                    class="font-body-lg text-[15px] font-semibold text-on-surface"
+                                ></span>
+                                <span
+                                    id="email-sender-addr"
+                                    class="font-body-md text-[13px] text-on-surface-variant"
+                                ></span>
+                                <span
+                                    id="email-category-badge"
+                                    class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full"
+                                ></span>
+                            </div>
+                            <span
+                                id="email-timestamp"
+                                class="font-body-md text-[13px] text-outline"
+                            ></span>
+                        </div>
+                    </div>
+                    <button
+                        class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-full hover:bg-surface-container-low flex-shrink-0"
+                    >
+                        <span class="material-symbols-outlined text-[20px]"
+                            >reply</span
+                        >
+                    </button>
+                </div>
+            </div>
+
+            <!-- Email body -->
+            <div
+                id="email-body"
+                class="px-6 pb-8 font-body-lg text-[15px] text-on-surface-variant leading-relaxed space-y-4 border-t border-surface-dim pt-5 flex-1"
+            ></div>
         </div>
     </section>
 
-    <!-- Right Panel: AI Draft Assistant -->
+    <!-- ══════════════════════════════════════════════════════════
+       RIGHT PANEL — AI Draft Assistant
+  ══════════════════════════════════════════════════════════ -->
     <section
         class="w-80 flex-shrink-0 flex flex-col bg-surface-container-lowest rounded-xl border border-surface-dim shadow-[0px_4px_20px_rgba(0,0,0,0.03)] overflow-hidden relative"
     >
-        <!-- Decorative gradient top border -->
+        <!-- Gradient accent top bar -->
         <div
             class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-secondary-container via-primary to-primary-container"
         ></div>
-        <!-- AI Header -->
+
+        <!-- Panel header -->
         <div
-            class="flex items-center gap-3 p-4 border-b border-surface-dim bg-primary-fixed/30 mt-1"
+            class="flex items-center gap-3 px-4 py-3 border-b border-surface-dim bg-primary-fixed/20 mt-1"
         >
             <div
-                class="h-8 w-8 rounded-full bg-primary text-on-primary flex items-center justify-center"
+                class="h-8 w-8 rounded-full bg-primary text-on-primary flex items-center justify-center flex-shrink-0"
             >
                 <span class="material-symbols-outlined text-[18px]"
                     >auto_awesome</span
                 >
             </div>
+            <div class="flex-1 min-w-0">
+                <span
+                    class="font-h2 text-body-lg font-semibold text-on-primary-fixed"
+                    >AI Draft Assistant</span
+                >
+            </div>
             <span
-                class="font-h2 text-body-lg font-semibold text-on-primary-fixed"
-                >AI Draft Assistant</span
-            >
+                id="confidence-badge"
+                class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full"
+            ></span>
         </div>
-        <!-- Empty State: No Email for AI to Draft -->
+
+        <!-- Empty state -->
         <div
+            id="draft-empty"
             class="flex-1 flex flex-col items-center justify-center p-6 text-center"
         >
             <span
@@ -144,35 +281,92 @@ block header_title %}Email{% endblock %} {% block content %}
                 No email selected
             </p>
             <p class="font-body-md text-body-md text-outline mt-1 text-[13px]">
-                Select an email to generate an AI-drafted reply
+                Select an email to generate a draft reply
             </p>
         </div>
-        <!-- Action Bar (always visible) -->
+
+        <!-- Loading state -->
+        <div
+            id="draft-loading"
+            class="hidden flex-1 flex flex-col items-center justify-center p-6 text-center gap-3"
+        >
+            <span
+                class="material-symbols-outlined text-[40px] text-primary/40 animate-spin"
+                style="animation: spin 1.2s linear infinite"
+                >autorenew</span
+            >
+            <p class="font-body-md text-[13px] text-on-surface-variant">
+                Gemini is drafting a reply…
+            </p>
+        </div>
+
+        <!-- Draft content -->
+        <div
+            id="draft-content"
+            class="hidden flex-1 flex flex-col p-4 gap-3 overflow-y-auto"
+        >
+            <div class="flex items-center justify-between">
+                <span
+                    class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant"
+                    >Suggested Reply</span
+                >
+                <button
+                    onclick="copyDraft()"
+                    title="Copy to clipboard"
+                    class="text-outline hover:text-primary transition-colors p-1 rounded"
+                >
+                    <span class="material-symbols-outlined text-[16px]"
+                        >content_copy</span
+                    >
+                </button>
+            </div>
+            <textarea
+                id="draft-textarea"
+                class="flex-1 w-full min-h-[200px] resize-none bg-surface-bright border border-surface-dim rounded-lg p-3 font-body-md text-[13px] text-on-surface leading-relaxed focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                placeholder="AI draft will appear here…"
+            ></textarea>
+            <div id="action-items-section" class="hidden">
+                <p
+                    class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-2"
+                >
+                    Action Items
+                </p>
+                <div id="action-items-list" class="flex flex-col gap-1.5"></div>
+            </div>
+        </div>
+
+        <!-- Action bar (always visible) -->
         <div
             class="p-4 border-t border-surface-dim bg-surface-container-lowest flex flex-col gap-3"
         >
             <button
+                id="btn-send-reply"
                 disabled
-                class="w-full py-2.5 rounded-lg bg-on-surface/20 text-on-surface-variant font-h2 text-body-lg font-semibold cursor-not-allowed flex items-center justify-center gap-2"
+                onclick="sendReply()"
+                class="w-full py-2.5 rounded-lg font-h2 text-body-lg font-semibold flex items-center justify-center gap-2 transition-colors bg-on-surface/20 text-on-surface-variant cursor-not-allowed disabled:bg-on-surface/20 disabled:text-on-surface-variant disabled:cursor-not-allowed enabled:bg-primary enabled:text-on-primary enabled:hover:opacity-90 enabled:cursor-pointer"
             >
                 <span class="material-symbols-outlined text-[18px]">send</span>
                 Send Reply
             </button>
             <div class="flex gap-3">
                 <button
+                    id="btn-copy-draft"
                     disabled
-                    class="flex-1 py-2 rounded-lg border border-surface-dim text-on-surface-variant/40 font-body-lg font-medium cursor-not-allowed flex items-center justify-center gap-1"
+                    class="flex-1 py-2 rounded-lg border text-[13px] font-medium flex items-center justify-center gap-1 transition-colors border-surface-dim text-on-surface-variant/40 cursor-not-allowed disabled:opacity-40 disabled:cursor-not-allowed enabled:border-outline-variant enabled:text-on-surface-variant enabled:hover:bg-surface-container-low enabled:cursor-pointer"
+                    onclick="copyDraft()"
                 >
-                    <span class="material-symbols-outlined text-[18px]"
-                        >edit</span
+                    <span class="material-symbols-outlined text-[16px]"
+                        >content_copy</span
                     >
-                    Edit
+                    Copy
                 </button>
                 <button
+                    id="btn-regenerate"
                     disabled
-                    class="flex-1 py-2 rounded-lg border border-surface-dim text-on-surface-variant/40 font-body-lg font-medium cursor-not-allowed flex items-center justify-center gap-1"
+                    class="flex-1 py-2 rounded-lg border text-[13px] font-medium flex items-center justify-center gap-1 transition-colors border-surface-dim text-on-surface-variant/40 cursor-not-allowed disabled:opacity-40 disabled:cursor-not-allowed enabled:border-outline-variant enabled:text-primary enabled:hover:bg-primary/5 enabled:cursor-pointer"
+                    onclick="regenerateDraft()"
                 >
-                    <span class="material-symbols-outlined text-[18px]"
+                    <span class="material-symbols-outlined text-[16px]"
                         >refresh</span
                     >
                     Regenerate
@@ -181,4 +375,546 @@ block header_title %}Email{% endblock %} {% block content %}
         </div>
     </section>
 </div>
+{% endblock %} {% block scripts %}
+<style>
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+<script>
+    // ─── State ────────────────────────────────────────────────────────────────────
+    const state = {
+        emails: [], // all fetched emails
+        selected: null, // currently open email object
+        pipeline: null, // last pipeline result {classification, summary, draft}
+        activeTab: "important",
+    };
+
+    // ─── Category config (badge colour + icon) ────────────────────────────────────
+    const CAT = {
+        urgent: {
+            label: "Urgent",
+            bg: "bg-red-100",
+            text: "text-red-700",
+            icon: "priority_high",
+        },
+        "action-required": {
+            label: "Action Req.",
+            bg: "bg-orange-100",
+            text: "text-orange-700",
+            icon: "notification_important",
+        },
+        "meeting-request": {
+            label: "Meeting",
+            bg: "bg-blue-100",
+            text: "text-blue-700",
+            icon: "event",
+        },
+        "order-update": {
+            label: "Order",
+            bg: "bg-purple-100",
+            text: "text-purple-700",
+            icon: "local_shipping",
+        },
+        newsletter: {
+            label: "Newsletter",
+            bg: "bg-surface-container-high",
+            text: "text-on-surface-variant",
+            icon: "newspaper",
+        },
+        spam: {
+            label: "Spam",
+            bg: "bg-red-50",
+            text: "text-red-400",
+            icon: "report",
+        },
+        fyi: {
+            label: "FYI",
+            bg: "bg-surface-container-high",
+            text: "text-on-surface-variant",
+            icon: "info",
+        },
+    };
+
+    function catCfg(cat) {
+        return CAT[cat] || CAT["fyi"];
+    }
+
+    // ─── Helpers ──────────────────────────────────────────────────────────────────
+    function initials(name) {
+        if (!name) return "?";
+        return name
+            .split(" ")
+            .slice(0, 2)
+            .map((p) => p[0])
+            .join("")
+            .toUpperCase();
+    }
+    function fmtTime(iso) {
+        if (!iso) return "";
+        const d = new Date(iso);
+        const now = new Date();
+        const sameDay = d.toDateString() === now.toDateString();
+        return sameDay
+            ? d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+            : d.toLocaleDateString([], { month: "short", day: "numeric" });
+    }
+    function escHtml(str) {
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+    }
+    function bodyToParagraphs(text) {
+        return (text || "")
+            .split(/\n{2,}/)
+            .map((p) => `<p>${escHtml(p.trim()).replace(/\n/g, "<br>")}</p>`)
+            .join("");
+    }
+
+    // ─── Tab management ───────────────────────────────────────────────────────────
+    function setTab(tab) {
+        state.activeTab = tab;
+        document.getElementById("tab-important").className =
+            tab === "important"
+                ? "px-4 py-3 font-label-md text-label-md text-primary border-b-2 border-primary transition-colors"
+                : "px-4 py-3 font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors";
+        document.getElementById("tab-all").className =
+            tab === "all"
+                ? "px-4 py-3 font-label-md text-label-md text-primary border-b-2 border-primary transition-colors"
+                : "px-4 py-3 font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors";
+        renderEmailList();
+    }
+
+    function filteredEmails() {
+        if (state.activeTab === "important") {
+            return state.emails.filter((e) => {
+                const cat = e._pipeline?.classification?.category;
+                const score = e._pipeline?.classification?.priority_score || 0;
+                return (
+                    !cat ||
+                    cat === "urgent" ||
+                    cat === "action-required" ||
+                    cat === "meeting-request" ||
+                    score >= 6
+                );
+            });
+        }
+        return state.emails;
+    }
+
+    // ─── Load emails ──────────────────────────────────────────────────────────────
+    function mapEmailWithPipeline(email) {
+        const hasCachedPipeline =
+            !!email.classification || !!email.summary || !!email.draft;
+        return {
+            ...email,
+            _pipeline: hasCachedPipeline
+                ? {
+                      email_id: email.id,
+                      classification: email.classification || null,
+                      summary: email.summary || null,
+                      draft: email.draft || null,
+                  }
+                : null,
+        };
+    }
+
+    function setInboxState(data) {
+        if (!Array.isArray(data) || data.length === 0) {
+            showInboxEmpty();
+            return;
+        }
+
+        state.emails = data.map(mapEmailWithPipeline);
+        hide("inbox-loading");
+        show("inbox-list");
+        renderEmailList();
+
+        const count = state.emails.length;
+        const el = document.getElementById("inbox-count");
+        el.textContent = count;
+        el.classList.remove("hidden");
+    }
+
+    async function loadEmails() {
+        show("inbox-loading");
+        hide("inbox-empty");
+        hide("inbox-list");
+        document.getElementById("sync-icon").style.animation =
+            "spin 1s linear infinite";
+
+        try {
+            const res = await fetch("/api/emails/recent");
+            const data = await res.json();
+
+            if (data.error) {
+                showInboxEmpty(data.error);
+                return;
+            }
+            setInboxState(data);
+        } catch (err) {
+            showInboxEmpty("Could not reach server: " + err.message);
+        } finally {
+            document.getElementById("sync-icon").style.animation = "";
+        }
+    }
+
+    async function syncEmails() {
+        show("inbox-loading");
+        hide("inbox-empty");
+        hide("inbox-list");
+        document.getElementById("sync-icon").style.animation =
+            "spin 1s linear infinite";
+
+        try {
+            const res = await fetch("/api/emails/sync", { method: "POST" });
+            const data = await res.json();
+
+            if (data.error) {
+                showInboxEmpty(data.error);
+                return;
+            }
+            setInboxState(data);
+        } catch (err) {
+            showInboxEmpty("Could not sync inbox: " + err.message);
+        } finally {
+            document.getElementById("sync-icon").style.animation = "";
+        }
+    }
+
+    function showInboxEmpty(msg) {
+        hide("inbox-loading");
+        hide("inbox-list");
+        show("inbox-empty");
+        if (msg) document.querySelector("#inbox-empty p").textContent = msg;
+    }
+
+    // ─── Render email list ────────────────────────────────────────────────────────
+    function renderEmailList() {
+        const list = document.getElementById("inbox-list");
+        const emails = filteredEmails();
+
+        if (emails.length === 0) {
+            list.innerHTML =
+                '<div class="flex-1 flex flex-col items-center justify-center p-6 text-center text-[13px] text-on-surface-variant">No emails in this tab.</div>';
+            show("inbox-list");
+            hide("inbox-empty");
+            return;
+        }
+
+        list.innerHTML = emails
+            .map((e, idx) => {
+                const isActive = state.selected?.id === e.id;
+                const cat = e._pipeline?.classification?.category;
+                const cfg = cat ? catCfg(cat) : null;
+                const hasDraft = !!e._pipeline?.draft?.draft_reply;
+                return `
+      <div onclick="selectEmail(${state.emails.indexOf(e)})"
+        class="flex flex-col gap-1 p-4 cursor-pointer transition-colors border-b border-surface-dim/50
+               ${isActive ? "bg-surface-container-low border-l-4 border-l-primary" : "hover:bg-surface-bright border-l-4 border-l-transparent"}">
+        <div class="flex justify-between items-start mb-0.5">
+          <div class="flex items-center gap-2 min-w-0">
+            <div class="h-8 w-8 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center font-label-md text-[12px] font-bold flex-shrink-0">
+              ${escHtml(initials(e.sender || e.sender_email))}
+            </div>
+            <span class="font-body-lg text-[14px] font-semibold text-on-surface truncate">${escHtml(e.sender || e.sender_email)}</span>
+          </div>
+          <span class="font-body-md text-[12px] text-outline whitespace-nowrap ml-2">${fmtTime(e.timestamp)}</span>
+        </div>
+        <span class="font-body-md text-[13px] font-semibold text-on-surface line-clamp-1 pl-10">${escHtml(e.subject)}</span>
+        <p class="font-body-md text-[12px] text-on-surface-variant line-clamp-2 pl-10">${escHtml((e.body_plain || "").slice(0, 120))}</p>
+        <div class="pl-10 flex items-center gap-2 mt-0.5">
+          ${cfg ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${cfg.bg} ${cfg.text}">${cfg.label}</span>` : ""}
+          ${hasDraft ? `<span class="text-primary" title="AI Draft ready"><span class="material-symbols-outlined text-[14px]">auto_awesome</span></span>` : ""}
+        </div>
+      </div>`;
+            })
+            .join("");
+    }
+
+    // ─── Select + process email ───────────────────────────────────────────────────
+    async function selectEmail(idx) {
+        const email = state.emails[idx];
+        if (!email) return;
+        state.selected = email;
+        renderEmailList(); // update active state
+
+        // Show email content immediately
+        showEmailContent(email, null);
+
+        // Enable toolbar buttons
+        ["btn-archive", "btn-delete", "btn-mark-unread"].forEach((id) => {
+            document.getElementById(id).disabled = false;
+        });
+
+        // If already processed with draft cached, show it
+        if (email._pipeline) {
+            showPipelineResult(email._pipeline);
+            return;
+        }
+
+        // Run pipeline
+        show("email-processing-badge");
+        show("draft-loading");
+        hide("draft-empty");
+        hide("draft-content");
+
+        try {
+            const res = await fetch("/api/process-email", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email_id: email.id,
+                    subject: email.subject,
+                    sender: email.sender,
+                    sender_email: email.sender_email,
+                    body_plain: email.body_plain,
+                    thread_id: email.thread_id,
+                    timestamp: email.timestamp,
+                }),
+            });
+            const data = await res.json();
+
+            // Cache pipeline result on email object so switching back is instant
+            state.emails[idx]._pipeline = data;
+            state.pipeline = data;
+
+            showPipelineResult(data);
+            renderEmailList(); // refresh badges
+        } catch (err) {
+            console.error("Pipeline failed:", err);
+            hide("draft-loading");
+            show("draft-empty");
+            document.querySelector("#draft-empty p").textContent =
+                "AI pipeline failed. Try again.";
+        } finally {
+            hide("email-processing-badge");
+        }
+    }
+
+    // ─── Show email content in center panel ───────────────────────────────────────
+    function showEmailContent(email, pipeline) {
+        hide("email-empty");
+        show("email-content");
+        hide("summary-bar");
+
+        document.getElementById("email-subject").textContent = email.subject;
+        document.getElementById("email-avatar").textContent = initials(
+            email.sender || email.sender_email,
+        );
+        document.getElementById("email-sender-name").textContent =
+            email.sender || email.sender_email;
+        document.getElementById("email-sender-addr").textContent =
+            email.sender_email ? `<${email.sender_email}>` : "";
+        document.getElementById("email-timestamp").textContent = fmtTime(
+            email.timestamp,
+        );
+        document.getElementById("email-body").innerHTML = bodyToParagraphs(
+            email.body_plain,
+        );
+
+        const badge = document.getElementById("email-category-badge");
+        badge.className =
+            "hidden text-[10px] font-bold px-2 py-0.5 rounded-full";
+        badge.textContent = "";
+    }
+
+    // ─── Render pipeline output ───────────────────────────────────────────────────
+    function showPipelineResult(data) {
+        const { classification, summary, draft } = data;
+
+        // Summary bar
+        if (summary?.one_line_summary) {
+            document.getElementById("summary-headline").textContent =
+                summary.one_line_summary;
+            const factsEl = document.getElementById("summary-facts");
+            factsEl.innerHTML = (summary.key_facts || [])
+                .map(
+                    (f) =>
+                        `<span class="text-[11px] bg-surface-container-low border border-surface-dim px-2 py-0.5 rounded-full text-on-surface-variant">${escHtml(f)}</span>`,
+                )
+                .join("");
+            show("summary-bar");
+        }
+
+        // Category badge on email header
+        if (classification?.category) {
+            const cfg = catCfg(classification.category);
+            const badge = document.getElementById("email-category-badge");
+            badge.textContent = cfg.label;
+            badge.className = `text-[10px] font-bold px-2 py-0.5 rounded-full ${cfg.bg} ${cfg.text}`;
+            badge.classList.remove("hidden");
+        }
+
+        // Confidence badge on AI panel
+        if (draft?.confidence_score !== undefined) {
+            const score = draft.confidence_score;
+            const cb = document.getElementById("confidence-badge");
+            cb.textContent = Math.round(score * 100) + "%";
+            cb.className = `text-[10px] font-bold px-2 py-0.5 rounded-full ${score >= 0.7 ? "bg-green-100 text-green-700" : score >= 0.4 ? "bg-orange-100 text-orange-700" : "bg-surface-container-high text-on-surface-variant"}`;
+            cb.classList.remove("hidden");
+        }
+
+        // Draft textarea
+        hide("draft-loading");
+        hide("draft-empty");
+        show("draft-content");
+        document.getElementById("draft-textarea").value =
+            draft?.draft_reply || "";
+
+        // Action items section
+        const allActions = [
+            ...(classification?.action_items || []),
+            ...(summary?.action_items || []),
+        ].filter((v, i, a) => a.indexOf(v) === i); // deduplicate
+
+        const actSection = document.getElementById("action-items-section");
+        if (allActions.length > 0) {
+            document.getElementById("action-items-list").innerHTML = allActions
+                .map(
+                    (a) =>
+                        `<div class="flex items-start gap-2 text-[12px] text-on-surface-variant">
+         <span class="material-symbols-outlined text-[14px] text-primary mt-0.5 flex-shrink-0">check_circle</span>
+         <span>${escHtml(a)}</span>
+       </div>`,
+                )
+                .join("");
+            actSection.classList.remove("hidden");
+        } else {
+            actSection.classList.add("hidden");
+        }
+
+        // Enable action buttons
+        ["btn-send-reply", "btn-copy-draft", "btn-regenerate"].forEach((id) => {
+            document.getElementById(id).disabled = false;
+        });
+    }
+
+    // ─── Draft actions ────────────────────────────────────────────────────────────
+    function copyDraft() {
+        const text = document.getElementById("draft-textarea").value;
+        navigator.clipboard.writeText(text).then(() => {
+            const btn = document.getElementById("btn-copy-draft");
+            const orig = btn.innerHTML;
+            btn.innerHTML =
+                '<span class="material-symbols-outlined text-[16px]">check</span> Copied!';
+            setTimeout(() => {
+                btn.innerHTML = orig;
+            }, 2000);
+        });
+    }
+
+    async function regenerateDraft() {
+        if (!state.selected) return;
+        const email = state.selected;
+        const pipeline = state.pipeline || email._pipeline;
+        if (!pipeline) return;
+
+        document.getElementById("btn-regenerate").disabled = true;
+        document.getElementById("draft-textarea").value = "Regenerating…";
+
+        try {
+            const res = await fetch("/api/draft", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email_id: email.id,
+                    subject: email.subject,
+                    body: email.body_plain,
+                    classification: pipeline.classification,
+                    summary: pipeline.summary,
+                }),
+            });
+            const data = await res.json();
+            document.getElementById("draft-textarea").value =
+                data.draft_reply || "";
+            if (pipeline) pipeline.draft = data;
+        } catch (err) {
+            document.getElementById("draft-textarea").value =
+                "Regeneration failed. Please try again.";
+        } finally {
+            document.getElementById("btn-regenerate").disabled = false;
+        }
+    }
+
+    async function sendReply() {
+        if (!state.selected) return;
+
+        const email = state.selected;
+        const pipeline = state.pipeline || email._pipeline;
+        const draftText = document.getElementById("draft-textarea").value.trim();
+        const btn = document.getElementById("btn-send-reply");
+        const original = btn.innerHTML;
+
+        if (!email.sender_email) {
+            btn.innerHTML = "Missing recipient";
+            setTimeout(() => {
+                btn.innerHTML = original;
+            }, 2000);
+            return;
+        }
+
+        if (!draftText) {
+            btn.innerHTML = "Draft is empty";
+            setTimeout(() => {
+                btn.innerHTML = original;
+            }, 2000);
+            return;
+        }
+
+        const subject =
+            pipeline?.draft?.suggested_subject ||
+            `Re: ${email.subject || "(no subject)"}`;
+
+        btn.disabled = true;
+        btn.innerHTML =
+            '<span class="material-symbols-outlined text-[18px] animate-spin">autorenew</span> Sending...';
+
+        try {
+            const res = await fetch("/api/emails/send", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    to: email.sender_email,
+                    subject,
+                    body: draftText,
+                    thread_id: email.thread_id || null,
+                }),
+            });
+            const data = await res.json();
+
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            btn.innerHTML =
+                '<span class="material-symbols-outlined text-[18px]">check</span> Sent';
+            setTimeout(() => {
+                btn.innerHTML = original;
+                btn.disabled = false;
+            }, 1800);
+        } catch (err) {
+            btn.innerHTML = "Send failed";
+            setTimeout(() => {
+                btn.innerHTML = original;
+                btn.disabled = false;
+            }, 1800);
+        }
+    }
+
+    // ─── DOM helpers ──────────────────────────────────────────────────────────────
+    function show(id) {
+        document.getElementById(id)?.classList.remove("hidden");
+    }
+    function hide(id) {
+        document.getElementById(id)?.classList.add("hidden");
+    }
+
+    // ─── Boot ─────────────────────────────────────────────────────────────────────
+    loadEmails();
+</script>
 {% endblock %}
