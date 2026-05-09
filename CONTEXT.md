@@ -1,7 +1,7 @@
 # MailMind — Project Context
 
 ## Last updated
-Phase 8B — Email Detail & AI Draft Panel (2026-05-09)
+Phase 10 — Orders Page UI (2026-05-09)
 
 ## What has been built
 - Project directory structure configured for a FastAPI + Jinja2 monolith
@@ -158,6 +158,16 @@ Phase 8B — Email Detail & AI Draft Panel (2026-05-09)
   - Calls Gmail `drafts.create()` API — saves to Drafts folder without sending
   - Preserves thread association via `threadId` when supplied
 
+### Phase 10 additions
+- **`backend/templates/orders.html`** — Fully implemented Orders page:
+  - Stats row: 3 cards (Total Orders, Estimated Spent, Monthly Average) fetched from `GET /api/orders/stats`
+  - Filter tabs: All / Shipped / Processing / Delivered — client-side JS filter via `setFilter()`
+  - Order cards grid: retailer letter avatar (deterministic colour per first letter, 10-palette), item description, order/delivery dates, status badge (teal=shipped, orange=processing, grey=delivered, red=cancelled, pink=out-for-delivery), price (right-aligned), tracking URL button or tracking number
+  - `renderCard(order)` — pure JS template function producing each card's HTML
+  - `loadOrders()` — parallel `Promise.all` for `/api/orders` + `/api/orders/stats`; loading / empty / error states
+  - `renderStats(stats)` — injects stat values into the three card elements
+  - `/orders` page route already existed in `pages.py` — no backend changes needed
+
 ## What is working
 - Backend: All pages are routable via FastAPI Jinja2 template responses
 - Frontend: Sidebar navigation shows correct active state per route
@@ -192,10 +202,13 @@ Phase 8B — Email Detail & AI Draft Panel (2026-05-09)
 - **Phase 8B**: "Save to Gmail Drafts" button saves draft via Gmail API (not sent)
 - **Phase 8B**: Toast notifications (success/error/info) with CSS keyframe animations on draft actions
 - **Phase 8B**: Regenerate button shows spinner icon and refreshes confidence badge on completion
+- **Phase 10**: Orders page renders stats row (total orders, estimated spent, monthly average) from API
+- **Phase 10**: Order cards display retailer avatar, description, dates, status badge, price, track-package link
+- **Phase 10**: Filter tabs (All/Shipped/Processing/Delivered) filter cards client-side without re-fetch
 
 ## Known issues / incomplete
 - Tailwind CSS may need recompilation when new utility classes are added (`npx @tailwindcss/cli -i static/input.css -o static/style.css`)
-- All page content except email, home, settings is now complete; crafter/orders/settings pages still placeholder (Phases 9-11)
+- All page content except crafter/settings pages still placeholder (Phases 9, 11)
 - n8n workflow is empty placeholder (Phase 12)
 - `token.json` is saved to project root — it is in `.gitignore` (contains OAuth secrets)
 - orders.html page still renders placeholder content (Phase 10 will wire up the UI)
