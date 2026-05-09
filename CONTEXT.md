@@ -1,7 +1,7 @@
 # MailMind — Project Context
 
 ## Last updated
-Phase 5 — Order and Purchase Tracking (2026-05-09)
+Phase 6 — Analytics and Email Stats (2026-05-09)
 
 ## What has been built
 - Project directory structure configured for a FastAPI + Jinja2 monolith
@@ -124,6 +124,17 @@ Phase 5 — Order and Purchase Tracking (2026-05-09)
   - Order saved to DB and returned in response as `"order"` key
   - Guard prevents duplicate order inserts on re-processing
 
+### Phase 6 additions
+- **`backend/db/sqlite.py`** — Added two analytics helper functions:
+  - `get_analytics_overview()` — queries `processed_emails` for total_today, spam_count, flagged_suspicious, by_category (GROUP BY), by_sender_domain (top 5 via substr/instr, rest bucketed as 'other'), hourly_volume (today only, 24h→12h label)
+  - `get_analytics_security()` — computes spam_rate_percent, safe_percent, and suspicious_senders list with plain-English reason strings
+- **`backend/routes/analytics.py`** — Phase 6 endpoints fully implemented:
+  - `GET /api/analytics/overview` — returns OverviewResponse Pydantic model
+  - `GET /api/analytics/security` — returns SecurityResponse Pydantic model
+  - `GET /api/analytics/summary` — Phase 3 quick-stats preserved unchanged
+  - Pydantic models: `HourlyEntry`, `OverviewResponse`, `SuspiciousSender`, `SecurityResponse`
+  - Both new endpoints have safe except fallbacks returning empty payloads
+
 ## What is working
 - Backend: All pages are routable via FastAPI Jinja2 template responses
 - Frontend: Sidebar navigation shows correct active state per route
@@ -150,11 +161,12 @@ Phase 5 — Order and Purchase Tracking (2026-05-09)
 - **Phase 5**: `GET /api/orders/stats` returns total_orders, total_spent_estimate, orders_by_status, monthly_average
 - **Phase 5**: `POST /api/orders/extract` runs extractor + persists to DB
 - **Phase 5**: `/api/process-email` automatically runs order extraction when classifier flags `is_order_email=True`
+- **Phase 6**: `GET /api/analytics/overview` returns total_today, spam_count, by_category, by_sender_domain, hourly_volume from SQLite
+- **Phase 6**: `GET /api/analytics/security` returns spam_rate_percent, safe_percent, suspicious_senders list
 
 ## Known issues / incomplete
 - Tailwind CSS may need recompilation when new utility classes are added (`npx @tailwindcss/cli -i static/input.css -o static/style.css`)
-- No full analytics charts (Phase 6) — only summary stats
-- All page content except email + home + settings is placeholder — will be populated in Phases 7-11 (Phase 7 done)
+- All page content except email + home + settings is placeholder — will be populated in Phases 8-11 (Phase 7 done)
 - n8n workflow is empty placeholder (Phase 12)
 - `token.json` is saved to project root — it is in `.gitignore` (contains OAuth secrets)
 - orders.html page still renders placeholder content (Phase 10 will wire up the UI)
