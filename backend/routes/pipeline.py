@@ -19,6 +19,7 @@ from db.sqlite import (
     save_meeting,
     save_draft,
     save_email,
+    save_order,
     save_pipeline_result,
     save_todo,
 )
@@ -26,6 +27,7 @@ from fastapi import APIRouter
 from pipeline.classifier import classify_email
 from pipeline.drafter import draft_reply
 from pipeline.meeting_extractor import extract_meetings
+from pipeline.order_extractor import extract_order
 from pipeline.summarizer import summarize_email
 from pipeline.todo_extractor import extract_todos
 from pydantic import BaseModel
@@ -184,6 +186,7 @@ def process_email(req: ProcessEmailRequest):
 
     saved_todos = []
     saved_meetings = []
+    saved_order = None
 
     # Avoid duplicate entity inserts when the same email is re-processed.
     if not already:
@@ -211,6 +214,25 @@ def process_email(req: ProcessEmailRequest):
                 source_email_subject=meeting.get("source_email_subject", req.subject),
             )
             saved_meetings.append({"id": meeting_id, **meeting})
+
+        # Only extract order data if the classifier flagged this as an order email.
+        # Avoids wasting Gemini tokens on non-purchase emails.
+        if classification.get("is_order_email", False):
+            print(f"[Route /process-email] is_order_email=True — running order extractor")
+            order_data = extract_order(req.subject, req.body_plain, req.sender_email)
+            order_id = save_order(
+                retailer=order_data.get("retailer", "Unknown"),
+                order_number=order_data.get("order_number"),
+                item_description=order_data.get("item_description"),
+                order_date=order_data.get("order_date"),
+                estimated_delivery=order_data.get("estimated_delivery"),
+                status=order_data.get("status", "processing"),
+                tracking_number=order_data.get("tracking_number"),
+                tracking_url=order_data.get("tracking_url"),
+                price=order_data.get("price"),
+                source_email_id=req.email_id,
+            )
+            saved_order = {"id": order_id, **order_data}
 
     # Ensure the source email row exists, then persist all AI outputs.
     save_email(
@@ -242,5 +264,6 @@ def process_email(req: ProcessEmailRequest):
         "draft": draft,
         "todos": saved_todos,
         "meetings": saved_meetings,
+        "order": saved_order,
         "already_processed": already,
     }

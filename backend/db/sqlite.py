@@ -621,3 +621,422 @@ def get_meetings():
         )
 
     return meetings
+
+
+# ---------------------------------------------------------------------------
+# Order helpers
+# ---------------------------------------------------------------------------
+
+
+def save_order(
+    retailer,
+    order_number,
+    item_description,
+    order_date,
+    estimated_delivery,
+    status,
+    tracking_number,
+    tracking_url,
+    price,
+    source_email_id,
+):
+    """
+    Inserts a single order extracted from an email into the orders table.
+
+    Args:
+        retailer          (str):       store or brand name
+        order_number      (str|None):  order reference number
+        item_description  (str):       short description of items ordered
+        order_date        (str|None):  date the order was placed
+        estimated_delivery(str|None):  expected delivery date
+        status            (str):       one of ordered/processing/shipped/
+                                       out-for-delivery/delivered/cancelled
+        tracking_number   (str|None):  carrier tracking number
+        tracking_url      (str|None):  direct link to tracking page
+        price             (str|None):  total price including currency symbol
+        source_email_id   (str):       Gmail message ID this order came from
+
+    Returns:
+        int: newly created order row ID
+    """
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute(
+        """INSERT INTO orders
+           (retailer, order_number, item_description, order_date,
+            estimated_delivery, status, tracking_number, tracking_url,
+            price, source_email_id)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+        (
+            retailer,
+            order_number,
+            item_description,
+            order_date,
+            estimated_delivery,
+            status,
+            tracking_number,
+            tracking_url,
+            price,
+            source_email_id,
+        ),
+    )
+
+    order_id = cursor.lastrowid
+    connection.commit()
+    connection.close()
+    print(f"[DB] Saved order id={order_id} retailer='{retailer}'")
+    return order_id
+
+
+def get_orders():
+    """
+    Returns all orders sorted by creation time (most recent first).
+
+    Returns:
+        list[dict]: all order rows in API-ready format
+    """
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    # Most recent first — newest order appears at the top of the list
+    cursor.execute("SELECT * FROM orders ORDER BY created_at DESC")
+
+    rows = cursor.fetchall()
+    connection.close()
+
+    return [
+        {
+            "id":                 row["id"],
+            "retailer":           row["retailer"],
+            "order_number":       row["order_number"],
+            "item_description":   row["item_description"],
+            "order_date":         row["order_date"],
+            "estimated_delivery": row["estimated_delivery"],
+            "status":             row["status"],
+            "tracking_number":    row["tracking_number"],
+            "tracking_url":       row["tracking_url"],
+            "price":              row["price"],
+            "source_email_id":    row["source_email_id"],
+            "created_at":         row["created_at"],
+        }
+        for row in rows
+    ]
+
+
+def get_order_stats():
+    """
+    Computes aggregate statistics across all stored orders.
+
+    Calculates:
+        - total_orders:         total row count in orders table
+        - orders_by_status:     count per status value
+        - total_spent_estimate: sum of numeric price values that could be parsed
+        - monthly_average:      total_spent divided by number of distinct months seen
+
+    Returns:
+        dict: stats payload ready to be returned by GET /api/orders/stats
+    """
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    # --- Total order count ---
+    cursor.execute("SELECT COUNT(*) AS cnt FROM orders")
+    total_orders = cursor.fetchone()["cnt"]
+
+    # --- Count per status ---
+    cursor.execute(
+        "SELECT status, COUNT(*) AS cnt FROM orders GROUP BY status"
+    )
+    status_rows = cursor.fetchall()
+
+    # Build a dict with all known statuses defaulting to 0
+    orders_by_status = {
+        "ordered":          0,
+        "processing":       0,
+        "shipped":          0,
+        "out-for-delivery": 0,
+        "delivered":        0,
+        "cancelled":        0,
+    }
+    for row in status_rows:
+        if row["status"] in orders_by_status:
+            orders_by_status[row["status"]] = row["cnt"]
+
+    # --- Estimate total spent ---
+    # We parse every price string, strip currency symbols, and sum the
+    # numbers we can parse. Unparseable strings are quietly skipped.
+    cursor.execute("SELECT price FROM orders WHERE price IS NOT NULL AND price != ''")
+    price_rows = cursor.fetchall()
+
+    total_spent = 0.0
+    parsed_price_count = 0
+
+    for price_row in price_rows:
+        raw = price_row["price"]
+        try:
+            # Strip common currency symbols and whitespace, then convert
+            cleaned = raw.replace("$", "").replace("£", "").replace("€", "").replace(",", "").strip()
+            value = float(cleaned)
+            total_spent += value
+            parsed_price_count += 1
+        except (ValueError, AttributeError):
+            # Price string couldn't be parsed — skip it silently
+            pass
+
+    # Format with 2 decimal places and a $ prefix for display
+    total_spent_str = f"${total_spent:.2f}" if total_spent > 0 else "N/A"
+
+    # --- Monthly average ---
+    # Count distinct year-month combinations from created_at timestamps
+    cursor.execute(
+        "SELECT DISTINCT strftime('%Y-%m', created_at) AS month FROM orders"
+    )
+    month_rows = cursor.fetchall()
+    num_months = max(len(month_rows), 1)  # Avoid division by zero
+
+    monthly_average = total_spent / num_months if total_spent > 0 else 0.0
+    monthly_average_str = f"${monthly_average:.2f}" if total_spent > 0 else "N/A"
+
+    connection.close()
+
+    return {
+        "total_orders":        total_orders,
+        "total_spent_estimate": total_spent_str,
+        "orders_by_status":    orders_by_status,
+        "monthly_average":     monthly_average_str,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Analytics helpers — power the /api/analytics/overview and /security routes
+# ---------------------------------------------------------------------------
+
+
+def get_analytics_overview():
+    """
+    Computes full analytics stats from the processed_emails table.
+
+    How each field is calculated:
+        total_today       — COUNT(*) WHERE date(processed_at) = today's date
+        spam_count        — COUNT(*) WHERE is_spam = 1
+        flagged_suspicious— COUNT(*) WHERE category = 'spam' AND is_spam = 0
+                            (classified as spam-like by AI even if not flagged)
+        by_category       — GROUP BY category → dict of {category: count}
+        by_sender_domain  — extract domain from sender (text after '@'), GROUP BY
+                            domain, take top 5, remainder bucketed as 'other'
+        hourly_volume     — GROUP BY hour(processed_at) for today's emails,
+                            returns list of {hour: '8am', count: N} for hours
+                            00–23 that have at least one email
+
+    Returns:
+        dict: overview stats payload
+    """
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    # --- Total emails processed today ---
+    # date() extracts YYYY-MM-DD from the TIMESTAMP so we can compare to today
+    cursor.execute(
+        "SELECT COUNT(*) AS cnt FROM processed_emails WHERE date(processed_at) = date('now')"
+    )
+    total_today = cursor.fetchone()["cnt"]
+
+    # --- Spam count ---
+    cursor.execute(
+        "SELECT COUNT(*) AS cnt FROM processed_emails WHERE is_spam = 1"
+    )
+    spam_count = cursor.fetchone()["cnt"]
+
+    # --- Flagged suspicious ---
+    # Emails classified as 'spam' by the AI but NOT marked is_spam in DB
+    # are treated as "suspicious" — they could be phishing, spoofed senders, etc.
+    cursor.execute(
+        "SELECT COUNT(*) AS cnt FROM processed_emails WHERE category = 'spam' AND is_spam = 0"
+    )
+    flagged_suspicious = cursor.fetchone()["cnt"]
+
+    # --- By category ---
+    # Group all processed emails by their AI-assigned category.
+    cursor.execute(
+        "SELECT category, COUNT(*) AS cnt FROM processed_emails GROUP BY category ORDER BY cnt DESC"
+    )
+    by_category = {}
+    for row in cursor.fetchall():
+        # Guard against NULL categories (shouldn't happen but be safe)
+        cat = row["category"] or "unknown"
+        by_category[cat] = row["cnt"]
+
+    # --- By sender domain ---
+    # The sender column holds the raw email address (e.g. "alice@gmail.com").
+    # We extract everything after '@' using SQLite's substr + instr functions.
+    # Top 5 domains are returned individually; the rest are summed as "other".
+    cursor.execute(
+        """SELECT
+               CASE
+                   WHEN instr(sender, '@') > 0
+                   THEN lower(substr(sender, instr(sender, '@') + 1))
+                   ELSE 'unknown'
+               END AS domain,
+               COUNT(*) AS cnt
+           FROM processed_emails
+           GROUP BY domain
+           ORDER BY cnt DESC"""
+    )
+    domain_rows = cursor.fetchall()
+
+    by_sender_domain = {}
+    other_count = 0
+    for index, row in enumerate(domain_rows):
+        if index < 5:
+            # Keep the top 5 domains as individual keys
+            by_sender_domain[row["domain"]] = row["cnt"]
+        else:
+            # Bucket everything beyond the top 5 into "other"
+            other_count += row["cnt"]
+
+    if other_count > 0:
+        by_sender_domain["other"] = other_count
+
+    # --- Hourly volume (today only) ---
+    # strftime('%H', processed_at) returns a zero-padded 24h hour string like '08'.
+    # We convert it to a human-friendly label like '8am' / '3pm'.
+    cursor.execute(
+        """SELECT
+               CAST(strftime('%H', processed_at) AS INTEGER) AS hour_num,
+               COUNT(*) AS cnt
+           FROM processed_emails
+           WHERE date(processed_at) = date('now')
+           GROUP BY hour_num
+           ORDER BY hour_num ASC"""
+    )
+    hourly_rows = cursor.fetchall()
+
+    hourly_volume = []
+    for row in hourly_rows:
+        hour_num = row["hour_num"]
+        # Convert 24h integer to 12h label (0→12am, 13→1pm, etc.)
+        if hour_num == 0:
+            label = "12am"
+        elif hour_num < 12:
+            label = f"{hour_num}am"
+        elif hour_num == 12:
+            label = "12pm"
+        else:
+            label = f"{hour_num - 12}pm"
+
+        hourly_volume.append({"hour": label, "count": row["cnt"]})
+
+    connection.close()
+
+    return {
+        "total_today":        total_today,
+        "spam_count":         spam_count,
+        "flagged_suspicious": flagged_suspicious,
+        "by_category":        by_category,
+        "by_sender_domain":   by_sender_domain,
+        "hourly_volume":      hourly_volume,
+    }
+
+
+def get_analytics_security():
+    """
+    Computes security-focused statistics from the processed_emails table.
+
+    How each field is calculated:
+        spam_rate_percent    — (spam_count / total) * 100, rounded to 1 dp
+        safe_percent         — 100 - spam_rate_percent
+        suspicious_senders   — senders whose domain appears ≤1 time in the
+                               table AND whose email was classified as spam;
+                               reason is a human-readable explanation
+
+    Returns:
+        dict: {spam_rate_percent, suspicious_senders, safe_percent}
+    """
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    # --- Total processed + spam count ---
+    cursor.execute("SELECT COUNT(*) AS cnt FROM processed_emails")
+    total = cursor.fetchone()["cnt"]
+
+    cursor.execute("SELECT COUNT(*) AS cnt FROM processed_emails WHERE is_spam = 1")
+    spam_count = cursor.fetchone()["cnt"]
+
+    # Compute percentages, guarding against division by zero
+    if total > 0:
+        spam_rate = round((spam_count / total) * 100, 1)
+    else:
+        spam_rate = 0.0
+
+    safe_percent = round(100.0 - spam_rate, 1)
+
+    # --- Suspicious senders ---
+    # A sender is considered suspicious if:
+    #   1. Their email was classified as spam OR is marked is_spam = 1
+    #   2. Their domain appears only once (one-off / throwaway address pattern)
+    #
+    # We retrieve them from the DB and generate a plain-English reason string
+    # in Python so the reason is readable rather than a raw SQL label.
+    cursor.execute(
+        """SELECT sender, category, is_spam,
+               CASE
+                   WHEN instr(sender, '@') > 0
+                   THEN lower(substr(sender, instr(sender, '@') + 1))
+                   ELSE 'unknown'
+               END AS domain
+           FROM processed_emails
+           WHERE is_spam = 1 OR category = 'spam'
+           ORDER BY processed_at DESC
+           LIMIT 20"""
+    )
+    spam_rows = cursor.fetchall()
+
+    # Count how many times each domain appears in the full table
+    cursor.execute(
+        """SELECT
+               CASE
+                   WHEN instr(sender, '@') > 0
+                   THEN lower(substr(sender, instr(sender, '@') + 1))
+                   ELSE 'unknown'
+               END AS domain,
+               COUNT(*) AS cnt
+           FROM processed_emails
+           GROUP BY domain"""
+    )
+    domain_counts = {row["domain"]: row["cnt"] for row in cursor.fetchall()}
+
+    connection.close()
+
+    suspicious_senders = []
+    seen_senders = set()  # Avoid duplicate entries for the same address
+
+    for row in spam_rows:
+        sender = row["sender"] or "unknown"
+
+        # Skip duplicates — one entry per unique sender is enough
+        if sender in seen_senders:
+            continue
+        seen_senders.add(sender)
+
+        domain = row["domain"]
+        domain_freq = domain_counts.get(domain, 0)
+
+        # Build a human-readable reason string based on what we know
+        reasons = []
+        if row["is_spam"] == 1:
+            reasons.append("flagged as spam by AI classifier")
+        elif row["category"] == "spam":
+            reasons.append("categorised as spam (not explicitly flagged)")
+        if domain_freq == 1:
+            reasons.append("sender domain seen only once (possible throwaway)")
+
+        reason = "; ".join(reasons) if reasons else "suspicious activity detected"
+
+        suspicious_senders.append({"email": sender, "reason": reason})
+
+    return {
+        "spam_rate_percent":  spam_rate,
+        "suspicious_senders": suspicious_senders,
+        "safe_percent":       safe_percent,
+    }

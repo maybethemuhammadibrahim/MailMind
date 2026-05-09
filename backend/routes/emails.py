@@ -415,3 +415,85 @@ def send_email(req: SendEmailRequest):
     except Exception as e:
         print(f"[GMAIL] Failed to send email: {e}")
         return {"error": f"Failed to send email: {str(e)}"}
+
+
+# ---------------------------------------------------------------------------
+# Gmail Drafts — save without sending
+# ---------------------------------------------------------------------------
+
+
+class SaveDraftRequest(BaseModel):
+    """
+    Request body for POST /api/drafts/save.
+
+    Creates a Gmail draft (saved to the Drafts folder, not sent).
+    The 'to' field is optional — Gmail allows drafts without a recipient.
+    """
+
+    to: str = ""
+    subject: str = ""
+    body: str
+    thread_id: str | None = None
+
+
+@router.post("/drafts/save")
+def save_gmail_draft(req: SaveDraftRequest):
+    """
+    Saves the AI-generated draft text as a real Gmail draft.
+
+    Unlike /send which delivers the email immediately, this endpoint
+    calls drafts.create() so the user can review and edit the message
+    inside Gmail before sending. Useful as a safety step before committing.
+
+    The draft is associated with the same thread as the source email
+    when thread_id is supplied — this keeps replies grouped correctly
+    in Gmail's conversation view.
+
+    Args:
+        req (SaveDraftRequest): to, subject, body, optional thread_id
+
+    Returns:
+        dict: {"success": True, "draft_id": str} or {"error": str}
+    """
+    body_text = req.body.strip()
+    if not body_text:
+        return {"error": "body is required and cannot be empty."}
+
+    service = _build_gmail_service()
+    if not service:
+        return {
+            "error": "Gmail not connected.",
+            "hint": "Visit /api/auth/login to connect your Gmail account.",
+        }
+
+    try:
+        # Build a MIME message for the draft
+        mime = MIMEText(body_text, _charset="utf-8")
+
+        # To/Subject are optional for drafts — Gmail allows empty drafts
+        if req.to.strip():
+            mime["to"] = req.to.strip()
+        if req.subject.strip():
+            mime["subject"] = req.subject.strip()
+
+        # Encode as base64url — required by the Gmail API
+        raw = base64.urlsafe_b64encode(mime.as_bytes()).decode("utf-8")
+
+        # Build the draft body; include threadId to keep it in the same thread
+        draft_body: dict = {"message": {"raw": raw}}
+        if req.thread_id:
+            draft_body["message"]["threadId"] = req.thread_id
+
+        # Create the draft via Gmail API — does NOT send the email
+        result = service.users().drafts().create(
+            userId="me", body=draft_body
+        ).execute()
+
+        draft_id = result.get("id", "")
+        print(f"[GMAIL] Draft saved successfully — draft_id={draft_id}")
+
+        return {"success": True, "draft_id": draft_id}
+
+    except Exception as e:
+        print(f"[GMAIL] Failed to save draft: {e}")
+        return {"error": f"Failed to save draft: {str(e)}"}

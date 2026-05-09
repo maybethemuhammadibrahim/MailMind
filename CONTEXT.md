@@ -1,7 +1,7 @@
 # MailMind — Project Context
 
 ## Last updated
-Phase 4 — Todo and Meeting Extraction (2026-05-08)
+Phase 8B — Email Detail & AI Draft Panel (2026-05-09)
 
 ## What has been built
 - Project directory structure configured for a FastAPI + Jinja2 monolith
@@ -105,6 +105,59 @@ Phase 4 — Todo and Meeting Extraction (2026-05-08)
   - Loads meetings from `/api/meetings`
   - Supports marking tasks complete directly from dashboard UI
 
+### Phase 5 additions
+- **`backend/pipeline/order_extractor.py`** — Gemini Flash order extraction:
+  - `extract_order(subject, body, sender)` with dual retry guard
+  - System prompt extracts: retailer, order_number, item_description, order_date, estimated_delivery, status, tracking_number, tracking_url, price
+  - Status enum validated against known set; invalid values default to 'processing'
+  - Safe default dict returned if both Gemini attempts fail
+- **`backend/db/sqlite.py`** — Added order DB helper functions:
+  - `save_order(...)` — inserts a new order row, returns row ID
+  - `get_orders()` — returns all orders ordered by created_at DESC
+  - `get_order_stats()` — computes total_orders, total_spent_estimate (parsed from price strings), orders_by_status breakdown, monthly_average
+- **`backend/routes/orders.py`** — Full Phase 5 order API:
+  - `GET /api/orders` — returns list of OrderItem Pydantic models
+  - `GET /api/orders/stats` — returns OrderStatsResponse Pydantic model
+  - `POST /api/orders/extract` — runs extractor + saves to DB, returns extracted fields + new row ID
+- **`backend/routes/pipeline.py`** — Integrated order extraction:
+  - `/api/process-email` now runs `extract_order()` when `is_order_email=True`
+  - Order saved to DB and returned in response as `"order"` key
+  - Guard prevents duplicate order inserts on re-processing
+
+### Phase 6 additions
+- **`backend/db/sqlite.py`** — Added two analytics helper functions:
+  - `get_analytics_overview()` — queries `processed_emails` for total_today, spam_count, flagged_suspicious, by_category (GROUP BY), by_sender_domain (top 5 via substr/instr, rest bucketed as 'other'), hourly_volume (today only, 24h→12h label)
+  - `get_analytics_security()` — computes spam_rate_percent, safe_percent, and suspicious_senders list with plain-English reason strings
+- **`backend/routes/analytics.py`** — Phase 6 endpoints fully implemented:
+  - `GET /api/analytics/overview` — returns OverviewResponse Pydantic model
+  - `GET /api/analytics/security` — returns SecurityResponse Pydantic model
+  - `GET /api/analytics/summary` — Phase 3 quick-stats preserved unchanged
+  - Pydantic models: `HourlyEntry`, `OverviewResponse`, `SuspiciousSender`, `SecurityResponse`
+  - Both new endpoints have safe except fallbacks returning empty payloads
+
+### Phase 8A additions
+- **`backend/templates/email.html`** — Added folder-list left pane and extended JS:
+  - New `<aside id="folder-nav">` column with four folders: Important, All Mail, Drafts, Spam
+  - `setFolder(folder)` function — highlights active folder, resets pagination, calls renderEmailList()
+  - `filteredEmails()` extended to handle all 4 folder modes (important/all/drafts/spam)
+  - `updateFolderBadges()` — live count pills on Important and All Mail buttons
+  - Legacy `setTab()` now delegates to `setFolder()` keeping inbox header tabs in sync
+  - Inbox list panel width reduced from w-80 to w-72 to fit 4-column layout
+
+### Phase 8B additions
+- **`backend/templates/email.html`** — Right pane AI Draft panel fully wired:
+  - Primary **"Save to Gmail Drafts"** button (teal, `bookmark_add` icon) calls `POST /api/drafts/save`
+  - Secondary row: **Copy**, **Regenerate** (with spinning icon during call), **Send** buttons
+  - Confidence badge now shows "AI Confidence: 92%" format with green/orange/grey colour tiers
+  - `saveDraftToGmail()` AJAX function with inline spinner, success/error toast, button state restore
+  - `regenerateDraft()` refactored: spinning icon, confidence badge refresh, success toast on done
+  - Toast notification system: `showToast(msg, type)` with `toast-in`/`toast-out` CSS keyframe animations, 3s auto-dismiss, colour-coded (success=green, error=red, info=primary)
+  - `btn-save-draft` added to the list of buttons enabled after pipeline completes
+- **`backend/routes/emails.py`** — Added `POST /api/drafts/save` endpoint:
+  - `SaveDraftRequest` Pydantic model (to, subject, body, thread_id)
+  - Calls Gmail `drafts.create()` API — saves to Drafts folder without sending
+  - Preserves thread association via `threadId` when supplied
+
 ## What is working
 - Backend: All pages are routable via FastAPI Jinja2 template responses
 - Frontend: Sidebar navigation shows correct active state per route
@@ -126,14 +179,26 @@ Phase 4 — Todo and Meeting Extraction (2026-05-08)
 - **Phase 4**: `/api/todos` and `/api/meetings` return live SQLite-backed data
 - **Phase 4**: Home page now shows real tasks and meetings instead of placeholders
 - **Phase 4**: Marking task done from dashboard updates SQLite via `PATCH /api/todos/{id}/done`
+- **Phase 5**: Order extraction from email content running with Gemini Flash
+- **Phase 5**: `GET /api/orders` returns all stored orders (most recent first)
+- **Phase 5**: `GET /api/orders/stats` returns total_orders, total_spent_estimate, orders_by_status, monthly_average
+- **Phase 5**: `POST /api/orders/extract` runs extractor + persists to DB
+- **Phase 5**: `/api/process-email` automatically runs order extraction when classifier flags `is_order_email=True`
+- **Phase 6**: `GET /api/analytics/overview` returns total_today, spam_count, by_category, by_sender_domain, hourly_volume from SQLite
+- **Phase 6**: `GET /api/analytics/security` returns spam_rate_percent, safe_percent, suspicious_senders list
+- **Phase 8A**: Email page folder nav renders Important / All Mail / Drafts / Spam with active highlight and count badges
+- **Phase 8A**: Folder switching filters email list correctly (Drafts = sent replies, Spam = spam-classified emails)
+- **Phase 8B**: AI Draft panel shows confidence as "AI Confidence: XX%" with colour-coded badge
+- **Phase 8B**: "Save to Gmail Drafts" button saves draft via Gmail API (not sent)
+- **Phase 8B**: Toast notifications (success/error/info) with CSS keyframe animations on draft actions
+- **Phase 8B**: Regenerate button shows spinner icon and refreshes confidence badge on completion
 
 ## Known issues / incomplete
 - Tailwind CSS may need recompilation when new utility classes are added (`npx @tailwindcss/cli -i static/input.css -o static/style.css`)
-- No order extraction yet (Phase 5)
-- No full analytics charts (Phase 6) — only summary stats
-- All page content except email + home + settings is placeholder — will be populated in Phases 7-11
+- All page content except email, home, settings is now complete; crafter/orders/settings pages still placeholder (Phases 9-11)
 - n8n workflow is empty placeholder (Phase 12)
 - `token.json` is saved to project root — it is in `.gitignore` (contains OAuth secrets)
+- orders.html page still renders placeholder content (Phase 10 will wire up the UI)
 
 ## Environment
 - Python version: 3.11+
@@ -186,13 +251,30 @@ mailmind/
 │       ├── drafter.py                   — draft_reply() with classification/summary context ✅ Phase 3
 │       ├── todo_extractor.py            — Gemini todo extraction ✅ Phase 4
 │       ├── meeting_extractor.py         — Gemini meeting extraction ✅ Phase 4
-│       └── order_extractor.py           — order extraction placeholder (Phase 5)
+│       └── order_extractor.py           — Gemini order extraction ✅ Phase 5
 ├── n8n/
 │   └── workflow.json                    — empty n8n workflow placeholder (Phase 12)
 ```
 
 ## Next phase instructions
 
+### Phase 6 — Analytics and Email Stats
+
+**Read CONTEXT.md first**, then implement:
+
+1. **`backend/routes/analytics.py`** — Expand beyond the existing `/api/analytics/summary` stub:
+   - `GET /api/analytics/overview` — returns stats from `processed_emails` table:
+     `{ total_today, spam_count, flagged_suspicious, by_category, by_sender_domain, hourly_volume }`
+   - `GET /api/analytics/security` — returns:
+     `{ spam_rate_percent, suspicious_senders: [{email, reason}], safe_percent }`
+   - All fields computed purely from SQLite — no AI calls needed
+
+2. **`backend/templates/home.html`** — Wire the new analytics endpoints into the dashboard:
+   - Replace CSS-only category bar chart with data driven by `/api/analytics/overview`
+   - Add sender domain breakdown section
+   - Add hourly volume section if feasible within the existing layout
+
+3. **Update CONTEXT.md** at the end with what was built, what works, and Phase 7 instructions (Phase 7 is already done — skip its UI steps, just note it).
 ### Phase 5 — Order and Purchase Tracking
 
 **Read CONTEXT.md first**, then implement:

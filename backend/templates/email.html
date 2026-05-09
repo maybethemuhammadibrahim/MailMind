@@ -2,10 +2,71 @@
 block header_title %}Email{% endblock %} {% block content %}
 <div class="flex flex-row gap-gutter h-full w-full flex-1 min-h-0">
     <!-- ══════════════════════════════════════════════════════════
-       LEFT PANEL — Inbox list
+       FOLDER NAV — Folder list (Important / All Mail / Drafts / Spam)
+  ══════════════════════════════════════════════════════════ -->
+    <aside
+        id="folder-nav"
+        class="w-48 flex-shrink-0 flex flex-col bg-surface-container-lowest rounded-xl border border-surface-dim shadow-[0px_4px_20px_rgba(0,0,0,0.03)] overflow-hidden max-h-[700px]">
+
+        <!-- Nav header -->
+        <div class="px-4 py-3 border-b border-surface-dim">
+            <span class="font-label-md text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Mailboxes</span>
+        </div>
+
+        <!-- Folder buttons -->
+        <nav class="flex flex-col py-2 gap-0.5 px-2">
+            <!-- Important -->
+            <button id="folder-btn-important" onclick="setFolder('important')"
+                class="folder-btn flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-left transition-colors
+                       bg-primary/10 text-primary">
+                <span class="material-symbols-outlined text-[18px]" style="font-variation-settings:'FILL' 1">star</span>
+                <span class="font-label-md text-[13px] font-semibold">Important</span>
+                <span id="badge-important" class="ml-auto text-[10px] font-bold bg-primary text-on-primary rounded-full px-1.5 py-0.5 hidden"></span>
+            </button>
+
+            <!-- All Mail -->
+            <button id="folder-btn-all" onclick="setFolder('all')"
+                class="folder-btn flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-left transition-colors
+                       text-on-surface-variant hover:bg-surface-container-low">
+                <span class="material-symbols-outlined text-[18px]">all_inbox</span>
+                <span class="font-label-md text-[13px] font-medium">All Mail</span>
+                <span id="badge-all" class="ml-auto text-[10px] font-bold bg-secondary text-on-secondary rounded-full px-1.5 py-0.5 hidden"></span>
+            </button>
+
+            <!-- Divider -->
+            <div class="my-1 mx-1 h-px bg-surface-dim"></div>
+
+            <!-- Drafts -->
+            <button id="folder-btn-drafts" onclick="setFolder('drafts')"
+                class="folder-btn flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-left transition-colors
+                       text-on-surface-variant hover:bg-surface-container-low">
+                <span class="material-symbols-outlined text-[18px]">drafts</span>
+                <span class="font-label-md text-[13px] font-medium">Drafts</span>
+            </button>
+
+            <!-- Spam -->
+            <button id="folder-btn-spam" onclick="setFolder('spam')"
+                class="folder-btn flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-left transition-colors
+                       text-on-surface-variant hover:bg-surface-container-low">
+                <span class="material-symbols-outlined text-[18px]">report</span>
+                <span class="font-label-md text-[13px] font-medium">Spam</span>
+            </button>
+        </nav>
+
+        <!-- Spacer -->
+        <div class="flex-1"></div>
+
+        <!-- Storage indicator (decorative) -->
+        <div class="p-3 border-t border-surface-dim">
+            <p class="text-[10px] text-outline text-center">MailMind · AI inbox</p>
+        </div>
+    </aside>
+
+    <!-- ══════════════════════════════════════════════════════════
+       CENTER-LEFT PANEL — Inbox list
   ══════════════════════════════════════════════════════════ -->
     <section
-        class="w-80 flex-shrink-0 flex flex-col bg-surface-container-lowest rounded-xl border border-surface-dim shadow-[0px_4px_20px_rgba(0,0,0,0.03)] overflow-hidden max-h-[700px]">
+        class="w-72 flex-shrink-0 flex flex-col bg-surface-container-lowest rounded-xl border border-surface-dim shadow-[0px_4px_20px_rgba(0,0,0,0.03)] overflow-hidden max-h-[700px]">
         <!-- Tab bar -->
         <div class="flex border-b border-surface-dim px-4 pt-2 items-center">
             <button id="tab-important" onclick="setTab('important')"
@@ -205,43 +266,80 @@ block header_title %}Email{% endblock %} {% block content %}
 
         <!-- Action bar (always visible) -->
         <div class="p-4 border-t border-surface-dim bg-surface-container-lowest flex flex-col gap-3">
-            <button id="btn-send-reply" disabled onclick="sendReply()"
-                class="w-full py-2.5 rounded-lg font-h2 text-body-lg font-semibold flex items-center justify-center gap-2 transition-colors bg-on-surface/20 text-on-surface-variant cursor-not-allowed disabled:bg-on-surface/20 disabled:text-on-surface-variant disabled:cursor-not-allowed enabled:bg-primary enabled:text-on-primary enabled:hover:opacity-90 enabled:cursor-pointer">
-                <span class="material-symbols-outlined text-[18px]">send</span>
-                Send Reply
+
+            <!-- PRIMARY: Save to Gmail Drafts -->
+            <button id="btn-save-draft" disabled onclick="saveDraftToGmail()"
+                class="w-full py-2.5 rounded-lg font-h2 text-body-lg font-semibold flex items-center justify-center gap-2 transition-all
+                       bg-on-surface/20 text-on-surface-variant cursor-not-allowed
+                       disabled:bg-on-surface/20 disabled:text-on-surface-variant disabled:cursor-not-allowed
+                       enabled:bg-secondary enabled:text-on-secondary enabled:hover:opacity-90 enabled:cursor-pointer"
+                title="Save this draft to Gmail's Drafts folder">
+                <span class="material-symbols-outlined text-[18px]">bookmark_add</span>
+                Save to Gmail Drafts
             </button>
-            <div class="flex gap-3">
+
+            <!-- SECONDARY row: Copy | Regenerate | Send -->
+            <div class="flex gap-2">
                 <button id="btn-copy-draft" disabled
-                    class="flex-1 py-2 rounded-lg border text-[13px] font-medium flex items-center justify-center gap-1 transition-colors border-surface-dim text-on-surface-variant/40 cursor-not-allowed disabled:opacity-40 disabled:cursor-not-allowed enabled:border-outline-variant enabled:text-on-surface-variant enabled:hover:bg-surface-container-low enabled:cursor-pointer"
-                    onclick="copyDraft()">
-                    <span class="material-symbols-outlined text-[16px]">content_copy</span>
+                    class="flex-1 py-2 rounded-lg border text-[12px] font-medium flex items-center justify-center gap-1 transition-colors
+                           border-surface-dim text-on-surface-variant/40 cursor-not-allowed
+                           disabled:opacity-40 disabled:cursor-not-allowed
+                           enabled:border-outline-variant enabled:text-on-surface-variant enabled:hover:bg-surface-container-low enabled:cursor-pointer"
+                    onclick="copyDraft()" title="Copy draft text">
+                    <span class="material-symbols-outlined text-[15px]">content_copy</span>
                     Copy
                 </button>
                 <button id="btn-regenerate" disabled
-                    class="flex-1 py-2 rounded-lg border text-[13px] font-medium flex items-center justify-center gap-1 transition-colors border-surface-dim text-on-surface-variant/40 cursor-not-allowed disabled:opacity-40 disabled:cursor-not-allowed enabled:border-outline-variant enabled:text-primary enabled:hover:bg-primary/5 enabled:cursor-pointer"
-                    onclick="regenerateDraft()">
-                    <span class="material-symbols-outlined text-[16px]">refresh</span>
+                    class="flex-1 py-2 rounded-lg border text-[12px] font-medium flex items-center justify-center gap-1 transition-colors
+                           border-surface-dim text-on-surface-variant/40 cursor-not-allowed
+                           disabled:opacity-40 disabled:cursor-not-allowed
+                           enabled:border-outline-variant enabled:text-primary enabled:hover:bg-primary/5 enabled:cursor-pointer"
+                    onclick="regenerateDraft()" title="Re-generate the draft with Gemini">
+                    <span id="regen-icon" class="material-symbols-outlined text-[15px]">refresh</span>
                     Regenerate
+                </button>
+                <button id="btn-send-reply" disabled onclick="sendReply()"
+                    class="flex-1 py-2 rounded-lg border text-[12px] font-medium flex items-center justify-center gap-1 transition-colors
+                           border-surface-dim text-on-surface-variant/40 cursor-not-allowed
+                           disabled:opacity-40 disabled:cursor-not-allowed
+                           enabled:border-primary/40 enabled:text-primary enabled:hover:bg-primary/5 enabled:cursor-pointer"
+                    title="Send this reply via Gmail">
+                    <span class="material-symbols-outlined text-[15px]">send</span>
+                    Send
                 </button>
             </div>
         </div>
     </section>
 </div>
 {% endblock %} {% block scripts %}
+
+<!-- ── Toast notification container ─────────────────────────────────────── -->
+<!-- Toasts are injected here by showToast() and auto-removed after 3s      -->
+<div id="toast-container"
+    class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 items-end pointer-events-none">
+</div>
+
 <style>
-    @keyframes spin {
-        to {
-            transform: rotate(360deg);
-        }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes toast-in {
+        from { opacity: 0; transform: translateY(12px) scale(0.96); }
+        to   { opacity: 1; transform: translateY(0)   scale(1); }
     }
+    @keyframes toast-out {
+        from { opacity: 1; transform: translateY(0)   scale(1); }
+        to   { opacity: 0; transform: translateY(8px)  scale(0.96); }
+    }
+    .toast-enter { animation: toast-in  0.22s ease forwards; }
+    .toast-leave { animation: toast-out 0.22s ease forwards; }
 </style>
 <script>
     // ─── State ────────────────────────────────────────────────────────────────────
     const state = {
-        emails: [], // all fetched emails
-        selected: null, // currently open email object
-        pipeline: null, // last pipeline result {classification, summary, draft}
-        activeTab: "important",
+        emails: [],          // all fetched emails
+        selected: null,      // currently open email object
+        pipeline: null,      // last pipeline result {classification, summary, draft}
+        activeTab: "important", // maps to a folder key
+        activeFolder: "important", // tracks the folder-nav active folder
     };
 
     // Pagination state
@@ -331,19 +429,53 @@ block header_title %}Email{% endblock %} {% block content %}
             .join("");
     }
 
-    // ─── Tab management ───────────────────────────────────────────────────────────
-    function setTab(tab) {
-        state.activeTab = tab;
-        emailListPage = 1; // Reset pagination when switching tabs
-        document.getElementById("tab-important").className =
-            tab === "important"
-                ? "px-4 py-3 font-label-md text-label-md text-primary border-b-2 border-primary transition-colors"
-                : "px-4 py-3 font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors";
-        document.getElementById("tab-all").className =
-            tab === "all"
-                ? "px-4 py-3 font-label-md text-label-md text-primary border-b-2 border-primary transition-colors"
-                : "px-4 py-3 font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors";
+    // ─── Folder nav management ────────────────────────────────────────────────────
+    // Maps folder keys to display labels shown in the inbox list header.
+    const FOLDER_LABELS = {
+        important: "Important",
+        all:       "All Mail",
+        drafts:    "Sent / Drafts",
+        spam:      "Spam",
+    };
+
+    function setFolder(folder) {
+        state.activeFolder = folder;
+        // Map folders onto the internal tab filter used by filteredEmails()
+        state.activeTab = folder; // we extend filteredEmails() to handle all 4
+        emailListPage = 1; // reset pagination on folder switch
+
+        // Style all folder buttons: deactivate all, activate the clicked one
+        document.querySelectorAll(".folder-btn").forEach(function(btn) {
+            btn.classList.remove("bg-primary/10", "text-primary", "font-semibold");
+            btn.classList.add("text-on-surface-variant", "hover:bg-surface-container-low");
+            // Reset icon fill
+            var icon = btn.querySelector(".material-symbols-outlined");
+            if (icon) { icon.style.fontVariationSettings = "'FILL' 0"; }
+        });
+
+        var active = document.getElementById("folder-btn-" + folder);
+        if (active) {
+            active.classList.add("bg-primary/10", "text-primary", "font-semibold");
+            active.classList.remove("text-on-surface-variant", "hover:bg-surface-container-low");
+            var icon = active.querySelector(".material-symbols-outlined");
+            if (icon) { icon.style.fontVariationSettings = "'FILL' 1"; }
+        }
+
+        // Sync the inbox-list tab buttons (Important / All) if applicable
+        var tabImportant = document.getElementById("tab-important");
+        var tabAll = document.getElementById("tab-all");
+        var activeTabCls = "px-4 py-3 font-label-md text-label-md text-primary border-b-2 border-primary transition-colors";
+        var inactiveTabCls = "px-4 py-3 font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors";
+        tabImportant.className = folder === "important" ? activeTabCls : inactiveTabCls;
+        tabAll.className = (folder === "all" || folder === "drafts" || folder === "spam") ? activeTabCls : inactiveTabCls;
+
         renderEmailList();
+    }
+
+    // Legacy tab click handler — keeps existing tab buttons in sync with folder nav
+    function setTab(tab) {
+        // Map the simple tab click to the appropriate folder
+        setFolder(tab === "important" ? "important" : "all");
     }
 
     function loadMoreEmails() {
@@ -352,22 +484,34 @@ block header_title %}Email{% endblock %} {% block content %}
     }
 
     function filteredEmails() {
-        if (state.activeTab === "important") {
-            return state.emails.filter((e) => {
-                if (e.is_sent) {
-                    return false;
-                }
-                const cat = e._pipeline?.classification?.category;
-                const score = e._pipeline?.classification?.priority_score || 0;
-                return (
-                    !cat ||
-                    cat === "urgent" ||
-                    cat === "action-required" ||
-                    cat === "meeting-request" ||
-                    score >= 6
-                );
+        var folder = state.activeFolder || state.activeTab;
+
+        if (folder === "important") {
+            // Important: non-sent emails with urgent/action/meeting category OR priority >= 6
+            return state.emails.filter(function(e) {
+                if (e.is_sent) { return false; }
+                var cat = e._pipeline?.classification?.category;
+                var score = e._pipeline?.classification?.priority_score || 0;
+                return !cat || cat === "urgent" || cat === "action-required" ||
+                       cat === "meeting-request" || score >= 6;
             });
         }
+
+        if (folder === "drafts") {
+            // Drafts: sent messages (replies that were sent from this app)
+            return state.emails.filter(function(e) { return !!e.is_sent; });
+        }
+
+        if (folder === "spam") {
+            // Spam: emails classified as spam or flagged is_spam by the pipeline
+            return state.emails.filter(function(e) {
+                var cat = e._pipeline?.classification?.category;
+                var isSpam = e._pipeline?.classification?.is_spam;
+                return cat === "spam" || !!isSpam;
+            });
+        }
+
+        // All Mail: every email
         return state.emails;
     }
 
@@ -523,6 +667,9 @@ block header_title %}Email{% endblock %} {% block content %}
     function renderEmailList() {
         const list = document.getElementById("inbox-list");
         const allRows = buildDisplayRows();
+
+        // Update folder badge counts
+        updateFolderBadges();
 
         const countEl = document.getElementById("inbox-count");
         countEl.textContent = allRows.filter((r) => !r.isChild).length;
@@ -720,12 +867,17 @@ block header_title %}Email{% endblock %} {% block content %}
             badge.classList.remove("hidden");
         }
 
-        // Confidence badge on AI panel
+        // Confidence badge — format: "AI Confidence: 92%"
         if (draft?.confidence_score !== undefined) {
             const score = draft.confidence_score;
+            const pct = Math.round(score * 100);
             const cb = document.getElementById("confidence-badge");
-            cb.textContent = Math.round(score * 100) + "%";
-            cb.className = `text-[10px] font-bold px-2 py-0.5 rounded-full ${score >= 0.7 ? "bg-green-100 text-green-700" : score >= 0.4 ? "bg-orange-100 text-orange-700" : "bg-surface-container-high text-on-surface-variant"}`;
+            cb.textContent = `AI Confidence: ${pct}%`;
+            cb.className = `text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                score >= 0.75 ? "bg-green-100 text-green-700" :
+                score >= 0.45 ? "bg-orange-100 text-orange-700" :
+                                "bg-surface-container-high text-on-surface-variant"
+            }`;
             cb.classList.remove("hidden");
         }
 
@@ -758,8 +910,8 @@ block header_title %}Email{% endblock %} {% block content %}
             actSection.classList.add("hidden");
         }
 
-        // Enable action buttons
-        ["btn-send-reply", "btn-copy-draft", "btn-regenerate"].forEach((id) => {
+        // Enable action buttons now that a draft exists
+        ["btn-save-draft", "btn-send-reply", "btn-copy-draft", "btn-regenerate"].forEach((id) => {
             document.getElementById(id).disabled = false;
         });
     }
@@ -779,12 +931,17 @@ block header_title %}Email{% endblock %} {% block content %}
     }
 
     async function regenerateDraft() {
+        // Guard: need a selected email and an existing pipeline result
         if (!state.selected) return;
         const email = state.selected;
         const pipeline = state.pipeline || email._pipeline;
         if (!pipeline) return;
 
-        document.getElementById("btn-regenerate").disabled = true;
+        // Show spinning icon and disable button during the API call
+        const regenBtn = document.getElementById("btn-regenerate");
+        const regenIcon = document.getElementById("regen-icon");
+        regenBtn.disabled = true;
+        regenIcon.style.animation = "spin 0.8s linear infinite";
         document.getElementById("draft-textarea").value = "Regenerating…";
 
         try {
@@ -800,14 +957,28 @@ block header_title %}Email{% endblock %} {% block content %}
                 }),
             });
             const data = await res.json();
-            document.getElementById("draft-textarea").value =
-                data.draft_reply || "";
-            if (pipeline) pipeline.draft = data;
+
+            // Update textarea with new draft text
+            document.getElementById("draft-textarea").value = data.draft_reply || "";
+
+            // Refresh confidence badge with new score
+            if (data.confidence_score !== undefined) {
+                const pct = Math.round(data.confidence_score * 100);
+                const cb = document.getElementById("confidence-badge");
+                cb.textContent = `AI Confidence: ${pct}%`;
+                cb.classList.remove("hidden");
+            }
+
+            // Cache the fresh draft on the pipeline object
+            if (pipeline) { pipeline.draft = data; }
+            showToast("Draft regenerated", "success");
+
         } catch (err) {
-            document.getElementById("draft-textarea").value =
-                "Regeneration failed. Please try again.";
+            document.getElementById("draft-textarea").value = "Regeneration failed. Please try again.";
+            showToast("Regeneration failed — check console", "error");
         } finally {
-            document.getElementById("btn-regenerate").disabled = false;
+            regenBtn.disabled = false;
+            regenIcon.style.animation = "";
         }
     }
 
@@ -876,12 +1047,135 @@ block header_title %}Email{% endblock %} {% block content %}
         }
     }
 
+    // ─── Toast notifications ──────────────────────────────────────────────────────
+    // Creates a transient toast pill in the bottom-right corner.
+    // type: 'success' | 'error' | 'info'
+    function showToast(message, type) {
+        type = type || "info";
+        const container = document.getElementById("toast-container");
+
+        // Choose colour scheme based on type
+        const colours = {
+            success: "bg-green-600 text-white",
+            error:   "bg-error   text-on-error",
+            info:    "bg-primary  text-on-primary",
+        };
+        const icons = { success: "check_circle", error: "error", info: "info" };
+
+        const toast = document.createElement("div");
+        toast.className = [
+            "pointer-events-auto flex items-center gap-2 px-4 py-2.5 rounded-xl shadow-lg",
+            "font-label-md text-[13px] font-semibold toast-enter",
+            colours[type] || colours.info,
+        ].join(" ");
+        toast.innerHTML = [
+            `<span class="material-symbols-outlined text-[16px]" style="font-variation-settings:'FILL' 1">${icons[type] || "info"}</span>`,
+            `<span>${message}</span>`,
+        ].join("");
+
+        container.appendChild(toast);
+
+        // Auto-remove: fade out at 2.8s, remove DOM node at 3s
+        setTimeout(function() {
+            toast.classList.remove("toast-enter");
+            toast.classList.add("toast-leave");
+            setTimeout(function() { toast.remove(); }, 250);
+        }, 2800);
+    }
+
+    // ─── Save to Gmail Drafts ─────────────────────────────────────────────────────
+    // POSTs the current textarea content to /api/drafts/save which creates a
+    // real Gmail draft (not a sent message). Shows a toast on success or failure.
+    async function saveDraftToGmail() {
+        if (!state.selected) { return; }
+        const email   = state.selected;
+        const pipeline = state.pipeline || email._pipeline;
+        const draftText = document.getElementById("draft-textarea").value.trim();
+
+        if (!draftText) {
+            showToast("Draft is empty — nothing to save", "error");
+            return;
+        }
+
+        // Build the reply subject line
+        const subject = pipeline?.draft?.suggested_subject ||
+                        `Re: ${email.subject || "(no subject)"}`;
+
+        // Disable button and show saving state
+        const btn = document.getElementById("btn-save-draft");
+        const originalHTML = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin" style="animation:spin 0.8s linear infinite">autorenew</span> Saving…';
+
+        try {
+            const res = await fetch("/api/drafts/save", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    to:        email.sender_email || "",
+                    subject:   subject,
+                    body:      draftText,
+                    thread_id: email.thread_id || null,
+                }),
+            });
+            const data = await res.json();
+
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            showToast("Draft saved to Gmail ✓", "success");
+
+        } catch (err) {
+            console.error("[saveDraftToGmail]", err);
+            showToast("Could not save draft: " + err.message, "error");
+        } finally {
+            // Restore button after a short delay so the user sees the spinner
+            setTimeout(function() {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+            }, 600);
+        }
+    }
+
     // ─── DOM helpers ──────────────────────────────────────────────────────────────
     function show(id) {
         document.getElementById(id)?.classList.remove("hidden");
     }
     function hide(id) {
         document.getElementById(id)?.classList.add("hidden");
+    }
+
+    // ─── Folder badge counts ──────────────────────────────────────────────────────
+    // Updates the small number pills on Important and All Mail folder buttons.
+    // Called after every render so counts stay current after sync/filter changes.
+    function updateFolderBadges() {
+        // Important count: non-sent high-priority emails
+        var importantCount = state.emails.filter(function(e) {
+            if (e.is_sent) { return false; }
+            var cat = e._pipeline?.classification?.category;
+            var score = e._pipeline?.classification?.priority_score || 0;
+            return !cat || cat === "urgent" || cat === "action-required" ||
+                   cat === "meeting-request" || score >= 6;
+        }).length;
+
+        var badgeImportant = document.getElementById("badge-important");
+        if (importantCount > 0) {
+            badgeImportant.textContent = importantCount;
+            badgeImportant.classList.remove("hidden");
+        } else {
+            badgeImportant.classList.add("hidden");
+        }
+
+        // All Mail count: total emails in DB
+        var allCount = state.emails.length;
+        var badgeAll = document.getElementById("badge-all");
+        if (allCount > 0) {
+            badgeAll.textContent = allCount;
+            badgeAll.classList.remove("hidden");
+        } else {
+            badgeAll.classList.add("hidden");
+        }
     }
 
     // ─── Boot ─────────────────────────────────────────────────────────────────────
