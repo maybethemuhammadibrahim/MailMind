@@ -123,7 +123,7 @@ def dev_test_ai(req: TestAIRequest):
         "You are an email classification system. "
         "Return ONLY valid JSON with exactly these keys: "
         "category (one of: urgent, action-required, meeting-request, "
-        "order-update, newsletter, spam, fyi), "
+        "order-update, spam, promotions, forum, social_media, updates, verify_code), "
         "priority_score (integer 1-10), "
         "requires_reply (boolean), "
         "is_spam (boolean), "
@@ -152,6 +152,46 @@ def dev_test_ai(req: TestAIRequest):
     except Exception as exc:
         print(f"[DEV] AI test failed: {exc}")
         return {"ok": False, "error": str(exc)}
+
+
+@router.post("/test-hybrid")
+def dev_test_hybrid(req: TestAIRequest):
+    """
+    Runs the full hybrid classification pipeline (sklearn → Gemini)
+    and returns both intermediate and final results.
+
+    Returns:
+        dict: {
+            ok, sklearn_category, gemini_result,
+            model, latency_ms
+        } or {ok, error}
+    """
+    from pipeline.classifier import classify_email
+    from pipeline.sklearn_classifier import predict_category
+
+    # --- Step 1: sklearn coarse triage ---
+    try:
+        sklearn_cat = predict_category(req.subject, req.body)
+    except RuntimeError as exc:
+        sklearn_cat = f"unavailable ({exc})"
+
+    # --- Step 2: Full hybrid pipeline (sklearn + Gemini) ---
+    start = time.time()
+    try:
+        result = classify_email(req.subject, req.sender, req.body)
+        elapsed = int((time.time() - start) * 1000)
+        print(f"[DEV] Hybrid test OK — sklearn={sklearn_cat}, "
+              f"final={result.get('category')} — {elapsed}ms")
+        return {
+            "ok": True,
+            "sklearn_category": sklearn_cat,
+            "gemini_result": result,
+            "model": AI_MODEL_FAST,
+            "latency_ms": elapsed,
+        }
+    except Exception as exc:
+        print(f"[DEV] Hybrid test failed: {exc}")
+        return {"ok": False, "sklearn_category": sklearn_cat, "error": str(exc)}
 
 
 @router.get("/emails")

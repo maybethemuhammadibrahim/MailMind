@@ -259,7 +259,7 @@
                     </div>
                 </section>
 
-                <!-- ── AI API Test ────────────────────────────────────────── -->
+                <!-- ── Hybrid AI Pipeline Test ──────────────────────────── -->
                 <section
                     class="bg-surface-container-lowest border border-surface-dim rounded-xl overflow-hidden flex flex-col"
                 >
@@ -273,7 +273,7 @@
                                 class="material-symbols-outlined text-[18px] text-primary"
                                 >auto_awesome</span
                             >
-                            AI Classification Test
+                            Hybrid Pipeline Test
                         </h2>
                         <span
                             id="ai-latency"
@@ -316,10 +316,25 @@ Hi team, we need everyone in the finance review meeting tomorrow at 9am sharp. P
                             <span class="material-symbols-outlined text-[16px]"
                                 >bolt</span
                             >
-                            Run Classification
+                            Run Hybrid Pipeline
                         </button>
 
-                        <!-- Result -->
+                        <!-- sklearn result badge -->
+                        <div id="sklearn-result-wrap" class="hidden">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Step 1 — sklearn Coarse Triage</span>
+                            </div>
+                            <div class="flex items-center gap-3 p-3 bg-surface-container-low border border-surface-dim rounded-lg">
+                                <span class="material-symbols-outlined text-[20px] text-tertiary">model_training</span>
+                                <div class="flex flex-col gap-0.5">
+                                    <span class="text-[11px] text-on-surface-variant">Predicted Category</span>
+                                    <span id="sklearn-category" class="text-[14px] font-bold text-on-surface"></span>
+                                </div>
+                                <span id="sklearn-badge" class="ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider"></span>
+                            </div>
+                        </div>
+
+                        <!-- Gemini result JSON -->
                         <div
                             id="ai-result-wrap"
                             class="flex-1 flex flex-col gap-2 hidden"
@@ -327,7 +342,7 @@ Hi team, we need everyone in the finance review meeting tomorrow at 9am sharp. P
                             <div class="flex items-center justify-between">
                                 <span
                                     class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant"
-                                    >Response</span
+                                    >Step 2 — Gemini Refined Classification</span
                                 >
                                 <span
                                     id="ai-model-label"
@@ -528,6 +543,9 @@ Hi team, we need everyone in the finance review meeting tomorrow at 9am sharp. P
 
             async function testAI() {
                 const btn = document.getElementById("ai-btn");
+                const sklearnWrap = document.getElementById("sklearn-result-wrap");
+                const sklearnCat = document.getElementById("sklearn-category");
+                const sklearnBadge = document.getElementById("sklearn-badge");
                 const resWrap = document.getElementById("ai-result-wrap");
                 const resPre = document.getElementById("ai-result");
                 const errDiv = document.getElementById("ai-error");
@@ -535,7 +553,8 @@ Hi team, we need everyone in the finance review meeting tomorrow at 9am sharp. P
                 const modelLbl = document.getElementById("ai-model-label");
 
                 btn.disabled = true;
-                btn.textContent = "Running…";
+                btn.textContent = "Running pipeline…";
+                sklearnWrap.classList.add("hidden");
                 resWrap.classList.add("hidden");
                 errDiv.classList.add("hidden");
                 latency.classList.add("hidden");
@@ -546,14 +565,23 @@ Hi team, we need everyone in the finance review meeting tomorrow at 9am sharp. P
                     body: document.getElementById("ai-body").value,
                 };
 
+                // Badge colors per sklearn category
+                const badgeStyles = {
+                    spam: "bg-red-100 text-red-700",
+                    promotions: "bg-amber-100 text-amber-700",
+                    forum: "bg-teal-100 text-teal-700",
+                    social_media: "bg-indigo-100 text-indigo-700",
+                    updates: "bg-gray-100 text-gray-600",
+                    verify_code: "bg-cyan-100 text-cyan-700",
+                };
+
                 try {
-                    const res = await fetch("/api/dev/test-ai", {
+                    const res = await fetch("/api/dev/test-hybrid", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(payload),
                     });
 
-                    // Read raw text first so we can show it if JSON.parse fails
                     const raw = await res.text();
                     let data;
                     try {
@@ -563,13 +591,23 @@ Hi team, we need everyone in the finance review meeting tomorrow at 9am sharp. P
                         errDiv.classList.remove("hidden");
                         btn.disabled = false;
                         btn.innerHTML =
-                            '<span class="material-symbols-outlined text-[16px]">bolt</span> Run Classification';
+                            '<span class="material-symbols-outlined text-[16px]">bolt</span> Run Hybrid Pipeline';
                         return;
+                    }
+
+                    // Always show sklearn result if present
+                    if (data.sklearn_category) {
+                        const cat = data.sklearn_category;
+                        sklearnCat.textContent = cat;
+                        const style = badgeStyles[cat] || "bg-surface-container-high text-on-surface-variant";
+                        sklearnBadge.className = `ml-auto text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${style}`;
+                        sklearnBadge.textContent = cat;
+                        sklearnWrap.classList.remove("hidden");
                     }
 
                     if (data.ok) {
                         resPre.textContent = JSON.stringify(
-                            data.result,
+                            data.gemini_result,
                             null,
                             2,
                         );
@@ -589,7 +627,7 @@ Hi team, we need everyone in the finance review meeting tomorrow at 9am sharp. P
 
                 btn.disabled = false;
                 btn.innerHTML =
-                    '<span class="material-symbols-outlined text-[16px]">bolt</span> Run Classification';
+                    '<span class="material-symbols-outlined text-[16px]">bolt</span> Run Hybrid Pipeline';
             }
 
             // ─── Init ──────────────────────────────────────────────────────────────────

@@ -1,23 +1,30 @@
 # backend/pipeline/classifier.py
 # ---------------------------------------------------------------
-# Classifies incoming emails using Gemini Flash with few-shot
-# prompting. Assigns category, priority score, flags for
-# reply-needed, spam, and order emails, AND performs sentiment
-# analysis — all in a single API call to conserve quota.
+# Hybrid email classifier: sklearn handles coarse triage (spam,
+# promotions, forum, social_media, updates, verify_code), then
+# Gemini Flash refines with full sentiment analysis and may
+# upgrade to fine-grained categories (urgent, action-required,
+# meeting-request, order-update).
+#
+# The sklearn prediction is injected into the Gemini prompt as
+# a starting hint. Gemini returns the complete JSON dict with
+# all keys the rest of the app depends on.
 # ---------------------------------------------------------------
 
 from pipeline.gemini import call_fast
+from pipeline.sklearn_classifier import predict_category
 
 # ---------------------------------------------------------------------------
 # System prompt — instructs Gemini on the exact JSON schema to return.
-# Now includes sentiment analysis keys so we get classification AND
+# Includes sentiment analysis keys so we get classification AND
 # sentiment in one call instead of two separate API requests.
 # ---------------------------------------------------------------------------
 
 SYSTEM = (
     "You are an email classification and sentiment analysis system. "
     "Analyze the email carefully and return ONLY valid JSON with exactly these keys: "
-    "category (one of: urgent, action-required, meeting-request, order-update, newsletter, spam, fyi), "
+    "category (one of: urgent, action-required, meeting-request, order-update, "
+    "spam, promotions, forum, social_media, updates, verify_code), "
     "priority_score (integer 1-10), "
     "requires_reply (boolean), "
     "is_spam (boolean), "
@@ -48,7 +55,7 @@ Example 2:
 Subject: Your weekly AI digest
 From: digest@ainews.io
 Body: This week in AI: GPT-5 rumours...
-Result: {"category":"newsletter","priority_score":2,"requires_reply":false,"is_spam":false,"is_order_email":false,"action_items":[],"sender_sentiment":"neutral","sentiment_intensity":0.1,"is_critical":false,"alert_reason":"","recommended_reply_tone":"professional"}
+Result: {"category":"promotions","priority_score":2,"requires_reply":false,"is_spam":false,"is_order_email":false,"action_items":[],"sender_sentiment":"neutral","sentiment_intensity":0.1,"is_critical":false,"alert_reason":"","recommended_reply_tone":"professional"}
 
 Example 3:
 Subject: Your Amazon order #113-456 has shipped
@@ -61,11 +68,23 @@ Subject: Congratulations! You've won $1,000,000
 From: winner@prize-claim-2024.ru
 Body: Click this link to claim your prize immediately.
 Result: {"category":"spam","priority_score":1,"requires_reply":false,"is_spam":true,"is_order_email":false,"action_items":[],"sender_sentiment":"neutral","sentiment_intensity":0.1,"is_critical":false,"alert_reason":"","recommended_reply_tone":"direct"}
+
+Example 5:
+Subject: John mentioned you in a comment
+From: notifications@linkedin.com
+Body: John Smith commented on your post: "Great insights on the market trends!"
+Result: {"category":"social_media","priority_score":2,"requires_reply":false,"is_spam":false,"is_order_email":false,"action_items":[],"sender_sentiment":"positive","sentiment_intensity":0.3,"is_critical":false,"alert_reason":"","recommended_reply_tone":"warm"}
+
+Example 6:
+Subject: New reply in thread: Best CI/CD practices
+From: noreply@devforum.io
+Body: User42 replied to your thread in the DevOps section: "We switched to GitHub Actions and..."
+Result: {"category":"forum","priority_score":3,"requires_reply":false,"is_spam":false,"is_order_email":false,"action_items":[],"sender_sentiment":"neutral","sentiment_intensity":0.2,"is_critical":false,"alert_reason":"","recommended_reply_tone":"professional"}
 """
 
 # Returned whenever Gemini is unreachable or returns unparseable output.
-# Using "unknown" instead of "fyi" so failed classifications are flagged
-# for manual review rather than silently treated as informational.
+# Using "unknown" instead of a real label so failed classifications are
+# flagged for manual review rather than silently categorised.
 _SAFE_DEFAULT = {
     "category": "unknown",
     "priority_score": 5,
@@ -81,21 +100,31 @@ _SAFE_DEFAULT = {
 }
 
 
-def _build_prompt(subject: str, sender: str, body: str) -> str:
+def _build_prompt(subject: str, sender: str, body: str, sklearn_category: str) -> str:
     """
-    Combines the few-shot examples with the target email fields
-    into a single prompt string ready to send to Gemini.
+    Combines the few-shot examples with the target email fields and the
+    sklearn pre-classification hint into a single prompt for Gemini.
 
     Args:
-        subject (str): the email subject line
-        sender  (str): the sender's email address
-        body    (str): the plain-text email body
+        subject          (str): the email subject line
+        sender           (str): the sender's email address
+        body             (str): the plain-text email body
+        sklearn_category (str): coarse category from the local ML model
 
     Returns:
         str: fully assembled prompt (body capped at 2 000 chars)
     """
+    sklearn_hint = (
+        f"\nA local ML model has pre-classified this email as: {sklearn_category}. "
+        f"Use this as your starting point for the category field. "
+        f"You MAY override it to: urgent, action-required, meeting-request, or order-update "
+        f"if the email content clearly warrants it. Otherwise default to the ML prediction.\n"
+        f"The ML model predicts one of: spam, promotions, forum, social_media, updates, verify_code.\n"
+    )
+
     return (
         f"{FEW_SHOT}\n"
+        f"{sklearn_hint}\n"
         f"Now classify this email:\n"
         f"Subject: {subject}\n"
         f"From: {sender}\n"
@@ -135,9 +164,14 @@ def _validate_result(result: dict) -> dict:
 
 def classify_email(subject: str, sender: str, body: str) -> dict:
     """
-    Classifies an email AND analyzes sender sentiment using Gemini Flash
-    in a single API call. Combines what were previously two separate
-    pipeline steps (classification + sentiment) to conserve API quota.
+    Hybrid classifier: runs local sklearn model for coarse triage,
+    then passes the prediction as context to Gemini for fine-grained
+    classification and full sentiment analysis.
+
+    The sklearn model predicts one of: spam, promotions, forum,
+    social_media, updates, verify_code.
+    Gemini may upgrade to: urgent, action-required, meeting-request,
+    or order-update if the content warrants it.
 
     Args:
         subject (str): email subject line
@@ -150,9 +184,19 @@ def classify_email(subject: str, sender: str, body: str) -> dict:
               sentiment_intensity, is_critical, alert_reason,
               recommended_reply_tone. Safe default on failure.
     """
+    # --- Step 1: Local sklearn coarse triage ---
+    try:
+        sklearn_category: str = predict_category(subject, body)
+        print(f"[Classifier] sklearn pre-classification: {sklearn_category}")
+    except RuntimeError as exc:
+        # Model file not found — fall back to no hint
+        print(f"[Classifier] sklearn unavailable: {exc}")
+        sklearn_category = "updates"  # neutral fallback
+
+    # --- Step 2: Gemini fine-grained classification + sentiment ---
     print(f"[Classifier] Classifying — subject: '{subject[:60]}'")
     try:
-        prompt = _build_prompt(subject, sender, body)
+        prompt = _build_prompt(subject, sender, body, sklearn_category)
         result = call_fast(prompt, SYSTEM)
         validated = _validate_result(result)
         print(
@@ -163,4 +207,8 @@ def classify_email(subject: str, sender: str, body: str) -> dict:
         return validated
     except Exception as exc:
         print(f"[Classifier] Gemini call failed: {exc} — returning safe default")
-        return _SAFE_DEFAULT.copy()
+        # If Gemini fails, still use the sklearn category as a better-than-nothing answer
+        fallback = _SAFE_DEFAULT.copy()
+        fallback["category"] = sklearn_category
+        fallback["is_spam"] = sklearn_category == "spam"
+        return fallback

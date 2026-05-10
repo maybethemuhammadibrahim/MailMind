@@ -25,7 +25,7 @@ SYSTEM_TEMPLATE = (
     "2. ALWAYS end with a friendly sign-off (e.g., 'Best regards,', 'Warm regards,', 'Thanks again,', "
     "   'Looking forward to hearing from you,') followed by a newline and '[Your Name]'.\n"
     "3. Write at least 3-5 sentences for most replies. Important or urgent emails deserve "
-    "   4-8 sentences. NEVER write a one-liner unless the category is spam/newsletter.\n"
+    "   4-8 sentences. NEVER write a one-liner unless the category is spam/promotions.\n"
     "4. Show EMPATHY and EMOTION where appropriate — acknowledge feelings, express genuine "
     "   gratitude, show enthusiasm, or convey concern. Use phrases like 'I really appreciate...', "
     "   'That sounds wonderful!', 'I completely understand...', 'I'm sorry to hear that...'.\n"
@@ -47,7 +47,8 @@ SYSTEM_TEMPLATE = (
     "- meeting-request → enthusiastic, confirm availability or propose alternatives with warmth\n"
     "- action-required → acknowledge the task, show commitment, mention when you'll complete it\n"
     "- order-update → friendly acknowledgment of the update\n"
-    "- newsletter/fyi → no reply needed (return confidence_score 0.1 and a brief 'Thanks for sharing')\n"
+    "- promotions/forum/social_media/updates/verify_code → no reply needed "
+    "(return confidence_score 0.1 and a brief 'Thanks for sharing')\n"
     "- spam → no reply needed (return confidence_score 0.0)\n\n"
     "Use the classification and summary provided to understand urgency and what is needed.\n\n"
     "Return ONLY valid JSON with exactly these keys:\n"
@@ -120,7 +121,7 @@ def _build_prompt(
     key_facts = "; ".join(summary.get("key_facts", [])) or "none"
 
     prompt_parts = [
-        f"Category: {classification.get('category', 'fyi')}",
+        f"Category: {classification.get('category', 'updates')}",
         f"Priority score: {classification.get('priority_score', 5)}/10",
         f"Requires reply: {classification.get('requires_reply', False)}",
         f"Summary: {summary.get('one_line_summary', '')}",
@@ -219,7 +220,7 @@ def draft_reply(
         }
 
     # Step 4: Quality Review Agent — only for high-priority emails.
-    # Low-priority emails (newsletters, FYI) skip the review to save API quota.
+    # Low-priority emails (promotions, forum, etc.) skip the review to save API quota.
     # High-priority = priority_score >= 7 OR urgent/action-required category.
     should_review = (
         priority >= 7

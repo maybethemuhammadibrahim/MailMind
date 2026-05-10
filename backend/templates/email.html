@@ -372,28 +372,46 @@ block header_title %}Email{% endblock %} {% block content %}
             text: "text-purple-700",
             icon: "local_shipping",
         },
-        newsletter: {
-            label: "Newsletter",
-            bg: "bg-surface-container-high",
-            text: "text-on-surface-variant",
-            icon: "newspaper",
-        },
         spam: {
             label: "Spam",
             bg: "bg-red-50",
             text: "text-red-400",
             icon: "report",
         },
-        fyi: {
-            label: "FYI",
+        promotions: {
+            label: "Promotions",
+            bg: "bg-amber-100",
+            text: "text-amber-700",
+            icon: "campaign",
+        },
+        forum: {
+            label: "Forum",
+            bg: "bg-teal-100",
+            text: "text-teal-700",
+            icon: "forum",
+        },
+        social_media: {
+            label: "Social",
+            bg: "bg-indigo-100",
+            text: "text-indigo-700",
+            icon: "group",
+        },
+        updates: {
+            label: "Updates",
             bg: "bg-surface-container-high",
             text: "text-on-surface-variant",
             icon: "info",
         },
+        verify_code: {
+            label: "Verify",
+            bg: "bg-cyan-100",
+            text: "text-cyan-700",
+            icon: "verified",
+        },
     };
 
     function catCfg(cat) {
-        return CAT[cat] || CAT["fyi"];
+        return CAT[cat] || CAT["updates"];
     }
 
     // ─── Helpers ──────────────────────────────────────────────────────────────────

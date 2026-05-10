@@ -180,9 +180,12 @@ block header_title %}Dashboard{% endblock %} {% block content %}
         "action-required": { bg: "bg-orange-700", label: "Action Required" },
         "meeting-request": { bg: "bg-blue-700", label: "Meeting Request" },
         "order-update": { bg: "bg-purple-700", label: "Order Update" },
-        newsletter: { bg: "bg-surface-container-highest", label: "Newsletter" },
         spam: { bg: "bg-red-700", label: "Spam" },
-        fyi: { bg: "bg-surface-container-high", label: "FYI" },
+        promotions: { bg: "bg-amber-700", label: "Promotions" },
+        forum: { bg: "bg-teal-700", label: "Forum" },
+        social_media: { bg: "bg-indigo-700", label: "Social Media" },
+        updates: { bg: "bg-surface-container-highest", label: "Updates" },
+        verify_code: { bg: "bg-cyan-700", label: "Verify Code" },
     };
 
     function escHtml(str) {
@@ -352,7 +355,7 @@ block header_title %}Dashboard{% endblock %} {% block content %}
             barsEl.innerHTML = Object.entries(categories)
                 .sort((a, b) => b[1] - a[1])
                 .map(([cat, count]) => {
-                    const cfg = CAT_COLORS[cat] || CAT_COLORS["fyi"];
+                    const cfg = CAT_COLORS[cat] || CAT_COLORS["updates"];
                     const pct = Math.round((count / maxCount) * 100);
                     return `
                     <div class="flex items-center gap-3">
