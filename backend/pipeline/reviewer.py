@@ -1,18 +1,6 @@
-# backend/pipeline/reviewer.py
-# ---------------------------------------------------------------
-# Quality Review Agent — the second AI that reviews generated
-# drafts for brand alignment, accuracy, tone consistency, and
-# completeness BEFORE they are presented to the user or saved.
-# This implements the "Quality Review Agent" from the multi-agent
-# email workflow pattern.
-# ---------------------------------------------------------------
 
 from pipeline.gemini import call_review
 
-
-# ---------------------------------------------------------------------------
-# System prompt — instructs Gemini to critically review a draft
-# ---------------------------------------------------------------------------
 
 SYSTEM = (
     "You are a senior email quality reviewer. Your job is to review an AI-generated "
@@ -49,27 +37,8 @@ def review_draft(
     requested_tone: str = "professional",
     sentiment: dict = None,
 ) -> dict:
-    """
-    Reviews an AI-generated email draft for quality, tone, and accuracy.
-
-    This is the FINAL agent in the multi-agent pipeline. It acts as a
-    quality gate — if the draft is below standard, it returns an improved
-    version. This ensures every email leaving the system meets a minimum
-    quality bar.
-
-    Args:
-        original_subject (str):  subject of the email being replied to
-        original_body    (str):  body of the original email
-        draft_text       (str):  the AI-generated draft to review
-        requested_tone   (str):  tone that was requested (professional, casual, etc.)
-        sentiment        (dict): sentiment analysis of the original email (optional)
-
-    Returns:
-        dict: approved (bool), score (float), feedback (str), improved_draft (str)
-    """
     print(f"[Reviewer] Reviewing draft for '{original_subject[:60]}'")
 
-    # Build context about the original email and expectations
     sentiment_info = ""
     if sentiment:
         sentiment_info = (
@@ -103,7 +72,6 @@ def review_draft(
 
     except Exception as exc:
         print(f"[Reviewer] Gemini call failed: {exc} — auto-approving draft")
-        # On failure, approve the draft as-is rather than blocking
         return {
             "approved": True,
             "score": 0.7,

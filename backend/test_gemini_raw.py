@@ -1,7 +1,4 @@
-"""
-Minimal Gemini API test - bypasses ALL pipeline code.
-Tests 3 models to see which ones have quota available.
-"""
+#Sample python script to test the gemini api key directly
 import os, sys
 from dotenv import load_dotenv
 load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), "..", ".env"))

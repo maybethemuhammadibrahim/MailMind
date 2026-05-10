@@ -1,17 +1,6 @@
-# backend/pipeline/sentiment.py
-# ---------------------------------------------------------------
-# Sentiment Analysis Agent — evaluates incoming emails for emotional
-# tone, urgency signals, and critical flags. This is the first step
-# in the multi-agent pipeline: understand the sender's emotional
-# state BEFORE drafting a reply so the response can be empathetic.
-# ---------------------------------------------------------------
 
 from pipeline.gemini import call_fast
 
-
-# ---------------------------------------------------------------------------
-# System prompt — instructs Gemini to analyze emotional tone
-# ---------------------------------------------------------------------------
 
 SYSTEM = (
     "You are an expert email sentiment analyst. Your job is to read an incoming email "
@@ -38,7 +27,6 @@ SYSTEM = (
     "Do NOT add any other keys."
 )
 
-# Safe default returned when Gemini is unreachable
 _SAFE_DEFAULT = {
     "sentiment": "neutral",
     "intensity": 0.3,
@@ -49,21 +37,6 @@ _SAFE_DEFAULT = {
 
 
 def analyze_sentiment(subject: str, body: str, sender: str) -> dict:
-    """
-    Analyzes the emotional sentiment of an incoming email.
-
-    This is the FIRST agent in the multi-agent pipeline. Its output
-    informs the drafter about what tone to use in the reply and
-    whether the email needs human attention instead of automation.
-
-    Args:
-        subject (str): email subject line
-        body    (str): plain-text email body
-        sender  (str): sender's email address
-
-    Returns:
-        dict: sentiment, intensity, is_critical, alert_reason, recommended_tone
-    """
     print(f"[Sentiment] Analyzing — subject: '{subject[:60]}'")
 
     prompt = (

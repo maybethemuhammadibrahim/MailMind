@@ -1,27 +1,8 @@
-# backend/pipeline/todo_extractor.py
-# ---------------------------------------------------------------
-# Extracts actionable to-do items from emails using Gemini Flash.
-# Returns structured todo objects with title, due date, and
-# priority. Full implementation in Phase 4.
-# ---------------------------------------------------------------
 
 from pipeline.gemini import call_fast
 
 
 def extract_todos(subject, body, sender):
-    """
-    Extracts to-do items from an email using Gemini Flash.
-
-    Args:
-        subject (str): the email subject line
-        body (str): the plain-text email body
-        sender (str): the sender's email address
-
-    Returns:
-        dict: extraction result with key:
-              - todos (list[dict]): each with title, due_date,
-                priority (high/medium/low), source_email_subject
-    """
     prompt = f"""
 Email Subject: {subject}
 Sender: {sender}

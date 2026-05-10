@@ -1,9 +1,3 @@
-# backend/routes/meetings.py
-# ---------------------------------------------------------------
-# Endpoints for managing meeting events extracted from emails.
-# Supports listing upcoming meetings and extraction endpoint
-# that runs Gemini then persists meeting rows in SQLite.
-# ---------------------------------------------------------------
 
 from db.sqlite import get_meetings as db_get_meetings
 from db.sqlite import save_meeting
@@ -15,14 +9,6 @@ router = APIRouter()
 
 
 class MeetingExtractRequest(BaseModel):
-    """
-    Request model for extracting meetings from one email payload.
-
-    Fields:
-        subject (str): source email subject
-        body (str): source email plain text body
-        sender (str): source sender email or display name
-    """
 
     subject: str
     body: str
@@ -31,12 +17,6 @@ class MeetingExtractRequest(BaseModel):
 
 @router.get("")
 def get_meetings():
-    """
-    Returns meetings from SQLite ordered by date/time.
-
-    Returns:
-        list[dict]: meetings for UI rendering
-    """
     try:
         return db_get_meetings()
     except Exception as exc:
@@ -46,13 +26,6 @@ def get_meetings():
 
 @router.post("/extract")
 def extract_meetings(req: MeetingExtractRequest):
-    """
-    Extracts meetings from an email and saves them to SQLite.
-    Called by n8n or directly by backend pipeline.
-
-    Returns:
-        dict: extracted and saved meeting objects
-    """
     try:
         extracted = run_meeting_extractor(req.subject, req.body, req.sender)
         meetings = extracted.get("meetings", [])

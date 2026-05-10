@@ -1,9 +1,3 @@
-# backend/main.py
-# ---------------------------------------------------------------
-# Entry point for the MailMind FastAPI backend. Sets up CORS so
-# the React frontend (localhost:5173) can talk to the API, and
-# registers all route modules under their URL prefixes.
-# ---------------------------------------------------------------
 
 # Import the database initializer — creates all tables on first run
 from db.sqlite import initialize_database
@@ -11,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-# Import each route module — these are separate files in routes/
+
 from routes import (
     analytics,
     auth,
@@ -43,22 +37,19 @@ def create_app():
         version="0.1.0",
     )
 
-    # --- CORS configuration ---
-    # CORS (Cross-Origin Resource Sharing) allows the React frontend
-    # running on a different port (5173) to make requests to this API
-    # running on port 8000. Without this, the browser blocks the requests.
+  
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[
-            "http://localhost:5173",  # Vite dev server
-            "http://127.0.0.1:5173",  # Alternative localhost
+            "http://localhost:5173",  
+            "http://127.0.0.1:5173",  
         ],
-        allow_credentials=True,  # Allow cookies / auth headers
-        allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
-        allow_headers=["*"],  # Allow all headers
+        allow_credentials=True,  
+        allow_methods=["*"], 
+        allow_headers=["*"],  
     )
 
-    # --- Static Files ---
+    
     app.mount("/static", StaticFiles(directory="static"), name="static")
 
     # --- Register UI routes ---
@@ -79,7 +70,7 @@ def create_app():
     app.include_router(settings.router, prefix="/api/settings", tags=["Settings"])
     app.include_router(crafter.router, prefix="/api/crafter", tags=["Crafter"])
 
-    # --- Startup: initialize the database ---
+    
     # This runs initialize_database() the moment the app starts.
     # It uses CREATE TABLE IF NOT EXISTS, so it's safe to call every
     # time — it only creates tables that don't exist yet.

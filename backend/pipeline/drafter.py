@@ -1,19 +1,8 @@
-# backend/pipeline/drafter.py
-# ---------------------------------------------------------------
-# Multi-Agent Reply Drafter — generates professional email replies
-# using Gemini with full context: classification, summary, user
-# settings (tone/vocabulary), thread history (memory), and
-# sentiment analysis. After generating, passes the draft to the
-# Quality Review Agent for a quality gate check.
-# ---------------------------------------------------------------
 
 from db.sqlite import get_ai_settings, get_thread_history
 from pipeline.gemini import call_draft
 from pipeline.reviewer import review_draft
 
-# ---------------------------------------------------------------------------
-# System prompt — tone rules and exact JSON schema for the draft output
-# ---------------------------------------------------------------------------
 
 SYSTEM_TEMPLATE = (
     "You are a warm, emotionally intelligent email assistant who drafts replies "
@@ -60,25 +49,9 @@ SYSTEM_TEMPLATE = (
 
 
 def _build_system_prompt(sentiment: dict = None, settings: dict = None) -> str:
-    """
-    Builds the system prompt with injected user settings and sentiment data.
-
-    This is what makes the drafter 'settings-aware' — the tone and vocabulary
-    preferences from the Settings page are read from the database and injected
-    into every drafting call.
-
-    Args:
-        sentiment (dict): sentiment data from classifier output, or None
-        settings  (dict): pre-fetched AI settings to avoid redundant DB calls
-
-    Returns:
-        str: fully assembled system prompt with user preferences
-    """
-    # Use pre-fetched settings or read from DB (single source)
     if settings is None:
         settings = get_ai_settings()
 
-    # Extract sentiment context (or use safe defaults)
     sent = sentiment or {}
     sentiment_label = sent.get("sender_sentiment", sent.get("sentiment", "neutral"))
     intensity = sent.get("sentiment_intensity", sent.get("intensity", 0.3))
@@ -100,23 +73,6 @@ def _build_prompt(
     summary: dict,
     thread_history: list = None,
 ) -> str:
-    """
-    Assembles the drafting prompt by injecting classification, summary,
-    and thread history context above the original email.
-
-    The thread history provides 'memory' — the model can see previous
-    messages in the conversation and write a reply that feels continuous.
-
-    Args:
-        subject        (str):   the original email subject line
-        body           (str):   the original email body
-        classification (dict):  output from classify_email()
-        summary        (dict):  output from summarize_email()
-        thread_history (list):  previous emails in the same thread (memory)
-
-    Returns:
-        str: fully assembled prompt (body capped at 2000 chars)
-    """
     action_items = ", ".join(summary.get("action_items", [])) or "none"
     key_facts = "; ".join(summary.get("key_facts", [])) or "none"
 
@@ -129,10 +85,8 @@ def _build_prompt(
         f"Action items: {action_items}",
     ]
 
-    # Inject thread history (conversation memory) if available.
-    # Limit to 3 most recent messages to control token usage.
     if thread_history:
-        recent_history = thread_history[-3:]  # Keep only the 3 most recent
+        recent_history = thread_history[-3:]
         prompt_parts.append("\n--- PREVIOUS MESSAGES IN THIS THREAD (for context) ---")
         for msg in recent_history:
             prompt_parts.append(
@@ -156,45 +110,20 @@ def draft_reply(
     thread_id: str = "",
     email_id: str = "",
 ) -> dict:
-    """
-    Multi-agent reply drafter: generates a reply using Gemini with full context
-    (classification, summary, settings, sentiment, thread memory), then passes
-    the draft through the Quality Review Agent for a quality check.
-
-    If the reviewer rejects the draft (score < 0.7), the improved version
-    from the reviewer is used instead.
-
-    Args:
-        subject        (str):  original email subject
-        body           (str):  original email body
-        classification (dict): output from classify_email()
-        summary        (dict): output from summarize_email()
-        sentiment      (dict): output from analyze_sentiment() (optional)
-        thread_id      (str):  Gmail thread ID for conversation memory (optional)
-        email_id       (str):  current email ID to exclude from thread history
-
-    Returns:
-        dict: draft_reply (str), confidence_score (float), suggested_subject (str),
-              review_score (float), review_feedback (str)
-    """
     category = classification.get("category", "unknown")
     priority = classification.get("priority_score", 5)
     print(f"[Drafter] Drafting — subject: '{subject[:60]}', category: {category}")
 
-    # Fetch settings once — shared by system prompt and review tone
     settings = get_ai_settings()
 
-    # Step 1: Build context-aware system prompt with user settings + sentiment
     system = _build_system_prompt(sentiment, settings=settings)
 
-    # Step 2: Fetch thread history for conversation memory
     thread_history = []
     if thread_id:
         thread_history = get_thread_history(thread_id, exclude_email_id=email_id)
         if thread_history:
             print(f"[Drafter] Thread memory: {len(thread_history)} previous messages")
 
-    # Step 3: Generate the initial draft
     try:
         prompt = _build_prompt(subject, body, classification, summary, thread_history)
         result = call_draft(prompt, system)
@@ -219,9 +148,7 @@ def draft_reply(
             "review_feedback": "Draft generation failed — using fallback template.",
         }
 
-    # Step 4: Quality Review Agent — only for high-priority emails.
-    # Low-priority emails (promotions, forum, etc.) skip the review to save API quota.
-    # High-priority = priority_score >= 7 OR urgent/action-required category.
+    # skips heavy quality review for low priority emails
     should_review = (
         priority >= 7
         or category in ("urgent", "action-required")
@@ -232,7 +159,6 @@ def draft_reply(
 
     if should_review:
         try:
-            # Determine the tone to review against (use cached settings)
             review_tone = "professional"
             if sentiment:
                 review_tone = sentiment.get(
@@ -253,12 +179,9 @@ def draft_reply(
             review_score = review.get("score", 0.7)
             review_feedback = review.get("feedback", "")
 
-            # If the reviewer provided an improved version and rejected the original,
-            # use the improved version instead
             if not review.get("approved", True) and review.get("improved_draft"):
                 print(f"[Drafter] Reviewer rejected (score={review_score}) — using improved draft")
                 draft_text = review["improved_draft"]
-                # Bump confidence slightly since the reviewed version is better
                 confidence = min(confidence + 0.1, 0.95)
 
             print(f"[Drafter] Final — review_score={review_score}, approved={review.get('approved')}")

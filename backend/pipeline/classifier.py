@@ -1,24 +1,8 @@
-# backend/pipeline/classifier.py
-# ---------------------------------------------------------------
-# Hybrid email classifier: sklearn handles coarse triage (spam,
-# promotions, forum, social_media, updates, verify_code), then
-# Gemini Flash refines with full sentiment analysis and may
-# upgrade to fine-grained categories (urgent, action-required,
-# meeting-request, order-update).
-#
-# The sklearn prediction is injected into the Gemini prompt as
-# a starting hint. Gemini returns the complete JSON dict with
-# all keys the rest of the app depends on.
-# ---------------------------------------------------------------
+
 
 from pipeline.gemini import call_fast
 from pipeline.sklearn_classifier import predict_category
 
-# ---------------------------------------------------------------------------
-# System prompt — instructs Gemini on the exact JSON schema to return.
-# Includes sentiment analysis keys so we get classification AND
-# sentiment in one call instead of two separate API requests.
-# ---------------------------------------------------------------------------
 
 SYSTEM = (
     "You are an email classification and sentiment analysis system. "
@@ -38,10 +22,6 @@ SYSTEM = (
     "recommended_reply_tone (one of: empathetic, professional, enthusiastic, reassuring, direct, warm)."
 )
 
-# ---------------------------------------------------------------------------
-# Few-shot examples — shown to the model before every classification call
-# so it understands category vocabulary and the expected output format.
-# ---------------------------------------------------------------------------
 
 FEW_SHOT = """Here are labelled examples to guide your classification:
 
@@ -82,9 +62,7 @@ Body: User42 replied to your thread in the DevOps section: "We switched to GitHu
 Result: {"category":"forum","priority_score":3,"requires_reply":false,"is_spam":false,"is_order_email":false,"action_items":[],"sender_sentiment":"neutral","sentiment_intensity":0.2,"is_critical":false,"alert_reason":"","recommended_reply_tone":"professional"}
 """
 
-# Returned whenever Gemini is unreachable or returns unparseable output.
-# Using "unknown" instead of a real label so failed classifications are
-# flagged for manual review rather than silently categorised.
+
 _SAFE_DEFAULT = {
     "category": "unknown",
     "priority_score": 5,
@@ -101,19 +79,6 @@ _SAFE_DEFAULT = {
 
 
 def _build_prompt(subject: str, sender: str, body: str, sklearn_category: str) -> str:
-    """
-    Combines the few-shot examples with the target email fields and the
-    sklearn pre-classification hint into a single prompt for Gemini.
-
-    Args:
-        subject          (str): the email subject line
-        sender           (str): the sender's email address
-        body             (str): the plain-text email body
-        sklearn_category (str): coarse category from the local ML model
-
-    Returns:
-        str: fully assembled prompt (body capped at 2 000 chars)
-    """
     sklearn_hint = (
         f"\nA local ML model has pre-classified this email as: {sklearn_category}. "
         f"Use this as your starting point for the category field. "
@@ -133,27 +98,15 @@ def _build_prompt(subject: str, sender: str, body: str, sklearn_category: str) -
 
 
 def _validate_result(result: dict) -> dict:
-    """
-    Merges Gemini's response with _SAFE_DEFAULT to fill any missing keys
-    and clamps values to valid ranges. Ensures downstream code never
-    encounters missing or out-of-range fields.
-
-    Args:
-        result (dict): raw dict returned by Gemini
-
-    Returns:
-        dict: validated result with all required keys present
-    """
     validated = _SAFE_DEFAULT.copy()
     validated.update({k: v for k, v in result.items() if v is not None})
 
-    # Clamp priority score to 1-10 range
     try:
+        # clamps priority to 1 10 range
         validated["priority_score"] = max(1, min(10, int(validated["priority_score"])))
     except (ValueError, TypeError):
         validated["priority_score"] = 5
 
-    # Clamp sentiment intensity to 0.0-1.0
     try:
         validated["sentiment_intensity"] = max(0.0, min(1.0, float(validated["sentiment_intensity"])))
     except (ValueError, TypeError):
@@ -163,37 +116,13 @@ def _validate_result(result: dict) -> dict:
 
 
 def classify_email(subject: str, sender: str, body: str) -> dict:
-    """
-    Hybrid classifier: runs local sklearn model for coarse triage,
-    then passes the prediction as context to Gemini for fine-grained
-    classification and full sentiment analysis.
-
-    The sklearn model predicts one of: spam, promotions, forum,
-    social_media, updates, verify_code.
-    Gemini may upgrade to: urgent, action-required, meeting-request,
-    or order-update if the content warrants it.
-
-    Args:
-        subject (str): email subject line
-        sender  (str): sender's email address
-        body    (str): plain-text email body
-
-    Returns:
-        dict: category, priority_score, requires_reply, is_spam,
-              is_order_email, action_items, sender_sentiment,
-              sentiment_intensity, is_critical, alert_reason,
-              recommended_reply_tone. Safe default on failure.
-    """
-    # --- Step 1: Local sklearn coarse triage ---
     try:
         sklearn_category: str = predict_category(subject, body)
         print(f"[Classifier] sklearn pre-classification: {sklearn_category}")
     except RuntimeError as exc:
-        # Model file not found — fall back to no hint
         print(f"[Classifier] sklearn unavailable: {exc}")
-        sklearn_category = "updates"  # neutral fallback
+        sklearn_category = "updates"
 
-    # --- Step 2: Gemini fine-grained classification + sentiment ---
     print(f"[Classifier] Classifying — subject: '{subject[:60]}'")
     try:
         prompt = _build_prompt(subject, sender, body, sklearn_category)
@@ -207,7 +136,6 @@ def classify_email(subject: str, sender: str, body: str) -> dict:
         return validated
     except Exception as exc:
         print(f"[Classifier] Gemini call failed: {exc} — returning safe default")
-        # If Gemini fails, still use the sklearn category as a better-than-nothing answer
         fallback = _SAFE_DEFAULT.copy()
         fallback["category"] = sklearn_category
         fallback["is_spam"] = sklearn_category == "spam"

@@ -1,20 +1,4 @@
-# backend/routes/pipeline.py
-# ---------------------------------------------------------------
-# FastAPI router exposing the multi-agent AI pipeline as REST
-# endpoints. The /process-email endpoint runs the full sequence:
-#   1. Classification + Sentiment (merged into one API call)
-#   2. Summarization (extract key facts)
-#   3. Draft Reply (with settings, memory, and quality review)
-#   4. Entity Extraction (todos, meetings, orders)
-# ---------------------------------------------------------------
 
-# ---------------------------------------------------------------------------
-# Why Pydantic?
-# Pydantic validates every incoming JSON request body automatically.
-# If a required field is missing or has the wrong type, FastAPI returns
-# a 422 Unprocessable Entity before our code ever runs -- keeping invalid
-# data out of the business logic entirely and making error messages clear.
-# ---------------------------------------------------------------------------
 
 from db.sqlite import (
     get_email,
@@ -40,13 +24,7 @@ from pydantic import BaseModel
 router = APIRouter()
 
 
-# ---------------------------------------------------------------------------
-# Pydantic request models -- one per endpoint
-# ---------------------------------------------------------------------------
-
-
 class ClassifyRequest(BaseModel):
-    """Fields required to classify a single email."""
 
     email_id: str
     subject: str
@@ -55,14 +33,12 @@ class ClassifyRequest(BaseModel):
 
 
 class SummarizeRequest(BaseModel):
-    """Fields required to summarise a single email."""
 
     subject: str
     body: str
 
 
 class DraftRequest(BaseModel):
-    """Fields required to draft a reply; classification and summary are pre-computed."""
 
     subject: str
     body: str
@@ -73,7 +49,6 @@ class DraftRequest(BaseModel):
 
 
 class SentimentRequest(BaseModel):
-    """Fields required to analyze email sentiment."""
 
     subject: str
     body: str
@@ -81,7 +56,6 @@ class SentimentRequest(BaseModel):
 
 
 class ProcessEmailRequest(BaseModel):
-    """All fields delivered by the n8n Gmail webhook for a full pipeline run."""
 
     email_id: str
     subject: str
@@ -92,45 +66,14 @@ class ProcessEmailRequest(BaseModel):
     timestamp: str = ""
 
 
-# ---------------------------------------------------------------------------
-# Endpoints
-# ---------------------------------------------------------------------------
-
-
 @router.post("/sentiment")
 def sentiment(req: SentimentRequest):
-    """
-    Analyzes the emotional sentiment of an email.
-
-    This is the first step in the multi-agent pipeline — understanding
-    the sender's mood before generating a response ensures the reply
-    is appropriately empathetic and tone-matched.
-
-    Args:
-        req (SentimentRequest): subject, body, sender
-
-    Returns:
-        dict: sentiment, intensity, is_critical, alert_reason, recommended_tone
-    """
     print(f"[Route /sentiment] subject='{req.subject[:60]}'")
     return analyze_sentiment(req.subject, req.body, req.sender)
 
 
 @router.post("/classify")
 def classify(req: ClassifyRequest):
-    """
-    Classifies a single email and records it as processed.
-
-    Calls Gemini Flash with few-shot examples to assign a category,
-    priority score, and spam/order flags, then persists the result
-    so the same email won't be re-processed on the next Gmail poll.
-
-    Args:
-        req (ClassifyRequest): validated request -- email_id, subject, sender, body
-
-    Returns:
-        dict: email_id merged with all classification fields
-    """
     print(f"[Route /classify] email_id={req.email_id}")
     result = classify_email(req.subject, req.sender, req.body)
     mark_processed(
@@ -146,41 +89,12 @@ def classify(req: ClassifyRequest):
 
 @router.post("/summarize")
 def summarize(req: SummarizeRequest):
-    """
-    Summarises an email into a headline, key facts, and action items.
-
-    Purely read-only -- does not write to the database. Safe to call
-    independently of /classify, for example when the UI requests a
-    fresh summary for an already-processed email.
-
-    Args:
-        req (SummarizeRequest): validated request -- subject and body
-
-    Returns:
-        dict: one_line_summary, key_facts, action_items
-    """
     print(f"[Route /summarize] subject='{req.subject[:60]}'")
     return summarize_email(req.subject, req.body)
 
 
 @router.post("/draft")
 def draft(req: DraftRequest):
-    """
-    Generates a professional email reply draft using the multi-agent pipeline.
-
-    The draft now goes through:
-    1. Settings-aware prompt building (tone + vocabulary from user prefs)
-    2. Thread memory injection (previous conversation context)
-    3. Quality Review Agent check
-
-    Args:
-        req (DraftRequest): validated request -- subject, body,
-                            classification dict, summary dict
-
-    Returns:
-        dict: draft_reply, confidence_score, suggested_subject,
-              review_score, review_feedback
-    """
     print(f"[Route /draft] subject='{req.subject[:60]}'")
     result = draft_reply(
         req.subject,
@@ -191,7 +105,6 @@ def draft(req: DraftRequest):
         email_id=req.email_id or "",
     )
 
-    # If email_id is provided, persist regenerate results for cache reuse.
     if req.email_id:
         save_draft(
             email_id=req.email_id,
@@ -205,37 +118,19 @@ def draft(req: DraftRequest):
 
 @router.post("/process-email")
 def process_email(req: ProcessEmailRequest):
-    """
-    Runs the full multi-agent pipeline for one email:
-      1. Classification + Sentiment (merged — single Gemini call)
-      2. Summarization — extract key facts and action items
-      3. Draft Reply — with settings, thread memory, and quality review
-      4. Entity Extraction — todos, meetings, orders
-
-    If the email was already processed, returns cached results from the
-    database immediately without making any Gemini API calls.
-
-    Args:
-        req (ProcessEmailRequest): validated request with all email fields
-
-    Returns:
-        dict: email_id, classification, summary, draft,
-              extracted entities, already_processed
-    """
     print(
         f"[Route /process-email] email_id={req.email_id}, subject='{req.subject[:60]}'"
     )
     already = is_processed(req.email_id)
 
-    # --- Cache hit: return stored results without any Gemini calls ---
     if already:
         import json
 
         cached = get_email(req.email_id)
+        # returns cached results if email already processed
         if cached and cached.get("classification"):
             print(f"[Route /process-email] Cache hit — returning stored results")
 
-            # Parse cached JSON strings back into dicts
             classification = None
             summary = None
             draft = None
@@ -257,7 +152,6 @@ def process_email(req: ProcessEmailRequest):
                     "suggested_subject": cached.get("draft_subject", f"Re: {req.subject}"),
                 }
 
-            # Only return cached if we actually have the core data
             if classification and summary and draft:
                 return {
                     "email_id": req.email_id,
@@ -270,12 +164,9 @@ def process_email(req: ProcessEmailRequest):
                     "already_processed": True,
                 }
 
-        # Cache miss or incomplete data — fall through to re-process
         print(f"[Route /process-email] Cache incomplete — re-processing")
 
-    # --- Fresh processing ---
 
-    # Step 1: Classification + Sentiment (merged into one Gemini call)
     classification = classify_email(req.subject, req.sender_email, req.body_plain)
     print(
         f"[Route /process-email] Classification: category={classification.get('category')}, "
@@ -283,8 +174,6 @@ def process_email(req: ProcessEmailRequest):
         f"critical={classification.get('is_critical')}"
     )
 
-    # Extract sentiment data from the merged classifier output
-    # (used by the drafter for tone-matching)
     sentiment_data = {
         "sender_sentiment": classification.get("sender_sentiment", "neutral"),
         "sentiment_intensity": classification.get("sentiment_intensity", 0.3),
@@ -293,10 +182,8 @@ def process_email(req: ProcessEmailRequest):
         "recommended_reply_tone": classification.get("recommended_reply_tone", "professional"),
     }
 
-    # Step 2: Summarization
     summary = summarize_email(req.subject, req.body_plain)
 
-    # Step 3: Multi-agent Draft (with settings, sentiment, thread memory, review)
     draft = draft_reply(
         req.subject,
         req.body_plain,
@@ -311,7 +198,6 @@ def process_email(req: ProcessEmailRequest):
     saved_meetings = []
     saved_order = None
 
-    # Avoid duplicate entity inserts when the same email is re-processed.
     if not already:
         todos_result = extract_todos(req.subject, req.body_plain, req.sender_email)
         meetings_result = extract_meetings(
@@ -338,8 +224,6 @@ def process_email(req: ProcessEmailRequest):
             )
             saved_meetings.append({"id": meeting_id, **meeting})
 
-        # Only extract order data if the classifier flagged this as an order email.
-        # Avoids wasting Gemini tokens on non-purchase emails.
         if classification.get("is_order_email", False):
             print(f"[Route /process-email] is_order_email=True — running order extractor")
             order_data = extract_order(req.subject, req.body_plain, req.sender_email)
@@ -357,7 +241,6 @@ def process_email(req: ProcessEmailRequest):
             )
             saved_order = {"id": order_id, **order_data}
 
-    # Ensure the source email row exists, then persist all AI outputs.
     save_email(
         {
             "id": req.email_id,

@@ -1,17 +1,7 @@
-# backend/pipeline/order_extractor.py
-# ---------------------------------------------------------------
-# Extracts structured order and purchase information from shipping
-# and order confirmation emails using Gemini Flash. Only called
-# when the classifier sets is_order_email = true.
-# ---------------------------------------------------------------
 
 
 from pipeline.gemini import call_fast
 
-# ---------------------------------------------------------------------------
-# System prompt — tells Gemini exactly what fields to extract and
-# what the valid values are for the status field.
-# ---------------------------------------------------------------------------
 
 ORDER_SYSTEM_PROMPT = (
     "You are extracting order and purchase information from an email. "
@@ -27,9 +17,6 @@ ORDER_SYSTEM_PROMPT = (
     "price (string or null, include currency symbol)."
 )
 
-# ---------------------------------------------------------------------------
-# Safe default returned when both Gemini attempts fail
-# ---------------------------------------------------------------------------
 
 DEFAULT_ORDER = {
     "retailer": "Unknown",
@@ -43,7 +30,6 @@ DEFAULT_ORDER = {
     "price": None,
 }
 
-# Valid values the model is allowed to return for the status field
 VALID_STATUSES = {
     "ordered",
     "processing",
@@ -55,18 +41,6 @@ VALID_STATUSES = {
 
 
 def _build_prompt(subject, body, sender):
-    """
-    Builds the user-facing prompt with the email content embedded.
-
-    Args:
-        subject (str): the email subject line
-        body    (str): the plain-text email body (truncated to 3000 chars)
-        sender  (str): the sender's email address
-
-    Returns:
-        str: the full prompt to send to Gemini
-    """
-    # Truncate very long emails to keep token usage reasonable
     body_preview = body[:3000] if body else ""
 
     prompt = (
@@ -79,17 +53,6 @@ def _build_prompt(subject, body, sender):
 
 
 def _sanitize_result(result):
-    """
-    Ensures every expected key exists and the status is a valid enum value.
-    Any missing key falls back to None; an invalid status defaults to 'processing'.
-
-    Args:
-        result (dict): raw dict returned by Gemini
-
-    Returns:
-        dict: cleaned order dict ready for storage
-    """
-    # Ensure all expected keys are present, defaulting missing ones to None
     clean = {
         "retailer":           result.get("retailer") or "Unknown",
         "order_number":       result.get("order_number"),
@@ -102,7 +65,6 @@ def _sanitize_result(result):
         "price":              result.get("price"),
     }
 
-    # Reject unexpected status values to keep the DB consistent
     if clean["status"] not in VALID_STATUSES:
         print(f"[OrderExtractor] Unexpected status '{clean['status']}' — defaulting to 'processing'")
         clean["status"] = "processing"
@@ -111,26 +73,6 @@ def _sanitize_result(result):
 
 
 def extract_order(subject, body, sender):
-    """
-    Extracts order and purchase data from an email using Gemini Flash.
-
-    This function should only be called when the classifier has set
-    is_order_email = true, avoiding unnecessary API calls.
-
-    Retry behaviour is handled centrally by call_fast() in gemini.py
-    (3 attempts with increasing backoff). On complete failure, returns
-    DEFAULT_ORDER so the pipeline never crashes.
-
-    Args:
-        subject (str): the email subject line
-        body    (str): the plain-text email body
-        sender  (str): the sender's email address
-
-    Returns:
-        dict: order data with keys:
-              retailer, order_number, item_description, order_date,
-              estimated_delivery, status, tracking_number, tracking_url, price
-    """
     print(f"[OrderExtractor] Extracting order — subject='{subject[:60]}'")
 
     prompt = _build_prompt(subject, body, sender)
