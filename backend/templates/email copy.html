@@ -1,57 +1,91 @@
 {% extends "base.html" %} {% block title %}Email - MailMind{% endblock %} {%
-block header_title %}Emails{% endblock %} {% block main_class %}min-h-0 flex-1 overflow-hidden{% endblock %} {% block content %}
-<div class="flex flex-row h-full w-full flex-1 min-h-0">
+block header_title %}Emails{% endblock %} {% block content %}
+<div class="flex flex-row gap-gutter h-full w-full flex-1 min-h-0">
+    <!-- ══════════════════════════════════════════════════════════
+       FOLDER NAV — Folder list (Important / All Mail / Drafts / Spam)
+  ══════════════════════════════════════════════════════════ -->
+    <aside
+        id="folder-nav"
+        class="w-48 flex-shrink-0 flex flex-col bg-surface-container-lowest rounded-xl border border-surface-dim shadow-[0px_4px_20px_rgba(0,0,0,0.03)] overflow-hidden max-h-[700px]">
+
+        <!-- Nav header -->
+        <div class="px-4 py-3 border-b border-surface-dim">
+            <span class="font-label-md text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Mailboxes</span>
+        </div>
+
+        <!-- Folder buttons -->
+        <nav class="flex flex-col py-2 gap-0.5 px-2">
+            <!-- Important -->
+            <button id="folder-btn-important" onclick="setFolder('important')"
+                class="folder-btn flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-left transition-colors
+                       bg-primary/10 text-primary">
+                <span class="material-symbols-outlined text-[18px]" style="font-variation-settings:'FILL' 1">star</span>
+                <span class="font-label-md text-[13px] font-semibold">Important</span>
+                <span id="badge-important" class="ml-auto text-[10px] font-bold bg-primary text-on-primary rounded-full px-1.5 py-0.5 hidden"></span>
+            </button>
+
+            <!-- All Mail -->
+            <button id="folder-btn-all" onclick="setFolder('all')"
+                class="folder-btn flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-left transition-colors
+                       text-on-surface-variant hover:bg-surface-container-low">
+                <span class="material-symbols-outlined text-[18px]">all_inbox</span>
+                <span class="font-label-md text-[13px] font-medium">All Mail</span>
+                <span id="badge-all" class="ml-auto text-[10px] font-bold bg-secondary text-on-secondary rounded-full px-1.5 py-0.5 hidden"></span>
+            </button>
+
+            <!-- Divider -->
+            <div class="my-1 mx-1 h-px bg-surface-dim"></div>
+
+            <!-- Drafts -->
+            <button id="folder-btn-drafts" onclick="setFolder('drafts')"
+                class="folder-btn flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-left transition-colors
+                       text-on-surface-variant hover:bg-surface-container-low">
+                <span class="material-symbols-outlined text-[18px]">drafts</span>
+                <span class="font-label-md text-[13px] font-medium">Drafts</span>
+            </button>
+
+            <!-- Spam -->
+            <button id="folder-btn-spam" onclick="setFolder('spam')"
+                class="folder-btn flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-left transition-colors
+                       text-on-surface-variant hover:bg-surface-container-low">
+                <span class="material-symbols-outlined text-[18px]">report</span>
+                <span class="font-label-md text-[13px] font-medium">Spam</span>
+            </button>
+        </nav>
+
+        <!-- Spacer -->
+        <div class="flex-1"></div>
+
+        <!-- Storage indicator (decorative) -->
+        <div class="p-3 border-t border-surface-dim">
+            <p class="text-[10px] text-outline text-center">MailMind · AI inbox</p>
+        </div>
+    </aside>
 
     <!-- ══════════════════════════════════════════════════════════
-       LEFT PANEL — Inbox list with mailbox tabs
+       CENTER-LEFT PANEL — Inbox list
   ══════════════════════════════════════════════════════════ -->
     <section
-        class="w-80 flex-shrink-0 flex flex-col bg-surface-container-lowest border-r border-surface-dim overflow-hidden">
-        <!-- Mailbox tab bar -->
-<div class="flex h-12 border-b border-surface-dim items-stretch bg-surface-bright/50">
-    <button id="folder-btn-important" onclick="setFolder('important')"
-        class="folder-btn w-[40%] flex items-center justify-center gap-1.5 font-label-md text-[10px] font-semibold text-primary border-b-2 border-primary transition-colors">
-        
-        <!-- Changed icon to paperclip + size 10 -->
-        <span class="material-symbols-outlined text-[10px]" style="font-variation-settings:'FILL' 1">
-            attach_file
-        </span>
-
-        Important
-
-        <!-- Badge size 8 -->
-        <span id="badge-important"
-            class="text-[8px] font-bold bg-primary text-on-primary rounded-full px-1.5 py-0.5 hidden">
-        </span>
-    </button>
-
-    <button id="folder-btn-all" onclick="setFolder('all')"
-        class="folder-btn w-[40%] flex items-center justify-center gap-1.5 font-label-md text-[12px] font-medium text-on-surface-variant hover:text-on-surface transition-colors">
-
-        <!-- Icon size changed to 10 -->
-        <span class="material-symbols-outlined text-[10px]">
-            all_inbox
-        </span>
-
-        All Mail
-
-        <span id="badge-all"
-            class="text-[10px] font-bold bg-secondary text-on-secondary rounded-full px-1.5 py-0.5 hidden">
-        </span>
-    </button>
-
-    <div class="w-[20%] flex items-center justify-center">
-        <button onclick="syncEmails()" title="Sync inbox"
-            class="p-1.5 text-outline hover:text-primary transition-colors rounded-full hover:bg-surface-container-low">
-
-            <span id="sync-icon" class="material-symbols-outlined text-[20px]">
-                sync
-            </span>
-        </button>
-    </div>
-
-    <span id="inbox-count" style="display:none !important;"></span>
-</div>
+        class="w-72 flex-shrink-0 flex flex-col bg-surface-container-lowest rounded-xl border border-surface-dim shadow-[0px_4px_20px_rgba(0,0,0,0.03)] overflow-hidden max-h-[700px]">
+        <!-- Tab bar -->
+        <div class="flex border-b border-surface-dim px-4 pt-2 items-center">
+            <button id="tab-important" onclick="setTab('important')"
+                class="px-4 py-3 font-label-md text-label-md text-primary border-b-2 border-primary transition-colors">
+                Important
+            </button>
+            <button id="tab-all" onclick="setTab('all')"
+                class="px-4 py-3 font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors">
+                All
+            </button>
+            <div class="ml-auto flex items-center gap-1">
+                <span id="inbox-count"
+                    class="hidden text-[11px] font-bold text-on-surface-variant bg-surface-container-low px-2 py-0.5 rounded-full"></span>
+                <button onclick="syncEmails()" title="Sync inbox"
+                    class="p-1.5 text-outline hover:text-primary transition-colors rounded-full hover:bg-surface-container-low">
+                    <span id="sync-icon" class="material-symbols-outlined text-[20px]">sync</span>
+                </button>
+            </div>
+        </div>
 
         <!-- Loading state -->
         <div id="inbox-loading" class="hidden flex-1 flex flex-col items-center justify-center p-6 text-center">
@@ -76,16 +110,16 @@ block header_title %}Emails{% endblock %} {% block main_class %}min-h-0 flex-1 o
         </div>
 
         <!-- Email list -->
-        <div id="inbox-list" class="hidden flex-1 overflow-y-auto"></div>
+        <div id="inbox-list" class="hidden flex-1 overflow-y-auto" style="max-height: 620px;"></div>
     </section>
 
     <!-- ══════════════════════════════════════════════════════════
        CENTER PANEL — Email content
   ══════════════════════════════════════════════════════════ -->
     <section
-        class="flex-1 flex flex-col bg-surface-container-lowest border-r border-surface-dim overflow-hidden min-w-0">
+        class="flex-1 flex flex-col bg-surface-container-lowest rounded-xl border border-surface-dim shadow-[0px_4px_20px_rgba(0,0,0,0.03)] overflow-hidden min-w-0">
         <!-- Toolbar -->
-        <div class="flex items-center justify-between h-12 px-4 border-b border-surface-dim bg-surface-bright/50">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-surface-dim bg-surface-bright/50">
             <div class="flex items-center gap-1">
                 <button id="btn-archive" disabled title="Archive"
                     class="p-2 text-on-surface-variant/40 rounded-full transition-colors disabled:cursor-not-allowed enabled:hover:text-primary enabled:hover:bg-surface-container-low">
@@ -172,9 +206,14 @@ block header_title %}Emails{% endblock %} {% block main_class %}min-h-0 flex-1 o
        RIGHT PANEL — AI Draft Assistant
   ══════════════════════════════════════════════════════════ -->
     <section
-        class="w-80 flex-shrink-0 flex flex-col bg-surface-container-lowest overflow-hidden">
+        class="w-80 flex-shrink-0 flex flex-col bg-surface-container-lowest rounded-xl border border-surface-dim shadow-[0px_4px_20px_rgba(0,0,0,0.03)] overflow-hidden relative">
+        <!-- Gradient accent top bar -->
+        <div
+            class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-secondary-container via-primary to-primary-container">
+        </div>
+
         <!-- Panel header -->
-        <div class="flex items-center gap-3 h-12 px-4 border-b border-surface-dim bg-surface-bright/50">
+        <div class="flex items-center gap-3 px-4 py-3 border-b border-surface-dim bg-primary-fixed/20 mt-1">
             <div class="h-8 w-8 rounded-full bg-primary text-on-primary flex items-center justify-center flex-shrink-0">
                 <span class="material-symbols-outlined text-[18px]">auto_awesome</span>
             </div>
@@ -419,31 +458,41 @@ block header_title %}Emails{% endblock %} {% block main_class %}min-h-0 flex-1 o
 
     function setFolder(folder) {
         state.activeFolder = folder;
-        state.activeTab = folder;
-        emailListPage = 1;
+        // Map folders onto the internal tab filter used by filteredEmails()
+        state.activeTab = folder; // we extend filteredEmails() to handle all 4
+        emailListPage = 1; // reset pagination on folder switch
 
-        // Style tab buttons: deactivate all, activate the clicked one
-        var activeCls = "folder-btn w-[40%] flex items-center justify-center gap-1.5 font-label-md text-[12px] font-semibold text-primary border-b-2 border-primary transition-colors";
-        var inactiveCls = "folder-btn w-[40%] flex items-center justify-center gap-1.5 font-label-md text-[12px] font-medium text-on-surface-variant hover:text-on-surface transition-colors";
-
+        // Style all folder buttons: deactivate all, activate the clicked one
         document.querySelectorAll(".folder-btn").forEach(function(btn) {
-            btn.className = inactiveCls;
+            btn.classList.remove("bg-primary/10", "text-primary", "font-semibold");
+            btn.classList.add("text-on-surface-variant", "hover:bg-surface-container-low");
+            // Reset icon fill
             var icon = btn.querySelector(".material-symbols-outlined");
             if (icon) { icon.style.fontVariationSettings = "'FILL' 0"; }
         });
 
         var active = document.getElementById("folder-btn-" + folder);
         if (active) {
-            active.className = activeCls;
+            active.classList.add("bg-primary/10", "text-primary", "font-semibold");
+            active.classList.remove("text-on-surface-variant", "hover:bg-surface-container-low");
             var icon = active.querySelector(".material-symbols-outlined");
             if (icon) { icon.style.fontVariationSettings = "'FILL' 1"; }
         }
 
+        // Sync the inbox-list tab buttons (Important / All) if applicable
+        var tabImportant = document.getElementById("tab-important");
+        var tabAll = document.getElementById("tab-all");
+        var activeTabCls = "px-4 py-3 font-label-md text-label-md text-primary border-b-2 border-primary transition-colors";
+        var inactiveTabCls = "px-4 py-3 font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors";
+        tabImportant.className = folder === "important" ? activeTabCls : inactiveTabCls;
+        tabAll.className = (folder === "all" || folder === "drafts" || folder === "spam") ? activeTabCls : inactiveTabCls;
+
         renderEmailList();
     }
 
-    // Legacy tab alias
+    // Legacy tab click handler — keeps existing tab buttons in sync with folder nav
     function setTab(tab) {
+        // Map the simple tab click to the appropriate folder
         setFolder(tab === "important" ? "important" : "all");
     }
 
