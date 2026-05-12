@@ -1,4 +1,4 @@
-# MailMind
+# MailBunny
 
 MailMind is a FastAPI + Jinja2 email assistant that connects to Gmail, uses Google Gemini for AI tasks, and stores project data in SQLite.
 
