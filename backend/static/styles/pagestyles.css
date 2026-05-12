@@ -1,0 +1,1631 @@
+/* pagestyles.css — page-specific reusable components for pages (home, etc.)
+   Location: backend/static/styles/pagestyles.css
+*/
+/* Toolbar / page header */
+.page-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.meta-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 9999px;
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: var(--primary-contrast);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-rounded {
+  border-radius: 9999px;
+}
+
+/* Grid helpers */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+@media (min-width: 1280px) {
+  .grid-xl-12 {
+    grid-template-columns: repeat(12, 1fr);
+  }
+
+  .col-span-6-xl {
+    grid-column: span 6;
+  }
+
+  .col-span-8-xl {
+    grid-column: span 8;
+  }
+
+  .col-span-4-xl {
+    grid-column: span 4;
+  }
+}
+
+/* Card component (reusable) */
+.card {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  box-sizing: border-box;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+
+.card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.icon-btn.small {
+  height: 28px;
+  width: 28px;
+  border-radius: 9999px;
+  border: 1px solid var(--border-strong);
+  background: var(--panel-bg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.icon-btn.small:hover {
+  color: var(--primary);
+}
+
+/* Lists / scroll areas */
+.list-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.loading-placeholder {
+  text-align: center;
+  padding: 40px 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Analytics grid */
+.analytics-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  align-items: center;
+}
+
+@media (min-width: 768px) {
+  .analytics-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Reusable inner card item */
+.card-item {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+.task-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.checkbox-btn {
+  height: 20px;
+  width: 20px;
+  border-radius: 4px;
+  border: 1px solid var(--border-muted);
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: transparent;
+}
+
+.checkbox-btn:hover {
+  border-color: var(--success);
+  color: var(--success);
+}
+
+/* Priority badges */
+.priority-high {
+  background: var(--danger-soft);
+  color: var(--danger-soft-text);
+  border: 1px solid var(--danger-soft-border);
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.priority-medium {
+  background: var(--warning-soft);
+  color: var(--warning-soft-text);
+  border: 1px solid var(--warning-soft-border);
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.priority-low {
+  background: var(--surface-2);
+  color: var(--text-body);
+  border: 1px solid var(--border-muted);
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+/* Legend item */
+.legend-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--border);
+  padding: 8px;
+  border-radius: 12px;
+}
+
+.legend-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.legend-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-body);
+}
+
+.legend-count {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Stat blocks */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stat-block .stat-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.stat-block .stat-value {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 4px 0 0;
+}
+
+/* Small utilities */
+.text-muted {
+  color: var(--text-muted);
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Badge */
+.badge-live {
+  background: var(--primary);
+  color: var(--primary-contrast);
+  padding: 6px 10px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Crafter page — reuse existing components where possible; small helpers */
+/* -------------------------------------------------------------------------- */
+.fmt-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 6px;
+  border-radius: 12px;
+}
+
+.fmt-btn {
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fmt-btn:hover {
+  background: var(--panel-bg);
+  color: var(--primary);
+}
+
+.editor {
+  min-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--border-strong);
+  border-radius: 16px;
+  padding: 12px;
+  background: var(--panel-bg);
+  color: var(--text);
+  box-sizing: border-box;
+  white-space: pre-wrap;
+}
+
+.editor:empty::before {
+  content: attr(data-placeholder);
+  color: var(--text-subtle);
+  pointer-events: none;
+}
+
+.ai-panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.tone-btn {
+  border-radius: 9999px;
+  padding: 6px 12px;
+  border: 1px solid var(--border-strong);
+  background: var(--panel-bg);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.tone-btn.active,
+.tone-btn.selected {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: var(--primary-contrast);
+}
+
+.quick-prompt {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+  cursor: pointer;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Email page — inbox, folder tabs, list rows, toasts
+   Keep classes generic so they can be reused in other list/detail pages */
+/* -------------------------------------------------------------------------- */
+.folder-bar {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-glass);
+}
+
+.folder-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-body);
+}
+
+.folder-btn.active {
+  border-bottom: 3px solid var(--primary);
+  color: var(--primary);
+}
+
+.inbox-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  color: var(--text-muted);
+}
+
+.inbox-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  color: var(--text-subtle);
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inbox-list {
+  overflow-y: auto;
+}
+
+.email-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 1px solid var(--border);
+  border-left: 4px solid transparent;
+}
+
+.email-row:hover {
+  background: var(--panel-glass);
+}
+
+.email-row.active {
+  background: var(--surface-2);
+  border-left-color: var(--accent);
+}
+
+.email-avatar {
+  height: 40px;
+  width: 40px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--primary-contrast);
+}
+
+.email-content-area {
+  flex: 1;
+  min-width: 0;
+}
+
+.email-subject {
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.email-snippet {
+  color: var(--text-muted);
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+.email-meta {
+  font-size: 12px;
+  color: var(--text-subtle);
+}
+
+/* Toasts (centralized) */
+.toast {
+  background: var(--primary);
+  color: var(--primary-contrast);
+  padding: 10px 14px;
+  border-radius: 10px;
+  box-shadow: var(--shadow-md);
+  pointer-events: auto;
+}
+
+.toast-enter {
+  animation: toast-in 0.22s ease forwards;
+}
+
+.toast-leave {
+  animation: toast-out 0.22s ease forwards;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Orders page — cards, tabs, avatar helpers */
+/* -------------------------------------------------------------------------- */
+.order-tab {
+  border-radius: 9999px;
+  padding: 8px 14px;
+  cursor: pointer;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.order-tab.active {
+  background: var(--primary);
+  color: var(--primary-contrast);
+}
+
+.order-card {
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.order-avatar {
+  height: 40px;
+  width: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+.order-status {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 9999px;
+}
+
+.order-price {
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Settings page — tabs, sliders, toggles, chips */
+/* -------------------------------------------------------------------------- */
+.settings-tabs {
+  display: flex;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+}
+
+.settings-tab {
+  padding: 8px 6px;
+  cursor: pointer;
+  color: var(--text-muted);
+}
+
+.settings-tab.active {
+  border-bottom: 3px solid var(--primary);
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.toggle-switch {
+  width: 48px;
+  height: 24px;
+  border-radius: 9999px;
+  background: var(--border-strong);
+  border: 0;
+  position: relative;
+  cursor: pointer;
+}
+
+.toggle-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: var(--panel-bg);
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  box-shadow: 0 1px 2px rgba(2, 6, 23, 0.06);
+  transition: left 0.14s;
+}
+
+.toggle-on {
+  background: var(--primary);
+}
+
+.toggle-on .toggle-dot {
+  left: 27px;
+}
+
+.tone-slider {
+  width: 100%;
+  height: 10px;
+  background: var(--surface-2);
+  border-radius: 9999px;
+  position: relative;
+}
+
+.tone-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 9999px;
+  width: 0;
+}
+
+.tone-knob {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  background: var(--panel-bg);
+  box-shadow: var(--shadow-md);
+}
+
+.vocab-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 9999px;
+  background: var(--primary);
+  color: var(--primary-contrast);
+  margin-right: 8px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Email page — PANEL STRUCTURES */
+/* -------------------------------------------------------------------------- */
+.email-main-container {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+}
+
+.email-left-panel {
+  width: 20rem;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.email-center-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.email-right-panel {
+  width: 20rem;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Email page — TOOLBAR & HEADERS */
+/* -------------------------------------------------------------------------- */
+.email-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-glass);
+}
+
+.email-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.email-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mailbox-tab-bar {
+  display: flex;
+  height: 48px;
+  border-bottom: 1px solid var(--border);
+  align-items: stretch;
+  background: var(--panel-glass);
+}
+
+.mailbox-tab {
+  width: 40%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+}
+
+.mailbox-tab.active {
+  color: var(--primary);
+  border-bottom: 2px solid var(--primary);
+}
+
+.mailbox-tab:hover:not(.active) {
+  color: var(--text-body);
+}
+
+.mailbox-sync-button {
+  width: 20%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  color: var(--text-subtle);
+  transition: color 0.2s ease;
+}
+
+.mailbox-sync-button:hover {
+  color: var(--primary);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Email page — ICON BUTTONS (toolbar buttons) */
+/* -------------------------------------------------------------------------- */
+.icon-button {
+  padding: 8px;
+  background: transparent;
+  border: 0;
+  color: var(--text-subtle);
+  cursor: pointer;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-button:hover:enabled {
+  color: var(--primary);
+  background: var(--surface-4);
+}
+
+.icon-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.icon-button.primary:hover:enabled {
+  color: var(--primary);
+}
+
+.icon-button.danger:hover:enabled {
+  color: var(--danger);
+  background: rgba(var(--danger-rgb), 0.1);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Email page — EMPTY & LOADING STATES */
+/* -------------------------------------------------------------------------- */
+.email-empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  color: var(--text-subtle);
+}
+
+.email-loading-state {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.email-loading-spinner {
+  font-size: 2.5rem;
+  color: var(--text-subtle);
+  margin-bottom: 12px;
+  animation: spin 1.2s linear infinite;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Email page — EMAIL CONTENT AREA */
+/* -------------------------------------------------------------------------- */
+.email-content-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.email-summary-bar {
+  margin: 16px;
+  padding: 12px;
+  background: rgba(var(--accent-rgb), 0.05);
+  border: 1px solid rgba(var(--accent-rgb), 0.15);
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.email-summary-icon {
+  font-size: 18px;
+  color: var(--accent);
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+.email-summary-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.email-summary-headline {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.email-summary-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.email-summary-fact {
+  font-size: 0.6875rem;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  padding: 4px 8px;
+  border-radius: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.email-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.email-subject {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 20px;
+}
+
+.email-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.email-sender-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.email-sender-avatar {
+  height: 44px;
+  width: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--primary-contrast);
+  background: var(--accent);
+  flex-shrink: 0;
+  font-size: 16px;
+}
+
+.email-sender-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.email-sender-name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+.email-sender-email {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.email-sender-timestamp {
+  font-size: 0.8125rem;
+  color: var(--text-subtle);
+  display: block;
+  margin-top: 4px;
+}
+
+.email-body {
+  padding: 24px;
+  font-size: 0.9375rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+  flex: 1;
+}
+
+.email-body p {
+  margin: 0 0 16px;
+  word-wrap: break-word;
+}
+
+.email-body p:last-child {
+  margin-bottom: 0;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Email page — CATEGORY BADGES & TAGS */
+/* -------------------------------------------------------------------------- */
+.badge-category {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 12px;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.badge-primary {
+  background: var(--primary);
+  color: var(--primary-contrast);
+}
+
+.badge-urgent {
+  background: var(--danger-soft);
+  color: var(--danger-soft-text);
+}
+
+.badge-action-required {
+  background: var(--warning-soft-border);
+  color: var(--warning-soft-text);
+}
+
+.badge-meeting-request {
+  background: var(--info-soft);
+  color: var(--info-soft-text);
+}
+
+.badge-order-update {
+  background: var(--violet-soft);
+  color: var(--violet-soft-text);
+}
+
+.badge-spam {
+  background: var(--danger-soft-border);
+  color: var(--danger-soft-text);
+}
+
+.badge-promotions {
+  background: var(--warning-soft-border);
+  color: var(--warning-soft-text);
+}
+
+.badge-forum {
+  background: var(--mint-soft);
+  color: var(--mint-soft-text);
+}
+
+.badge-social_media {
+  background: var(--indigo-soft);
+  color: var(--indigo-soft-text);
+}
+
+.badge-updates {
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+
+.badge-verify_code {
+  background: var(--cyan-soft);
+  color: var(--cyan-soft-text);
+}
+
+.badge-sent-reply {
+  background: rgba(var(--accent-rgb), 0.1);
+  color: var(--accent);
+  font-size: 0.625rem;
+}
+
+.badge-confidence-high {
+  background: var(--success-soft);
+  color: var(--success-soft-text);
+}
+
+.badge-confidence-medium {
+  background: var(--warning-soft-border);
+  color: var(--warning-soft-text);
+}
+
+.badge-confidence-low {
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Email page — DRAFT PANEL */
+/* -------------------------------------------------------------------------- */
+.draft-panel-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 48px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-glass);
+}
+
+.draft-panel-icon {
+  height: 32px;
+  width: 32px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--primary-contrast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 18px;
+}
+
+.draft-panel-title {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  color: var(--text);
+  font-size: 0.875rem;
+}
+
+.draft-content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.draft-textarea-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.draft-textarea {
+  flex: 1;
+  width: 100%;
+  min-height: 200px;
+  resize: none;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--text);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.draft-textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.1);
+}
+
+.draft-textarea::placeholder {
+  color: var(--text-subtle);
+}
+
+.draft-action-items-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.draft-action-items-title {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.draft-action-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.draft-action-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.draft-action-item-icon {
+  font-size: 14px;
+  color: var(--accent);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.draft-action-item-text {
+  word-wrap: break-word;
+  flex: 1;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Email page — ACTION BUTTONS */
+/* -------------------------------------------------------------------------- */
+.draft-action-bar {
+  padding: 16px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.btn-primary-large {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  background: rgba(var(--accent-rgb), 0.15);
+  color: var(--text-muted);
+}
+
+.btn-primary-large:enabled {
+  background: var(--accent);
+  color: var(--primary-contrast);
+}
+
+.btn-primary-large:enabled:hover {
+  opacity: 0.9;
+}
+
+.btn-primary-large:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.draft-button-row {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-secondary-small {
+  flex: 1;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary-small:enabled {
+  border-color: var(--text-subtle);
+  color: var(--text-muted);
+}
+
+.btn-secondary-small:enabled:hover {
+  background: var(--surface-2);
+  color: var(--primary);
+}
+
+.btn-secondary-small:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+  border-color: var(--border-muted);
+}
+
+.btn-secondary-small.primary:enabled {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.btn-secondary-small.primary:enabled:hover {
+  background: rgba(var(--accent-rgb), 0.05);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Email page — PROCESSING & FEEDBACK */
+/* -------------------------------------------------------------------------- */
+.email-processing-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.05);
+  padding: 6px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(var(--accent-rgb), 0.2);
+}
+
+.email-processing-spinner {
+  font-size: 14px;
+  animation: spin 1s linear infinite;
+}
+
+.divider-vertical {
+  height: 16px;
+  width: 1px;
+  background: var(--border);
+  margin: 0 8px;
+}
+
+/* -------------------------------------------------------------------------- */
+/* UTILITY CLASSES — Layout, spacing, sizing (from Tailwind conversion) */
+/* -------------------------------------------------------------------------- */
+
+/* Display utilities */
+.hidden {
+  display: none !important;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.flex-1 {
+  flex: 1 0%;
+}
+
+.flex-shrink-0 {
+  flex-shrink: 0;
+}
+
+/* Alignment utilities */
+.items-start {
+  align-items: flex-start;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.items-end {
+  align-items: flex-end;
+}
+
+.justify-start {
+  justify-content: flex-start;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-end {
+  justify-content: flex-end;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+/* Gap utilities */
+.gap-2 {
+  gap: 0.5rem;
+}
+
+.gap-3 {
+  gap: 0.75rem;
+}
+
+.gap-4 {
+  gap: 1rem;
+}
+
+.gap-8 {
+  gap: 2rem;
+}
+
+.gap-12 {
+  gap: 3rem;
+}
+
+/* Padding utilities */
+.px-2 {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.py-0\.5 {
+  padding-top: 0.125rem;
+  padding-bottom: 0.125rem;
+}
+
+.pl-10 {
+  padding-left: 2.5rem;
+}
+
+/* Margin utilities */
+.mb-1 {
+  margin-bottom: 0.25rem;
+}
+
+.mb-3 {
+  margin-bottom: 0.75rem;
+}
+
+.mb-4 {
+  margin-bottom: 1rem;
+}
+
+.ml-6 {
+  margin-left: 1.5rem;
+}
+
+.mt-1 {
+  margin-top: 0.25rem;
+}
+
+.mt-2 {
+  margin-top: 0.5rem;
+}
+
+/* Sizing utilities */
+.w-8 {
+  width: 2rem;
+}
+
+.h-8 {
+  height: 2rem;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.min-w-0 {
+  min-width: 0;
+}
+
+.min-h-0 {
+  min-height: 0;
+}
+
+/* Overflow utilities */
+.overflow-hidden {
+  overflow: hidden;
+}
+
+.overflow-y-auto {
+  overflow-y: auto;
+}
+
+/* Border utilities */
+.border-l-2 {
+  border-left: 2px solid;
+}
+
+.rounded-full {
+  border-radius: 9999px;
+}
+
+/* Text utilities - font sizes with specific px values */
+.text-\[8px\] {
+  font-size: 8px;
+}
+
+.text-\[10px\] {
+  font-size: 10px;
+}
+
+.text-\[12px\] {
+  font-size: 12px;
+}
+
+.text-\[13px\] {
+  font-size: 13px;
+}
+
+.text-\[14px\] {
+  font-size: 14px;
+}
+
+.text-\[15px\] {
+  font-size: 15px;
+}
+
+.text-\[16px\] {
+  font-size: 16px;
+}
+
+.text-\[18px\] {
+  font-size: 18px;
+}
+
+.text-\[20px\] {
+  font-size: 20px;
+}
+
+.text-\[48px\] {
+  font-size: 48px;
+}
+
+.text-\[64px\] {
+  font-size: 64px;
+}
+
+/* Font weight utilities */
+.font-bold {
+  font-weight: 700;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+/* Text color utilities (referencing design tokens) */
+.text-on-surface {
+  color: var(--text-on-surface);
+}
+
+.text-on-surface-variant {
+  color: var(--text-on-surface-variant);
+}
+
+.text-outline {
+  color: var(--text-outline);
+}
+
+.text-primary {
+  color: var(--primary);
+}
+
+.text-white {
+  color: white;
+}
+
+.text-on-secondary-fixed {
+  color: var(--text-on-secondary-fixed);
+}
+
+/* Text color with opacity */
+.text-on-surface-variant\/20 {
+  color: rgba(var(--text-on-surface-variant-rgb), 0.2);
+}
+
+.text-on-surface-variant\/30 {
+  color: rgba(var(--text-on-surface-variant-rgb), 0.3);
+}
+
+.text-primary\/40 {
+  color: rgba(var(--primary-rgb), 0.4);
+}
+
+/* Background utilities */
+.bg-secondary-fixed {
+  background-color: var(--secondary-fixed);
+}
+
+.bg-green-600 {
+  background-color: #16a34a;
+}
+
+/* Text overflow utilities */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Positioning utilities */
+.fixed {
+  position: fixed;
+}
+
+.bottom-6 {
+  bottom: 1.5rem;
+}
+
+.right-6 {
+  right: 1.5rem;
+}
+
+.z-50 {
+  z-index: 50;
+}
+
+/* Pointer events utilities */
+.pointer-events-none {
+  pointer-events: none;
+}
+
+.pointer-events-auto {
+  pointer-events: auto;
+}
+
+/* Transition utilities */
+.transition-colors {
+  transition: color, background-color, border-color;
+  transition-duration: 0.2s;
+}
+
+/* Hover utilities */
+.hover\:bg-primary\/5:hover {
+  background-color: rgba(var(--primary-rgb), 0.05);
+}
+
+/* Border color utilities */
+.border-surface-dim {
+  border-color: var(--surface-dim);
+}
+
+.border-surface-dim\/50 {
+  border-color: rgba(var(--surface-dim-rgb), 0.5);
+}
+
+.border-primary\/30 {
+  border-color: rgba(var(--primary-rgb), 0.3);
+}
+
+/* Vertical alignment */
+.align-middle {
+  vertical-align: middle;
+}
+
+/* Whitespace utilities */
+.whitespace-nowrap {
+  white-space: nowrap;
+}
+
+/* Animation utilities */
+.animate-spin {
+  animation: spin 0.8s linear infinite;
+}
+
+/* End of utility classes — keep new classes appended here */

@@ -1,26 +1,45 @@
-{% extends "base.html" %} {% block title %}Orders - MailMind{% endblock %} {% block header_title %}Orders{% endblock %} {% block content %}
-<div class="mx-auto flex w-full max-w-7xl flex-col gap-6">
-    <section class="grid grid-cols-1 gap-4 md:grid-cols-3">
-        <div class="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm"><p class="text-xs font-medium text-gray-500">Total Orders This Year</p><p id="stat-total-orders" class="mt-2 text-3xl font-semibold text-gray-900">—</p></div>
-        <div class="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm"><p class="text-xs font-medium text-gray-500">Estimated Total Spent</p><p id="stat-total-spent" class="mt-2 text-3xl font-semibold text-gray-900">—</p></div>
-        <div class="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm"><p class="text-xs font-medium text-gray-500">Monthly Average</p><p id="stat-monthly-avg" class="mt-2 text-3xl font-semibold text-gray-900">—</p></div>
+{% extends "base.html" %}
+{% block title %}Orders - MailMind{% endblock %}
+{% block page_styles %}
+<link href="/static/styles/pagestyles.css" rel="stylesheet" />
+{% endblock %}
+{% block header_title %}Orders{% endblock %}
+{% block content %}
+<div class="mx-auto" style="width:100%;display:flex;flex-direction:column;gap:24px">
+    <section class="grid" style="grid-template-columns:repeat(1,1fr);gap:16px;grid-template-columns:repeat(3,1fr)">
+        <div class="card">
+            <p style="font-size:12px;color:#6b7280;margin:0">Total Orders This Year</p>
+            <p id="stat-total-orders" style="margin-top:8px;font-size:28px;font-weight:600;color:#0f172a">—</p>
+        </div>
+        <div class="card">
+            <p style="font-size:12px;color:#6b7280;margin:0">Estimated Total Spent</p>
+            <p id="stat-total-spent" style="margin-top:8px;font-size:28px;font-weight:600;color:#0f172a">—</p>
+        </div>
+        <div class="card">
+            <p style="font-size:12px;color:#6b7280;margin:0">Monthly Average</p>
+            <p id="stat-monthly-avg" style="margin-top:8px;font-size:28px;font-weight:600;color:#0f172a">—</p>
+        </div>
     </section>
 
-    <section class="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">
+    <section class="card">
         <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
             <h2 class="text-base font-semibold text-gray-900">Recent Orders</h2>
             <div class="flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 p-1">
-                <button id="tab-all" onclick="setFilter('all')" class="order-tab active rounded-full bg-gray-900 px-4 py-1.5 text-[13px] font-medium text-white">All</button>
-                <button id="tab-shipped" onclick="setFilter('shipped')" class="order-tab rounded-full px-4 py-1.5 text-[13px] font-medium text-gray-500">Shipped</button>
-                <button id="tab-processing" onclick="setFilter('processing')" class="order-tab rounded-full px-4 py-1.5 text-[13px] font-medium text-gray-500">Processing</button>
-                <button id="tab-delivered" onclick="setFilter('delivered')" class="order-tab rounded-full px-4 py-1.5 text-[13px] font-medium text-gray-500">Delivered</button>
+                <button id="tab-all" onclick="setFilter('all')" class="order-tab active">All</button>
+                <button id="tab-shipped" onclick="setFilter('shipped')" class="order-tab">Shipped</button>
+                <button id="tab-processing" onclick="setFilter('processing')" class="order-tab">Processing</button>
+                <button id="tab-delivered" onclick="setFilter('delivered')" class="order-tab">Delivered</button>
             </div>
         </div>
-
-        <div id="orders-loading" class="hidden rounded-2xl border border-gray-100 p-14 text-center text-sm text-gray-500">Loading orders...</div>
-        <div id="orders-error" class="hidden rounded-2xl border border-gray-100 p-14 text-center"><p class="text-sm text-gray-600">Could not load orders</p><p id="orders-error-msg" class="mt-1 text-xs text-gray-400"></p></div>
-        <div id="orders-empty" class="hidden rounded-2xl border border-gray-100 p-14 text-center text-sm text-gray-500">No orders found</div>
-        <div id="orders-grid" class="hidden grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3"></div>
+        <div id="orders-loading" class="hidden" style="padding:56px;text-align:center;color:#6b7280">Loading orders...
+        </div>
+        <div id="orders-error" class="hidden" style="padding:56px;text-align:center">
+            <p style="color:#374151">Could not load orders</p>
+            <p id="orders-error-msg" style="margin-top:6px;color:#9ca3af"></p>
+        </div>
+        <div id="orders-empty" class="hidden" style="padding:56px;text-align:center;color:#6b7280">No orders found</div>
+        <div id="orders-grid" class="hidden"
+            style="display:grid;grid-template-columns:repeat(1,1fr);gap:16px;grid-template-columns:repeat(3,1fr)"></div>
     </section>
 
     <section class="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">
@@ -29,17 +48,20 @@
             <span class="text-xs font-medium text-gray-500">Skeleton placeholder</span>
         </div>
         <div class="space-y-3">
-            <div class="h-2.5 rounded-full bg-gray-100"><div class="h-2.5 w-1/2 rounded-full bg-purple-500"></div></div>
-            <div class="h-2.5 rounded-full bg-gray-100"><div class="h-2.5 w-2/3 rounded-full bg-red-500"></div></div>
-            <div class="h-2.5 rounded-full bg-gray-100"><div class="h-2.5 w-1/3 rounded-full bg-green-500"></div></div>
+            <div class="h-2.5 rounded-full bg-gray-100">
+                <div class="h-2.5 w-1/2 rounded-full bg-purple-500"></div>
+            </div>
+            <div class="h-2.5 rounded-full bg-gray-100">
+                <div class="h-2.5 w-2/3 rounded-full bg-red-500"></div>
+            </div>
+            <div class="h-2.5 rounded-full bg-gray-100">
+                <div class="h-2.5 w-1/3 rounded-full bg-green-500"></div>
+            </div>
         </div>
     </section>
 </div>
 {% endblock %} {% block scripts %}
-<style>
-    .order-tab.active { background: #111827; color: #fff; }
-    .order-tab:not(.active):hover { background: #f3f4f6; color: #111827; }
-</style>
+
 <script>
     var allOrders = [];
     var activeFilter = "all";
@@ -48,7 +70,7 @@
     var STATUS_CFG = { shipped: { bg: "bg-teal-100", text: "text-teal-700", label: "Shipped" }, processing: { bg: "bg-orange-100", text: "text-orange-700", label: "Processing" }, delivered: { bg: "bg-gray-100", text: "text-gray-700", label: "Delivered" }, cancelled: { bg: "bg-red-100", text: "text-red-700", label: "Cancelled" }, "out-for-delivery": { bg: "bg-pink-100", text: "text-pink-700", label: "Out for Delivery" }, pending: { bg: "bg-yellow-100", text: "text-yellow-700", label: "Pending" } };
     function statusCfg(status) { return STATUS_CFG[status] || { bg: "bg-gray-100", text: "text-gray-700", label: status || "Unknown" }; }
     function esc(str) { return String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
-    function setFilter(filter) { activeFilter = filter; document.querySelectorAll(".order-tab").forEach(function(btn) { btn.classList.remove("active"); }); var activeBtn = document.getElementById("tab-" + filter); if (activeBtn) { activeBtn.classList.add("active"); } renderGrid(); }
+    function setFilter(filter) { activeFilter = filter; document.querySelectorAll(".order-tab").forEach(function (btn) { btn.classList.remove("active"); }); var activeBtn = document.getElementById("tab-" + filter); if (activeBtn) { activeBtn.classList.add("active"); } renderGrid(); }
     function renderCard(order) {
         var palette = avatarColour(order.retailer), avatarBg = palette[0], avatarText = palette[1], letter = (order.retailer || "?")[0].toUpperCase(), sc = statusCfg(order.status);
         var trackBtn = order.tracking_url ? `<a href="${esc(order.tracking_url)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-[12px] font-semibold text-blue-600 hover:underline"><span class="material-symbols-outlined text-[14px]">local_shipping</span>Track Package</a>` : (order.tracking_number ? `<span class="text-[12px] text-gray-500">#${esc(order.tracking_number)}</span>` : "");
@@ -56,12 +78,12 @@
         var orderDate = order.order_date ? `<span class="text-[12px] text-gray-400">Ordered: ${esc(order.order_date)}</span>` : "";
         var deliveryDate = order.estimated_delivery ? `<span class="text-[12px] text-gray-400">Est. delivery: ${esc(order.estimated_delivery)}</span>` : "";
         var orderNum = order.order_number ? `<span class="text-[11px] text-gray-400 font-mono">#${esc(order.order_number)}</span>` : "";
-        return `<div class="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm"><div class="flex items-start gap-3"><div class="h-10 w-10 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-[16px] ${avatarBg} ${avatarText}">${esc(letter)}</div><div class="flex-1 min-w-0"><div class="flex items-center justify-between gap-2"><span class="text-[14px] font-bold text-gray-900 truncate">${esc(order.retailer)}</span><span class="flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${sc.bg} ${sc.text}">${esc(sc.label)}</span></div>${orderNum}</div></div><p class="mt-3 text-[13px] font-semibold text-gray-900 line-clamp-2 leading-snug">${esc(order.item_description || "Order details not available")}</p><div class="mt-3 flex flex-col gap-0.5">${orderDate}${deliveryDate}</div><div class="mt-3 flex items-center justify-between border-t border-gray-100 pt-3 gap-2"><div>${trackBtn}</div><div>${priceEl}</div></div></div>`;
+        return `<div class="order-card"><div class="order-card-inner"><div class="order-avatar ${avatarBg} ${avatarText}">${esc(letter)}</div><div class="order-card-body"><div class="order-card-head"><span class="order-card-title">${esc(order.retailer)}</span><span class="order-card-status ${sc.bg} ${sc.text}">${esc(sc.label)}</span></div>${orderNum}</div></div><p class="order-card-desc">${esc(order.item_description || "Order details not available")}</p><div class="order-card-meta">${orderDate}${deliveryDate}</div><div class="order-card-footer"><div>${trackBtn}</div><div>${priceEl}</div></div></div>`;
     }
-    function renderGrid() { var filtered = allOrders; if (activeFilter !== "all") filtered = allOrders.filter(function(o) { return (o.status || "").toLowerCase() === activeFilter; }); var grid = document.getElementById("orders-grid"); if (filtered.length === 0) { showState("empty"); return; } grid.innerHTML = filtered.map(renderCard).join(""); showState("grid"); }
+    function renderGrid() { var filtered = allOrders; if (activeFilter !== "all") filtered = allOrders.filter(function (o) { return (o.status || "").toLowerCase() === activeFilter; }); var grid = document.getElementById("orders-grid"); if (filtered.length === 0) { showState("empty"); return; } grid.innerHTML = filtered.map(renderCard).join(""); showState("grid"); }
     function renderStats(stats) { setStatEl("stat-total-orders", stats.total_orders ?? "—"); setStatEl("stat-total-spent", stats.total_spent_estimate || "—"); setStatEl("stat-monthly-avg", stats.monthly_average || "—"); }
     function setStatEl(id, value) { var el = document.getElementById(id); if (el) el.textContent = value; }
-    function showState(state) { ["loading", "error", "empty", "grid"].forEach(function(s) { var el = document.getElementById("orders-" + s); if (el) { el.classList.toggle("hidden", s !== state); if (s === "grid") el.style.display = (s === state) ? "grid" : "none"; } }); }
+    function showState(state) { ["loading", "error", "empty", "grid"].forEach(function (s) { var el = document.getElementById("orders-" + s); if (el) { el.classList.toggle("hidden", s !== state); if (s === "grid") el.style.display = (s === state) ? "grid" : "none"; } }); }
     async function loadOrders() {
         showState("loading");
         try {

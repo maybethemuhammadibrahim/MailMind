@@ -1,55 +1,70 @@
-{% extends "base.html" %} {% block title %}Home - MailMind{% endblock %} {% block header_title %}MailMind{% endblock %} {% block content %}
-<div class="mb-6 flex items-center justify-between gap-4">
+{% extends "base.html" %}
+{% block title %}Home - MailMind{% endblock %}
+{% block page_styles %}
+<link href="/static/styles/pagestyles.css" rel="stylesheet" />
+{% endblock %}
+{% block header_title %}MailMind{% endblock %}
+{% block content %}
+<div class="page-toolbar">
     <div>
-        <p class="text-sm font-medium text-gray-500">Welcome back</p>
-        <h2 id="home-user-name" class="text-2xl font-semibold text-gray-900">MailMind User</h2>
+        <p class="meta-text">Welcome back</p>
+        <h2 id="home-user-name" class="page-title">MailMind User</h2>
     </div>
-    <a href="/crafter" class="inline-flex items-center gap-2 rounded-full bg-gray-900 px-5 py-2.5 text-sm font-medium text-white shadow-sm">
-        <span class="material-symbols-outlined text-[18px]">edit</span>
+    <a href="/crafter" class="btn btn-primary btn-rounded">
+        <span class="material-symbols-outlined" style="font-size:18px">edit</span>
         New Email
     </a>
 </div>
-<div class="grid grid-cols-1 gap-6 xl:grid-cols-12">
+<div class="grid grid-xl-12">
     <!-- Row 1: [B][C] -->
-    <section class="xl:col-span-6 rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">
-        <div class="mb-4 flex items-center justify-between"><h3 class="text-base font-semibold text-gray-900">My Tasks</h3><button class="h-7 w-7 rounded-full border border-gray-200 text-gray-500"><span class="material-symbols-outlined text-[16px]">add</span></button></div>
-        <div id="tasks-loading" class="py-10 text-center text-sm text-gray-500">Loading tasks...</div>
-        <div id="tasks-list" class="hidden flex-1 flex-col gap-3"></div>
-        <div id="tasks-empty" class="hidden py-10 text-center"><p class="text-sm text-gray-500">No tasks yet</p></div>
+    <section class="card col-span-6-xl">
+        <div class="card-header">
+            <h3 class="card-title">My Tasks</h3>
+            <div class="card-actions"><button class="icon-btn small" title="Add"><span class="material-symbols-outlined"
+                        style="font-size:16px">add</span></button></div>
+        </div>
+        <div id="tasks-loading" class="loading-placeholder">Loading tasks...</div>
+        <div id="tasks-list" class="hidden list-scroll"></div>
+        <div id="tasks-empty" class="hidden loading-placeholder">No tasks yet</div>
     </section>
-    <section class="xl:col-span-6 rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">
-        <div class="mb-4 flex items-center justify-between"><h3 class="text-base font-semibold text-gray-900">Meeting Overview</h3><span class="rounded-full bg-gray-900 px-3 py-1 text-xs font-medium text-white">Live</span></div>
-        <div id="meetings-loading" class="py-10 text-center text-sm text-gray-500">Loading meetings...</div>
-        <div id="meetings-list" class="hidden max-h-[280px] flex-col gap-3 overflow-y-auto"></div>
-        <div id="meetings-empty" class="hidden py-10 text-center"><p class="text-sm text-gray-500">No upcoming meetings</p></div>
+    <section class="card col-span-6-xl">
+        <div class="card-header">
+            <h3 class="card-title">Meeting Overview</h3>
+            <div class="badge-live">Live</div>
+        </div>
+        <div id="meetings-loading" class="loading-placeholder">Loading meetings...</div>
+        <div id="meetings-list" class="hidden list-scroll"></div>
+        <div id="meetings-empty" class="hidden loading-placeholder">No upcoming meetings</div>
     </section>
 
     <!-- Row 2: [E][A] -->
-    <section class="xl:col-span-8 rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">
-        <h3 class="mb-4 text-base font-semibold text-gray-900">Emails Overview</h3>
-        <div id="analytics-loading" class="py-10 text-center text-sm text-gray-500">Loading analytics...</div>
-        <div id="analytics-empty" class="hidden py-10 text-center text-sm text-gray-500">No analytics data yet</div>
-        <div id="analytics-data" class="hidden grid grid-cols-1 gap-6 md:grid-cols-2 items-center">
-            <div class="flex items-center justify-center">
-                <svg id="analytics-pie" viewBox="0 0 120 120" class="h-56 w-56 -rotate-90"></svg>
+    <section class="card col-span-8-xl">
+        <h3 class="card-title" style="margin-bottom:16px">Emails Overview</h3>
+        <div id="analytics-loading" class="loading-placeholder">Loading analytics...</div>
+        <div id="analytics-empty" class="hidden loading-placeholder">No analytics data yet</div>
+        <div id="analytics-data" class="hidden analytics-grid">
+            <div style="display:flex;align-items:center;justify-content:center">
+                <svg id="analytics-pie" viewBox="0 0 120 120"
+                    style="height:224px;width:224px;transform:rotate(-90deg)"></svg>
             </div>
-            <div id="analytics-legend" class="flex flex-col gap-2"></div>
+            <div id="analytics-legend" class="flex flex-direction-column"
+                style="display:flex;flex-direction:column;gap:8px"></div>
         </div>
     </section>
-    <section class="xl:col-span-4 rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">
-        <h3 class="mb-4 text-base font-semibold text-gray-900">A - Email Summary</h3>
-        <div class="space-y-4">
-            <div>
-                <p class="text-xs font-medium text-gray-500">Emails Processed</p>
-                <p id="stat-total" class="mt-1 text-3xl font-semibold text-gray-900">—</p>
+    <section class="card col-span-4-xl">
+        <h3 class="card-title" style="margin-bottom:16px">A - Email Summary</h3>
+        <div class="stack">
+            <div class="stat-block">
+                <p class="stat-label">Emails Processed</p>
+                <p id="stat-total" class="stat-value">—</p>
             </div>
-            <div>
-                <p class="text-xs font-medium text-gray-500">Spam Blocked</p>
-                <p id="stat-spam" class="mt-1 text-2xl font-semibold text-gray-900">—</p>
+            <div class="stat-block">
+                <p class="stat-label">Spam Blocked</p>
+                <p id="stat-spam" class="stat-value">—</p>
             </div>
-            <div>
-                <p class="text-xs font-medium text-gray-500">Needs Reply</p>
-                <p id="stat-reply" class="mt-1 text-2xl font-semibold text-gray-900">—</p>
+            <div class="stat-block">
+                <p class="stat-label">Needs Reply</p>
+                <p id="stat-reply" class="stat-value">—</p>
             </div>
         </div>
     </section>
@@ -82,9 +97,9 @@
         return String(str || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     }
     function priorityClass(priority) {
-        if (priority === "high") return "bg-red-100 text-red-700 border-red-200";
-        if (priority === "medium") return "bg-orange-100 text-orange-700 border-orange-200";
-        return "bg-gray-100 text-gray-700 border-gray-200";
+        if (priority === "high") return "priority-high";
+        if (priority === "medium") return "priority-medium";
+        return "priority-low";
     }
     async function markTaskDone(todoId) { try { await fetch(`/api/todos/${todoId}/done`, { method: "PATCH" }); await loadTodos(); } catch (err) { console.error("Mark todo done failed:", err); } }
     async function loadTodos() {
@@ -96,7 +111,7 @@
             const res = await fetch("/api/todos");
             const todos = await res.json();
             if (!Array.isArray(todos) || todos.length === 0) { loadingEl.classList.add("hidden"); emptyEl.classList.remove("hidden"); return; }
-            listEl.innerHTML = todos.map((todo) => `<div class="border border-gray-100 rounded-2xl p-3 bg-white"><div class="flex items-start gap-3"><button onclick="markTaskDone(${todo.id})" class="h-5 w-5 mt-0.5 rounded border border-gray-300 hover:border-green-500 text-transparent hover:text-green-500 transition-colors" title="Mark done"><span class="material-symbols-outlined text-[14px]">check</span></button><div class="flex-1 min-w-0"><p class="text-[14px] font-semibold text-gray-900">${escHtml(todo.title)}</p><p class="text-[12px] text-gray-500 mt-0.5">${todo.due_date ? `Due: ${escHtml(todo.due_date)}` : "No due date"}</p><p class="text-[11px] text-gray-400 mt-1 truncate">Source: ${escHtml(todo.source_email_subject || "Unknown email")}</p></div><span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${priorityClass(todo.priority)}">${escHtml((todo.priority || "low").toUpperCase())}</span></div></div>`).join("");
+            listEl.innerHTML = todos.map((todo) => `<div class="card-item"><div class="task-row"><button onclick="markTaskDone(${todo.id})" class="checkbox-btn" title="Mark done"><span class="material-symbols-outlined" style="font-size:14px">check</span></button><div style="flex:1;min-width:0"><p style="font-size:14px;font-weight:600;color:#0f172a;margin:0">${escHtml(todo.title)}</p><p style="font-size:12px;color:#6b7280;margin-top:4px">${todo.due_date ? `Due: ${escHtml(todo.due_date)}` : "No due date"}</p><p class="truncate" style="font-size:11px;color:#9ca3af;margin-top:6px">Source: ${escHtml(todo.source_email_subject || "Unknown email")}</p></div><span class="${priorityClass(todo.priority)}" style="font-weight:700;font-size:10px;padding:4px 8px;border-radius:9999px">${escHtml((todo.priority || "low").toUpperCase())}</span></div></div>`).join("");
             loadingEl.classList.add("hidden"); listEl.classList.remove("hidden");
         } catch (err) { console.error("Todo load failed:", err); loadingEl.classList.add("hidden"); emptyEl.classList.remove("hidden"); }
     }
@@ -109,7 +124,7 @@
             const res = await fetch("/api/meetings");
             const meetings = await res.json();
             if (!Array.isArray(meetings) || meetings.length === 0) { loadingEl.classList.add("hidden"); emptyEl.classList.remove("hidden"); return; }
-            listEl.innerHTML = meetings.slice(0, 5).map((meeting) => `<div class="border border-gray-100 rounded-2xl p-3 bg-white"><p class="text-[14px] font-semibold text-gray-900">${escHtml(meeting.title)}</p><p class="text-[12px] text-gray-500 mt-1">${escHtml(meeting.date || "Date TBD")}${meeting.time ? ` • ${escHtml(meeting.time)}` : ""}</p><p class="text-[12px] text-gray-500 mt-1 truncate">${meeting.location_or_link ? escHtml(meeting.location_or_link) : "Location/Link not specified"}</p><p class="text-[11px] text-gray-400 mt-1 truncate">Attendees: ${Array.isArray(meeting.attendees) && meeting.attendees.length ? escHtml(meeting.attendees.join(", ")) : "Not specified"}</p><p class="text-[11px] text-gray-400 mt-1 truncate">Source: ${escHtml(meeting.source_email_subject || "Unknown email")}</p></div>`).join("");
+            listEl.innerHTML = meetings.slice(0, 5).map((meeting) => `<div class="card-item"><p style="font-size:14px;font-weight:600;color:#0f172a;margin:0">${escHtml(meeting.title)}</p><p style="font-size:12px;color:#6b7280;margin-top:6px">${escHtml(meeting.date || "Date TBD")}${meeting.time ? ` • ${escHtml(meeting.time)}` : ""}</p><p class="truncate" style="font-size:12px;color:#6b7280;margin-top:6px">${meeting.location_or_link ? escHtml(meeting.location_or_link) : "Location/Link not specified"}</p><p class="truncate" style="font-size:11px;color:#9ca3af;margin-top:6px">Attendees: ${Array.isArray(meeting.attendees) && meeting.attendees.length ? escHtml(meeting.attendees.join(", ")) : "Not specified"}</p><p class="truncate" style="font-size:11px;color:#9ca3af;margin-top:6px">Source: ${escHtml(meeting.source_email_subject || "Unknown email")}</p></div>`).join("");
             loadingEl.classList.add("hidden"); listEl.classList.remove("hidden");
         } catch (err) { console.error("Meeting load failed:", err); loadingEl.classList.add("hidden"); emptyEl.classList.remove("hidden"); }
     }
@@ -147,7 +162,7 @@
             legendEl.innerHTML = sortedCategories.map(([cat, count]) => {
                 const cfg = CAT_COLORS[cat] || CAT_COLORS["updates"];
                 const pct = Math.round((count / total) * 100);
-                return `<div class="flex items-center justify-between gap-3 rounded-xl border border-gray-100 px-3 py-2"><div class="flex items-center gap-2 min-w-0"><span class="h-2.5 w-2.5 rounded-full" style="background:${cfg.hex}"></span><span class="truncate text-xs font-medium text-gray-700">${cfg.label}</span></div><span class="text-xs font-semibold text-gray-900">${count} (${pct}%)</span></div>`;
+                return `<div class="legend-item"><div class="legend-left"><span style="height:10px;width:10px;border-radius:9999px;display:inline-block;background:${cfg.hex}"></span><span class="legend-label">${cfg.label}</span></div><span class="legend-count">${count} (${pct}%)</span></div>`;
             }).join("");
             document.getElementById("analytics-loading").classList.add("hidden");
             document.getElementById("analytics-data").classList.remove("hidden");

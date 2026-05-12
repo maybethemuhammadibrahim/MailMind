@@ -1,228 +1,88 @@
-{% extends "base.html" %} {% block title %}Settings - AI Assistant{% endblock %}
-{% block header_title %}Settings{% endblock %} {% block content %}
-<div class="max-w-6xl mx-auto w-full">
+{% extends "base.html" %}
+{% block title %}Settings - AI Assistant{% endblock %}
+{% block header_title %}Settings{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="/static/styles/settings.css">
+<!-- <div class="container"> -->
     <!-- Page Header -->
-    <div class="mb-8">
-        <h2 class="font-h1 text-[32px] font-bold text-on-surface mb-2">
-            Settings
-        </h2>
-        <p class="font-body-lg text-body-lg text-on-surface-variant">
-            Manage your AI preferences, security, and account details.
-        </p>
-    </div>
+    <!-- <div class="page-header">
+        <h2>Settings</h2>
+        <p>Manage your AI preferences, security, and account details.</p>
+    </div> -->
     <!-- Tabs Navigation (Horizontal) -->
-    <div
-        class="flex items-center gap-6 border-b border-surface-container-high mb-8 overflow-x-auto pb-2"
-        style="-ms-overflow-style: none; scrollbar-width: none"
-    >
-        <button
-            class="font-label-md text-label-md font-bold text-primary border-b-2 border-primary pb-2 whitespace-nowrap"
-        >
-            Account Profile
-        </button>
-        <button
-            class="font-label-md text-label-md font-bold text-on-surface-variant hover:text-primary transition-colors pb-2 whitespace-nowrap"
-        >
-            AI Preferences
-        </button>
-        <button
-            class="font-label-md text-label-md font-bold text-on-surface-variant hover:text-primary transition-colors pb-2 whitespace-nowrap"
-        >
-            Notifications
-        </button>
-        <button
-            class="font-label-md text-label-md font-bold text-on-surface-variant hover:text-primary transition-colors pb-2 whitespace-nowrap"
-        >
-            Security
-        </button>
-    </div>
+    <!-- <div class="tabs" style="-ms-overflow-style: none; scrollbar-width: none">
+        <div class="tab active">Account Profile</div>
+        <div class="tab">AI Preferences</div>
+        <div class="tab">Notifications</div>
+        <div class="tab">Security</div>
+    </div> -->
     <!-- Bento Grid Content -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+    <div class="grid">
         <!-- Left Column: Profile Card -->
-        <div class="lg:col-span-4 flex flex-col gap-gutter">
-            <div
-                class="bg-surface-container-lowest rounded-xl shadow-sm border border-surface-bright p-card-padding relative overflow-hidden"
-            >
-                <div
-                    class="absolute top-0 left-0 w-full h-24 bg-gradient-to-r from-primary/10 to-secondary/10"
-                ></div>
-                <div class="relative z-10 flex flex-col items-center mt-6">
-                    <!-- Generic avatar — will be replaced with real user data in Phase 7 -->
-                    <div class="relative">
-                        <div
-                            class="w-24 h-24 rounded-full border-4 border-surface-container-lowest shadow-sm bg-surface-container-high flex items-center justify-center"
-                        >
-                            <span
-                                class="material-symbols-outlined text-[48px] text-on-surface-variant/40"
-                                >person</span
-                            >
-                        </div>
-                    </div>
-                    <h3
-                        id="profile-name"
-                        class="font-h2 text-[20px] font-semibold mt-4 text-on-surface-variant"
-                    >
-                        MailMind User
-                    </h3>
-                    <p id="profile-connection" class="font-body-md text-[13px] text-on-surface-variant">
-                        Connected via Gmail
-                    </p>
-                    <div class="w-full mt-6 space-y-4">
-                        <div
-                            class="flex justify-between items-center py-2 border-b border-surface-container-low"
-                        >
-                            <span
-                                class="font-body-md text-[13px] text-on-surface-variant"
-                                >Email</span
-                            >
-                            <span
-                                id="profile-email"
-                                class="font-body-md text-[13px] font-medium text-on-surface"
-                                >—</span
-                            >
-                        </div>
-                        <div
-                            class="flex justify-between items-center py-2 border-b border-surface-container-low"
-                        >
-                            <span
-                                class="font-body-md text-[13px] text-on-surface-variant"
-                                >Role</span
-                            >
-                            <span
-                                class="font-body-md text-[13px] font-medium text-on-surface"
-                                >User</span
-                            >
-                        </div>
-                        <div class="flex justify-between items-center py-2">
-                            <span
-                                class="font-body-md text-[13px] text-on-surface-variant"
-                                >Timezone</span
-                            >
-                            <span
-                                id="profile-timezone"
-                                class="font-body-md text-[13px] font-medium text-on-surface"
-                                >—</span
-                            >
-                        </div>
-                    </div>
+        <div class="left-col">
+            <div class="card profile-card">
+                <div class="avatar">
+                    <span class="material-symbols-outlined">person</span>
+                </div>
+                <h3 id="profile-name" class="profile-name">MailMind User</h3>
+                <p id="profile-connection" class="profile-meta">Connected via Gmail</p>
+                <div class="profile-list">
+                    <div class="row"><span>Email</span><span id="profile-email">—</span></div>
+                    <div class="row"><span>Role</span><span>User</span></div>
+                    <div class="row"><span>Timezone</span><span id="profile-timezone">—</span></div>
                 </div>
             </div>
         </div>
-        <!-- Right Column: AI & System Settings Bento -->
-        <div class="lg:col-span-8 flex flex-col gap-gutter">
-            <!-- AI Preferences Card -->
-            <div
-                class="bg-surface-container-lowest rounded-xl shadow-sm border border-surface-bright p-card-padding"
-            >
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="font-h2 text-[20px] font-semibold">
-                        AI Preferences
-                    </h3>
-                    <span
-                        class="bg-primary/10 text-primary font-label-md text-[12px] font-bold px-3 py-1 rounded-full"
-                        >Active</span
-                    >
+        <!-- Right Column: AI & System Settings -->
+        <div class="right-col">
+            <div class="card ai-card">
+                <div class="heading">
+                    <h3>AI Preferences</h3>
+                    <span class="badge active">Active</span>
                 </div>
-                <div class="space-y-8">
-                    <!-- Tone of Voice -->
+                <div>
                     <div>
-                        <div class="flex justify-between items-end mb-2">
-                            <label class="font-body-lg text-[15px] font-medium"
-                                >Tone of Voice</label
-                            >
-                            <span id="tone-label" class="font-body-md text-[13px] text-primary"
-                                >Professional</span
-                            >
+                        <div class="row-space" style="align-items:end;margin-bottom:6px">
+                            <label>Tone of Voice</label>
+                            <span id="tone-label" class="tone-label">Professional</span>
                         </div>
-                        <p
-                            class="font-body-md text-[13px] text-on-surface-variant mb-4"
-                        >
-                            Adjust the default conversational style of generated
-                            emails and drafts.
-                        </p>
-                        <div
-                            id="tone-track"
-                            onclick="onToneClick(event)"
-                            class="relative w-full h-2 bg-surface-container-high rounded-full cursor-pointer"
-                        >
-                            <div
-                                id="tone-fill"
-                                class="absolute top-0 left-0 h-full bg-primary rounded-full pointer-events-none" style="width:100%"
-                            ></div>
-                            <div
-                                id="tone-knob"
-                                class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-5 h-5 bg-surface-container-lowest border-2 border-primary rounded-full shadow-sm pointer-events-none" style="left:100%"
-                            ></div>
+                        <p style="color:var(--muted);margin-bottom:12px">Adjust the default conversational style of generated emails and drafts.</p>
+                        <div id="tone-track" onclick="onToneClick(event)" class="tone-slider">
+                            <div id="tone-fill" class="tone-fill" style="width:100%"></div>
+                            <div id="tone-knob" class="tone-knob" style="left:100%"></div>
                         </div>
-                        <div
-                            class="flex justify-between mt-2 font-label-md text-[12px] font-bold text-outline"
-                        >
-                            <span>Casual</span>
-                            <span>Balanced</span>
-                            <span>Formal</span>
-                        </div>
+                        <div class="tone-scale"><span>Casual</span><span>Balanced</span><span>Formal</span></div>
                     </div>
-                    <!-- Auto-drafting -->
-                    <div
-                        class="flex items-center justify-between p-4 bg-surface-container-low rounded-lg border border-surface-container-high"
-                    >
-                        <div class="flex items-center gap-4">
-                            <div
-                                class="w-10 h-10 bg-secondary/10 text-secondary rounded-lg flex items-center justify-center"
-                            >
-                                <span class="material-symbols-outlined"
-                                    >edit_document</span
-                                >
+                    <div style="margin-top:14px" class="card">
+                        <div class="row-space">
+                            <div style="display:flex;gap:12px;align-items:center">
+                                <div style="width:40px;height:40px;border-radius:8px;background:#fff3f2;display:flex;align-items:center;justify-content:center">
+                                    <span class="material-symbols-outlined">edit_document</span>
+                                </div>
+                                <div>
+                                    <h4 style="margin:0">Auto-drafting sensitivity</h4>
+                                    <p style="color:var(--muted);margin:2px 0 0">Automatically draft replies for incoming messages.</p>
+                                </div>
                             </div>
                             <div>
-                                <h4
-                                    class="font-body-lg text-[15px] font-medium"
-                                >
-                                    Auto-drafting sensitivity
-                                </h4>
-                                <p
-                                    class="font-body-md text-[13px] text-on-surface-variant"
-                                >
-                                    Automatically draft replies for incoming
-                                    messages.
-                                </p>
+                                <div id="auto-draft-toggle" class="toggle" onclick="toggleAutoDraft()">
+                                    <div id="auto-draft-dot" class="dot"></div>
+                                </div>
                             </div>
                         </div>
-                        <!-- Toggle Switch -->
-                        <button
-                            id="auto-draft-toggle"
-                            onclick="toggleAutoDraft()"
-                            class="w-12 h-6 bg-primary rounded-full relative transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2 focus:ring-offset-surface"
-                        >
-                            <span
-                                id="auto-draft-dot"
-                                class="absolute right-1 top-1 w-4 h-4 bg-surface-container-lowest rounded-full shadow-sm transition-transform"
-                            ></span>
-                        </button>
                     </div>
-                    <!-- Vocabulary Focus -->
-                    <div>
-                        <label
-                            class="font-body-lg text-[15px] font-medium block mb-3"
-                            >Vocabulary Focus</label
-                        >
-                        <div id="vocab-chips" class="flex flex-wrap gap-2">
-                            <!-- Chips rendered dynamically by JS from /api/settings -->
-                        </div>
+                    <div style="margin-top:14px">
+                        <label style="display:block;margin-bottom:8px">Vocabulary Focus</label>
+                        <div id="vocab-chips" class="vocab-chips"></div>
                     </div>
                 </div>
             </div>
             <!-- Gmail Connection Card -->
-            <div
-                id="gmail-card"
-                class="bg-surface-container-lowest rounded-xl shadow-sm border border-surface-bright p-card-padding"
-            >
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-4">
+            <div id="gmail-card" class="card gmail-card">
+                <div class="gmail-row">
+                    <div style="display:flex;align-items:center;gap:12px">
                         <!-- Gmail icon -->
-                        <div
-                            class="w-10 h-10 rounded-lg flex items-center justify-center bg-red-50"
-                        >
+                        <div style="width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#fee2e2">
                             <svg
                                 class="w-6 h-6"
                                 viewBox="0 0 48 48"
@@ -239,114 +99,45 @@
                             </svg>
                         </div>
                         <div>
-                            <h4 class="font-body-lg text-[15px] font-medium">
-                                Gmail Account
-                            </h4>
-                            <p
-                                id="gmail-status-text"
-                                class="font-body-md text-[13px] text-on-surface-variant mt-0.5"
-                            >
-                                Checking connection...
-                            </p>
+                            <h4 style="margin:0">Gmail Account</h4>
+                            <p id="gmail-status-text" style="color:var(--muted);margin-top:6px">Checking connection...</p>
                         </div>
                     </div>
-                    <div class="flex items-center gap-3">
-                        <!-- Status badge -->
-                        <span
-                            id="gmail-badge"
-                            class="hidden font-label-md text-[12px] font-bold px-3 py-1 rounded-full"
-                        ></span>
-                        <!-- Connect button (shown when not connected) -->
-                        <a
-                            id="gmail-connect-btn"
-                            href="/api/auth/login"
-                            class="hidden px-4 py-2 bg-primary text-on-primary font-label-md text-[12px] font-bold rounded-lg hover:opacity-90 transition-opacity shadow-sm"
-                        >
-                            Connect Gmail
-                        </a>
-                        <!-- Disconnect button (shown when connected) -->
-                        <button
-                            id="gmail-disconnect-btn"
-                            onclick="disconnectGmail()"
-                            class="hidden px-4 py-2 bg-surface-container-lowest border border-outline-variant text-on-surface-variant font-label-md text-[12px] font-bold rounded-lg hover:bg-surface-container-low transition-colors shadow-sm"
-                        >
-                            Disconnect
-                        </button>
+                    <div style="display:flex;align-items:center;gap:12px">
+                        <span id="gmail-badge" class="status-badge hidden"></span>
+                        <a id="gmail-connect-btn" href="/api/auth/login" class="btn primary hidden">Connect Gmail</a>
+                        <button id="gmail-disconnect-btn" onclick="disconnectGmail()" class="btn hidden">Disconnect</button>
                     </div>
                 </div>
                 <!-- Success banner shown after OAuth redirect -->
-                <div
-                    id="auth-success-banner"
-                    class="hidden mt-4 flex items-center gap-2 bg-green-50 border border-green-200 text-green-800 text-[13px] font-medium px-4 py-3 rounded-lg"
-                >
-                    <span
-                        class="material-symbols-outlined text-[18px] text-green-600"
-                        >check_circle</span
-                    >
-                    Gmail connected successfully! MailMind can now read your
-                    inbox.
+                <div id="auth-success-banner" class="success-banner hidden">
+                    <span class="material-symbols-outlined">check_circle</span>
+                    Gmail connected successfully! MailMind can now read your inbox.
                 </div>
             </div>
 
             <!-- Security Mini Card (Bento continuation) -->
-            <div
-                class="bg-surface-container-lowest rounded-xl shadow-sm border border-surface-bright p-card-padding flex items-center justify-between"
-            >
+            <!-- <div class="card" style="display:flex;justify-content:space-between;align-items:center">
                 <div>
-                    <h3
-                        class="font-body-lg text-[15px] font-medium flex items-center gap-2"
-                    >
-                        <span class="material-symbols-outlined text-secondary"
-                            >security</span
-                        >
-                        Two-Factor Authentication
-                    </h3>
-                    <p
-                        class="font-body-md text-[13px] text-on-surface-variant mt-1"
-                    >
-                        Add an extra layer of security to your account.
-                    </p>
+                    <h3 style="display:flex;align-items:center;gap:8px;margin:0"><span class="material-symbols-outlined">security</span> Two-Factor Authentication</h3>
+                    <p style="color:var(--muted);margin-top:6px">Add an extra layer of security to your account.</p>
                 </div>
-                <button
-                    onclick="enable2FA()"
-                    class="px-4 py-2 bg-surface-container-lowest border border-outline-variant text-on-surface font-label-md text-[12px] font-bold rounded-lg hover:bg-surface-container-low transition-colors shadow-sm"
-                >
-                    Enable
-                </button>
-            </div>
+                <button onclick="enable2FA()" class="btn">Enable</button>
+            </div> -->
 
             <!-- Danger Zone -->
-            <div
-                class="bg-surface-container-lowest rounded-xl shadow-sm border border-red-200 p-card-padding"
-            >
-                <div class="flex items-center justify-between">
+            <div class="card danger">
+                <div style="display:flex;justify-content:space-between;align-items:center">
                     <div>
-                        <h3
-                            class="font-body-lg text-[15px] font-medium flex items-center gap-2 text-error"
-                        >
-                            <span class="material-symbols-outlined text-error"
-                                >warning</span
-                            >
-                            Danger Zone
-                        </h3>
-                        <p
-                            class="font-body-md text-[13px] text-on-surface-variant mt-1"
-                        >
-                            Permanently delete all processed emails, todos,
-                            meetings, and orders. Settings will be preserved.
-                        </p>
+                        <h3 style="margin:0;display:flex;align-items:center;gap:8px;color:var(--danger)"><span class="material-symbols-outlined">warning</span> Danger Zone</h3>
+                        <p style="color:var(--muted);margin-top:6px">Permanently delete all processed emails, todos, meetings, and orders. Settings will be preserved.</p>
                     </div>
-                    <button
-                        onclick="deleteAllData()"
-                        class="px-4 py-2 bg-error text-on-error font-label-md text-[12px] font-bold rounded-lg hover:bg-error/90 transition-colors shadow-sm whitespace-nowrap"
-                    >
-                        Delete All Data
-                    </button>
+                    <button onclick="deleteAllData()" class="btn" style="background:var(--danger);color:#fff">Delete All Data</button>
                 </div>
             </div>
         </div>
     </div>
-</div>
+<!-- </div> -->
 {% endblock %} {% block scripts %}
 <script>
     // ---------------------------------------------------------------
@@ -360,15 +151,9 @@
         const existing = document.getElementById("settings-toast");
         if (existing) existing.remove();
 
-        const colors = {
-            success: "bg-green-100 text-green-800 border-green-300",
-            error: "bg-red-100 text-red-800 border-red-300",
-            info: "bg-primary/10 text-primary border-primary/30",
-        };
-
         const toast = document.createElement("div");
         toast.id = "settings-toast";
-        toast.className = `fixed bottom-6 right-6 px-5 py-3 rounded-lg border shadow-lg text-sm font-medium z-50 ${colors[type] || colors.info}`;
+        toast.className = `toast ${type}`;
         toast.textContent = msg;
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 3000);
@@ -420,14 +205,8 @@
         const btn = document.getElementById("auto-draft-toggle");
         const dot = document.getElementById("auto-draft-dot");
         if (!btn || !dot) return;
-
-        if (autoDraftEnabled) {
-            btn.className = "w-12 h-6 bg-primary rounded-full relative transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2 focus:ring-offset-surface";
-            dot.className = "absolute right-1 top-1 w-4 h-4 bg-surface-container-lowest rounded-full shadow-sm transition-transform";
-        } else {
-            btn.className = "w-12 h-6 bg-surface-container-high rounded-full relative transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2 focus:ring-offset-surface";
-            dot.className = "absolute left-1 top-1 w-4 h-4 bg-surface-container-lowest rounded-full shadow-sm transition-transform";
-        }
+        // Toggle a simple 'on' class; CSS handles dot position
+        btn.classList.toggle('on', autoDraftEnabled);
     }
 
     // --- Vocabulary chips ---
@@ -439,15 +218,9 @@
 
         let html = "";
         vocabTraits.forEach((trait) => {
-            html += `<span class="px-3 py-1.5 bg-primary text-on-primary font-body-md text-[13px] rounded-full cursor-pointer flex items-center gap-1" onclick="removeVocab('${trait}')">
-                ${trait}
-                <span class="material-symbols-outlined text-[14px]">close</span>
-            </span>`;
+            html += `<span class="chip" onclick="removeVocab('${trait}')">${trait} <span class="material-symbols-outlined" style="font-size:14px;margin-left:8px">close</span></span>`;
         });
-        html += `<span class="px-3 py-1.5 bg-surface-container-high text-on-surface-variant font-body-md text-[13px] rounded-full hover:bg-surface-dim transition-colors cursor-pointer border border-outline-variant flex items-center gap-1" onclick="addVocabPrompt()">
-            <span class="material-symbols-outlined text-[16px]">add</span>
-            Add Trait
-        </span>`;
+        html += `<span class="chip secondary" onclick="addVocabPrompt()"><span class="material-symbols-outlined" style="font-size:16px">add</span> Add Trait</span>`;
         container.innerHTML = html;
     }
 
@@ -553,7 +326,7 @@
             if (data.connected) {
                 statusText.textContent = "Connected — MailMind can read your inbox";
                 badge.textContent = "Connected";
-                badge.className = "font-label-md text-[12px] font-bold px-3 py-1 rounded-full bg-green-100 text-green-700";
+                badge.className = "status-badge connected";
                 badge.classList.remove("hidden");
                 disconnectBtn.classList.remove("hidden");
                 connectBtn.classList.add("hidden");
@@ -568,7 +341,7 @@
             } else {
                 statusText.textContent = "Not connected — click Connect Gmail to authorise";
                 badge.textContent = "Not connected";
-                badge.className = "font-label-md text-[12px] font-bold px-3 py-1 rounded-full bg-surface-container-high text-on-surface-variant";
+                badge.className = "status-badge not-connected";
                 badge.classList.remove("hidden");
                 connectBtn.classList.remove("hidden");
                 disconnectBtn.classList.add("hidden");

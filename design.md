@@ -8,26 +8,8 @@ This document outlines the design system and layout specifications for the Panze
 ## 2. Color Palette
 
 ### Base Colors
-| Role | Hex/Tailwind | Usage |
-| :--- | :--- | :--- |
-| Background (App) | `#F3F6FD` | Main body background |
-| Background (Content) | `#F8FAFC` (with opacity) | Main content area background |
-| Surface | `#FFFFFF` | Cards, sidebar, header |
-| Primary Text | `text-gray-900` | Headings, active tabs, primary data points |
-| Secondary Text | `text-gray-500` / `text-gray-600` | Subtitles, labels, inactive tabs |
-| Borders | `border-gray-100` / `border-gray-200` | Card borders, dividers, inputs |
+see basestyles.css for all colors
 
-### Accent & Semantic Colors
-| Role | Color | Usage |
-| :--- | :--- | :--- |
-| Accent 1 | Orange (`#F97316` / `orange-500`) | 'In Progress' status, expense charts, task icons |
-| Accent 2 | Sky Blue (`#0EA5E9` / `sky-500`) | 'Completed' status, task icons |
-| Accent 3 | Blue (`#3B82F6` / `blue-500`) | Income charts, progress bars, task icons |
-| Accent 4 | Purple (`purple-600`) | 'Overdue' invoice status |
-| Accent 5 | Red (`red-500`) | 'Not Paid' invoice status, notification dots |
-| Accent 6 | Green (`green-500`) | 'Fully Paid' invoice status, success states |
-| Accent 7 | Yellow (`yellow-400`) | 'Draft' invoice status |
-| Task Backgrounds | Various light tints | `#FFF4EE`, `#F3F6FF`, `#FFF0F7`, `#F0FFF5` |
 
 ---
 

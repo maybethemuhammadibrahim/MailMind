@@ -1,0 +1,440 @@
+/* basestyle.css — extracted from Tailwind-style utilities in base.html
+   Location: backend/static/styles/basestyle.css
+*/
+:root,
+html.light {
+  /* Base */
+  --bg: #f5f7fb;
+  --surface: #ffffff;
+  --surface-2: #f8fafc;
+  --surface-3: #f1f5f9;
+  --surface-4: #e9eef5;
+
+  /* Panels */
+  --panel-bg: rgba(255, 255, 255, 0.92);
+  --panel-glass: rgba(255, 255, 255, 0.72);
+
+  /* Borders */
+  --border: #e8edf3;
+  --border-strong: #dbe4ee;
+  --border-muted: #eef2f6;
+
+  /* Typography */
+  --text: #0f172a;
+  --text-body: #334155;
+  --text-muted: #64748b;
+  --text-subtle: #94a3b8;
+  --muted: var(--text-muted);
+
+  /* Brand */
+  --primary: #0f172a;
+  --primary-contrast: #ffffff;
+
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-soft: rgba(37, 99, 235, 0.08);
+  --accent-rgb: 37, 99, 235;
+
+  /* Semantic */
+  --success: #10b981;
+  --success-rgb: 16, 185, 129;
+
+  --warning: #f59e0b;
+  --warning-rgb: 245, 158, 11;
+
+  --danger: #ef4444;
+  --danger-rgb: 239, 68, 68;
+
+  --info: #3b82f6;
+  --info-rgb: 59, 130, 246;
+
+  /* Soft Semantic Backgrounds */
+  --success-soft: #ecfdf5;
+  --success-soft-border: #bbf7d0;
+  --success-soft-text: #047857;
+
+  --warning-soft: #fffbeb;
+  --warning-soft-border: #fde68a;
+  --warning-soft-text: #b45309;
+
+  --danger-soft: #fef2f2;
+  --danger-soft-border: #fecaca;
+  --danger-soft-text: #b91c1c;
+
+  --info-soft: #eff6ff;
+  --info-soft-border: #bfdbfe;
+  --info-soft-text: #1d4ed8;
+
+  /* Extra Soft Colors */
+  --violet-soft: #f3e8ff;
+  --violet-soft-text: #7c3aed;
+
+  --mint-soft: #ecfeff;
+  --mint-soft-text: #0f766e;
+
+  --indigo-soft: #eef2ff;
+  --indigo-soft-text: #4338ca;
+
+  --cyan-soft: #ecfeff;
+  --cyan-soft-text: #0891b2;
+
+  --rose-soft: #fff1f2;
+  --rose-soft-text: #be123c;
+
+  /* Shadows */
+  --shadow-rgb: 15, 23, 42;
+
+  --shadow-sm: 0 1px 2px rgba(var(--shadow-rgb), 0.04);
+
+  --shadow-md:
+    0 4px 12px rgba(var(--shadow-rgb), 0.08),
+    0 1px 2px rgba(var(--shadow-rgb), 0.04);
+
+  --shadow-lg:
+    0 12px 30px rgba(var(--shadow-rgb), 0.12),
+    0 2px 6px rgba(var(--shadow-rgb), 0.06);
+
+  /* Focus */
+  --focus-ring: rgba(var(--accent-rgb), 0.18);
+}
+
+html.dark,
+[data-theme="dark"] {
+  /* Base */
+  --bg: #0b1220;
+  --surface: #111827;
+  --surface-2: #172033;
+  --surface-3: #1e293b;
+  --surface-4: #243244;
+
+  /* Panels */
+  --panel-bg: rgba(17, 24, 39, 0.88);
+  --panel-glass: rgba(17, 24, 39, 0.65);
+
+  /* Borders */
+  --border: #233045;
+  --border-strong: #334155;
+  --border-muted: #1e293b;
+
+  /* Typography */
+  --text: #f8fafc;
+  --text-body: #dbe4ee;
+  --text-muted: #94a3b8;
+  --text-subtle: #64748b;
+  --muted: var(--text-muted);
+
+  /* Brand */
+  --primary: #f8fafc;
+  --primary-contrast: #0f172a;
+
+  --accent: #60a5fa;
+  --accent-hover: #3b82f6;
+  --accent-soft: rgba(96, 165, 250, 0.12);
+  --accent-rgb: 96, 165, 250;
+
+  /* Semantic */
+  --success: #34d399;
+  --success-rgb: 52, 211, 153;
+
+  --warning: #fbbf24;
+  --warning-rgb: 251, 191, 36;
+
+  --danger: #f87171;
+  --danger-rgb: 248, 113, 113;
+
+  --info: #60a5fa;
+  --info-rgb: 96, 165, 250;
+
+  /* Soft Semantic Backgrounds */
+  --success-soft: rgba(16, 185, 129, 0.15);
+  --success-soft-border: rgba(52, 211, 153, 0.25);
+  --success-soft-text: #6ee7b7;
+
+  --warning-soft: rgba(245, 158, 11, 0.15);
+  --warning-soft-border: rgba(251, 191, 36, 0.25);
+  --warning-soft-text: #fcd34d;
+
+  --danger-soft: rgba(239, 68, 68, 0.15);
+  --danger-soft-border: rgba(248, 113, 113, 0.25);
+  --danger-soft-text: #fca5a5;
+
+  --info-soft: rgba(59, 130, 246, 0.15);
+  --info-soft-border: rgba(96, 165, 250, 0.25);
+  --info-soft-text: #93c5fd;
+
+  /* Extra Soft Colors */
+  --violet-soft: rgba(139, 92, 246, 0.15);
+  --violet-soft-text: #c4b5fd;
+
+  --mint-soft: rgba(20, 184, 166, 0.15);
+  --mint-soft-text: #99f6e4;
+
+  --indigo-soft: rgba(99, 102, 241, 0.15);
+  --indigo-soft-text: #a5b4fc;
+
+  --cyan-soft: rgba(6, 182, 212, 0.15);
+  --cyan-soft-text: #67e8f9;
+
+  --rose-soft: rgba(244, 63, 94, 0.15);
+  --rose-soft-text: #fda4af;
+
+  /* Shadows */
+  --shadow-rgb: 0, 0, 0;
+
+  --shadow-sm: 0 1px 2px rgba(var(--shadow-rgb), 0.25);
+
+  --shadow-md: 0 8px 20px rgba(var(--shadow-rgb), 0.35);
+
+  --shadow-lg: 0 16px 40px rgba(var(--shadow-rgb), 0.45);
+
+  /* Focus */
+  --focus-ring: rgba(var(--accent-rgb), 0.24);
+}
+
+html,
+body,
+#app {
+  height: 100%;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.app-shell {
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 0;
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+  box-shadow: var(--shadow-sm);
+}
+
+.app-row {
+  display: flex;
+  height: 100%;
+}
+
+/* Sidebar */
+.sidebar {
+  height: 100%;
+  width: 70px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  background: var(--panel-bg);
+  padding: 24px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.logo {
+  margin-top: 8px;
+  margin-bottom: 16px;
+}
+
+.logo-icon {
+  font-variation-settings: "FILL" 1;
+  font-size: 28px;
+  color: var(--primary);
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  height: 100%;
+  width: 100%;
+}
+
+.nav-link {
+  height: 40px;
+  width: 40px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  text-decoration: none;
+  transition:
+    background 0.12s,
+    color 0.12s;
+  border: 0;
+  background: transparent;
+  border: 1px solid transparent;
+}
+
+.nav-link:hover {
+  background: var(--surface);
+  color: var(--primary);
+}
+
+.nav-link.placeholder {
+  color: var(--text-subtle);
+  border: 1px solid var(--border);
+  background: var(--panel-bg);
+}
+
+.nav-footer {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Main container */
+.main-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--bg);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--border);
+  padding: 15px 19px !important;
+  background: transparent;
+  box-sizing: border-box;
+  background-color: var(--panel-bg);
+}
+
+.header-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.search-container {
+  position: relative;
+  display: none;
+}
+
+@media (min-width: 768px) {
+  .search-container {
+    display: block;
+  }
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-subtle);
+  font-size: 18px;
+}
+
+.search-input {
+  width: 256px;
+  border-radius: 9999px;
+  border: 1px solid var(--border-strong);
+  background: var(--panel-bg);
+  padding: 8px 12px 8px 36px;
+  font-size: 14px;
+  color: var(--text-body);
+  box-sizing: border-box;
+  outline: none;
+}
+
+.search-input:focus {
+  box-shadow: 0 0 0 3px var(--focus-ring);
+  border-color: var(--border-muted);
+}
+
+.icon-btn {
+  height: 32px;
+  width: 32px;
+  border-radius: 9999px;
+  border: 1px solid var(--border-strong);
+  background: var(--panel-bg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.icon-btn:hover {
+  color: var(--primary);
+}
+
+#dark-mode-toggle:hover {
+  color: var(--primary);
+}
+
+.avatar {
+  height: 40px;
+  width: 40px;
+  border-radius: 9999px;
+  border: 1px solid var(--border-strong);
+  background: var(--panel-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+}
+
+/* Main content */
+.main-content {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+/* Utilities used in template */
+.hidden {
+  display: none !important;
+}
+
+.flex {
+  display: flex;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.gap-3 {
+  gap: 12px;
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+/* Small responsive tweaks */
+@media (min-width: 1024px) {
+  .header {
+    padding: 20px 32px;
+  }
+
+  .main-content {
+    padding: 28px;
+  }
+}
