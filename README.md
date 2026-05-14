@@ -17,7 +17,7 @@ MailMind is a FastAPI and Jinja2 email intelligence platform. It connects to Gma
 
 5. **Settings page:** Options to set AI reply tone, connect Gmail via OAuth2, manage API keys, and handle system configurations.
    
-   ![Settings Page](screenshots/4.png)
+   ![Settings Page](screenshots/5.png)
 
 ## First-Time Local Setup
 
