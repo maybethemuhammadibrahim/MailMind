@@ -1,56 +1,64 @@
-# MailBunny
+# MailMind
 
-MailMind is a FastAPI + Jinja2 email assistant that connects to Gmail, uses Google Gemini for AI tasks, and stores project data in SQLite.
+MailMind is a FastAPI and Jinja2 email intelligence platform. It connects to Gmail via OAuth2 and uses Google Gemini alongside a local scikit-learn model to automatically classify, summarize, extract actionable items, and draft replies for incoming emails. All data is stored locally in SQLite.
+
+## Features
+
+* **OAuth2 Gmail Integration:** Secure authentication to read and manage emails.
+* **Unread Email Fetching:** Retrieves unread emails from the last 24 hours.
+* **Hybrid AI Classification:** Uses a local TF-IDF + Logistic Regression model for rapid triage (~1ms) and Google Gemini (gemini-2.5-flash-lite) for fine-grained categorization (urgent, action-required, meeting-request, order-update, newsletter, spam, fyi).
+* **Automated Summarization:** Generates a one-line headline, key facts, and action items for each email.
+* **Actionable Item Extraction:** Parses and stores to-dos, meeting details, and order tracking data into structured SQLite tables.
+* **Context-Aware Reply Drafting:** Uses gemini-2.5-flash to draft responses based on email context and prior summaries.
+* **Draft Synchronization:** Saves AI-generated drafts directly back to Gmail without sending.
+* **Quality Review:** Automatically reviews drafted replies for high-priority or urgent emails.
+* **Local Caching:** Stores processed emails and extraction results in SQLite to prevent duplicate API calls and ensure <100ms load times on subsequent views.
+* **Analytics Dashboard:** Provides live tracking of category breakdowns, spam counts, sender analytics, and hourly email volume.
+* **Rate Limit Management:** Enforces a 4.5-second global throttle and automated backoff retries to operate strictly within Gemini's 15 RPM free-tier limits.
 
 ## First-Time Local Setup
 
-### 1. Install prerequisites
+### 1. Install Prerequisites
 
-1. Install Python 3.11+
+1. Install Python 3.14+ (or 3.11+ as specified in setup notes)
 2. Install Node.js 18+
-3. (Optional) Install n8n globally if you will run automations
+3. (Optional) Install n8n globally for automations:
 
 ```bash
 npm install -g n8n
+
 ```
 
-### 2. Gmail API setup (Google Cloud)
+### 2. Gmail API Setup (Google Cloud)
 
-1. Go to https://console.cloud.google.com
-2. Create a new Google Cloud project (example: MailMind)
-3. Open APIs and Services -> Library
-4. Search for Gmail API and click Enable
-5. Open APIs and Services -> OAuth consent screen
-6. Choose External and create the consent screen
-7. Fill app details:
-   - App name: MailMind
-   - User support email: your email
-   - Developer contact email: your email
-8. Save and continue through defaults
-9. In Test users, add your Gmail address
-10. Open APIs and Services -> Credentials
-11. Click Create Credentials -> OAuth client ID
-12. Choose Web application
-13. Add this Authorized redirect URI exactly:
+1. Navigate to [Google Cloud Console]().
+2. Create a new project (e.g., `MailMind`).
+3. Go to **APIs and Services** > **Library**, search for **Gmail API**, and enable it.
+4. Go to **APIs and Services** > **OAuth consent screen**.
+5. Select **External** and create the screen.
+6. Fill in app details (`MailMind`) and developer contact emails.
+7. Save through defaults. In **Test users**, add your Gmail address.
+8. Go to **APIs and Services** > **Credentials**.
+9. Click **Create Credentials** > **OAuth client ID**.
+10. Choose **Web application**.
+11. Add the following Authorized redirect URI:
 
 ```text
 http://localhost:8000/api/auth/callback
+
 ```
 
-14. Create credentials and copy:
-   - Client ID
-   - Client Secret
+12. Create credentials. Save the **Client ID** and **Client Secret**.
 
-### 3. Gemini API setup (Google AI Studio)
+### 3. Gemini API Setup (Google AI Studio)
 
-1. Go to https://aistudio.google.com or https://ai.google.dev
-2. Sign in with your Google account
-3. Create an API key
-4. Copy the key value (this will be used as GEMINI_API_KEY)
+1. Navigate to [Google AI Studio]().
+2. Sign in and create an API key.
+3. Save the key for the environment file.
 
-### 4. Create environment file
+### 4. Create Environment File
 
-Create a file named `.env` in the project root with this content and fill your real values:
+Create a `.env` file in the project root. Populate it with your credentials:
 
 ```env
 GEMINI_API_KEY=your_gemini_api_key_here
@@ -59,92 +67,92 @@ GOOGLE_CLIENT_SECRET=your_google_client_secret_here
 REDIRECT_URI=http://localhost:8000/api/auth/callback
 SECRET_KEY=any_random_long_string_here
 DATABASE_PATH=./mailmind.db
+
 ```
 
-### 5. Install dependencies
+### 5. Install Dependencies
 
-From project root:
+Initialize the Python virtual environment and install backend/frontend packages:
 
 ```bash
+# From project root
 python -m venv venv
-```
 
-Windows PowerShell:
-
-```powershell
+# Windows PowerShell:
 venv\Scripts\Activate.ps1
-```
+# Mac/Linux:
+# source venv/bin/activate
 
-Then install backend and frontend dependencies:
-
-```bash
 pip install -r backend/requirements.txt
 npm install
+
 ```
 
-### 6. Run project for the first time
+### 6. Initial Run
 
-Use two terminals.
+Run the application using two separate terminals.
 
-Terminal 1 (backend server):
+**Terminal 1 (Backend Server):**
 
 ```bash
 cd backend
 uvicorn main:app --reload --port 8000
+
 ```
 
-Terminal 2 (Tailwind CSS watch/build):
+**Terminal 2 (Tailwind CSS Watcher):**
 
 ```bash
 npx @tailwindcss/cli -i ./backend/static/input.css -o ./backend/static/style.css --watch
+
 ```
 
-Open app and docs:
+* App UI: [http://localhost:8000]()
+* Swagger Docs: [http://localhost:8000/docs]()
 
-- App UI: http://localhost:8000
-- Swagger docs: http://localhost:8000/docs
+### 7. Connect Gmail
 
-### 7. Connect Gmail from the app
+1. Open [http://localhost:8000/settings]().
+2. Click **Connect Gmail**.
+3. Complete the Google OAuth consent flow.
+4. Verify `token.json` is generated in the project root.
 
-1. Open http://localhost:8000/settings
-2. Click Connect Gmail
-3. Complete Google consent flow
-4. After success, token.json is created in project root
+### 8. System Checks
 
-### 8. Quick connectivity checks
+Validate connectivity via these endpoints:
 
-1. Health check: http://localhost:8000/api/health
-2. Auth status: http://localhost:8000/api/auth/status
-3. Fetch recent unread emails (after auth): http://localhost:8000/api/emails/unread
+* Health check: `http://localhost:8000/api/health`
+* Auth status: `http://localhost:8000/api/auth/status`
+* Fetch unread emails: `http://localhost:8000/api/emails/unread`
 
-## How To Run After Installation Is Done
+---
 
-Whenever you reopen the project:
+## Usage
 
-1. Open terminal in project root
-2. Activate virtual environment
-3. Start backend
-4. Start Tailwind watcher only if you are editing styles/templates
+Follow these steps to run the application after the initial setup is complete.
 
-Commands:
+1. Open a terminal in the project root.
+2. Activate the virtual environment.
+3. Start the backend server.
 
 ```powershell
-# From project root
+# Windows PowerShell
 venv\Scripts\Activate.ps1
 cd backend
 uvicorn main:app --reload --port 8000
+
 ```
 
-In a second terminal (from project root), only when needed:
+*(Optional)* Start the Tailwind watcher in a second terminal only if editing templates or styles:
 
 ```bash
 npx @tailwindcss/cli -i ./backend/static/input.css -o ./backend/static/style.css --watch
+
 ```
 
-Optional automation runner:
+*(Optional)* Start the automation runner if configured:
 
 ```bash
 n8n start
-```
 
-That is enough to run MailMind locally after initial setup.
+```
