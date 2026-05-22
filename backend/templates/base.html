@@ -1,19 +1,18 @@
 <!doctype html>
 <html class="light" lang="en">
-
-<head>
+  <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>{% block title %}MailMind — AI Email Assistant{% endblock %}</title>
 
     <!-- Prevent FOUC: apply saved theme immediately -->
     <script>
-        (function () {
-            var saved = localStorage.getItem('theme');
-            var isDark = saved === 'dark';
-            document.documentElement.classList.toggle('dark', isDark);
-            document.documentElement.classList.toggle('light', !isDark);
-        })();
+      (function () {
+        var saved = localStorage.getItem("theme");
+        var isDark = saved === "dark";
+        document.documentElement.classList.toggle("dark", isDark);
+        document.documentElement.classList.toggle("light", !isDark);
+      })();
     </script>
 
     <!-- Design system -->
@@ -22,93 +21,136 @@
     {% block page_styles %}{% endblock %}
 
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-        rel="stylesheet" />
-</head>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+  </head>
 
-<body>
+  <body>
     <div class="app-shell">
-        <div class="app-row">
-            <aside class="sidebar">
-                <div class="logo">
-                    <span class="logo-icon material-symbols-outlined">cruelty_free</span>
-                </div>
-                <nav class="nav">
-                    <a href="/" class="nav-link" data-page="/" title="Home">
-                        <span class="material-symbols-outlined">home</span>
-                    </a>
-                    <a href="/email" class="nav-link" data-page="/email" title="Email">
-                        <span class="material-symbols-outlined">mail</span>
-                    </a>
-                    <a href="/crafter" class="nav-link" data-page="/crafter" title="Crafter">
-                        <span class="material-symbols-outlined">auto_awesome</span>
-                    </a>
-                    <a href="/orders" class="nav-link" data-page="/orders" title="Orders">
-                        <span class="material-symbols-outlined">shopping_bag</span>
-                    </a>
-                    <a href="#" class="nav-link placeholder" title="Coming soon">
-                        <span class="material-symbols-outlined">view_kanban</span>
-                    </a>
-                    <div class="nav-footer">
-                        <a href="#" class="nav-link" title="Help">
-                            <span class="material-symbols-outlined">help</span>
-                        </a>
-                        <a href="/settings" class="nav-link" data-page="/settings" title="Settings">
-                            <span class="material-symbols-outlined">settings</span>
-                        </a>
-                    </div>
-                </nav>
-            </aside>
-            <div class="main-container">
-                <header class="header">
-                    <div>
-                        <h1 class="header-title">{% block header_title %}Dashboard{% endblock %}</h1>
-                    </div>
-                    <div class="header-controls">
-                        <div class="search-container">
-                            <span class="search-icon material-symbols-outlined">search</span>
-                            <input class="search-input" placeholder="Search..." type="text" />
-                        </div>
-                        <button class="icon-btn" title="Notifications">
-                            <span class="material-symbols-outlined" style="font-size:18px">notifications</span>
-                        </button>
-                        <button id="dark-mode-toggle" onclick="toggleDarkMode()" class="icon-btn"
-                            title="Toggle dark mode">
-                            <span id="dark-mode-icon" class="material-symbols-outlined"
-                                style="font-size:18px">dark_mode</span>
-                        </button>
-                        <div class="avatar">
-                            <span class="material-symbols-outlined" style="font-size:18px">person</span>
-                        </div>
-                    </div>
-                </header>
-                <main class="{% block main_class %}main-content{% endblock %}">{% block content %}{% endblock %}</main>
+      <div class="app-row">
+        <aside class="sidebar">
+          <div class="logo">
+            <span class="logo-icon material-symbols-outlined"
+              >cruelty_free</span
+            >
+          </div>
+          <nav class="nav">
+            <a href="/" class="nav-link" data-page="/" title="Home">
+              <span class="material-symbols-outlined">home</span>
+            </a>
+            <a href="/email" class="nav-link" data-page="/email" title="Email">
+              <span class="material-symbols-outlined">mail</span>
+            </a>
+            <a
+              href="/crafter"
+              class="nav-link"
+              data-page="/crafter"
+              title="Crafter"
+            >
+              <span class="material-symbols-outlined">auto_awesome</span>
+            </a>
+            <a
+              href="/orders"
+              class="nav-link"
+              data-page="/orders"
+              title="Orders"
+            >
+              <span class="material-symbols-outlined">shopping_bag</span>
+            </a>
+            <a href="#" class="nav-link placeholder" title="Coming soon">
+              <span class="material-symbols-outlined">view_kanban</span>
+            </a>
+            <div class="nav-footer">
+              <a href="#" class="nav-link" title="Help">
+                <span class="material-symbols-outlined">help</span>
+              </a>
+              <a
+                href="/settings"
+                class="nav-link"
+                data-page="/settings"
+                title="Settings"
+              >
+                <span class="material-symbols-outlined">settings</span>
+              </a>
             </div>
+          </nav>
+        </aside>
+        <div class="main-container">
+          <header class="header">
+            <div>
+              <h1 class="header-title">
+                {% block header_title %}Dashboard{% endblock %}
+              </h1>
+            </div>
+            <div class="header-controls">
+              <div class="search-container">
+                <span class="search-icon material-symbols-outlined"
+                  >search</span
+                >
+                <input
+                  class="search-input"
+                  placeholder="Search..."
+                  type="text"
+                />
+              </div>
+              <button class="icon-btn" title="Notifications">
+                <span class="material-symbols-outlined" style="font-size: 18px"
+                  >notifications</span
+                >
+              </button>
+              <button
+                id="dark-mode-toggle"
+                onclick="toggleDarkMode()"
+                class="icon-btn"
+                title="Toggle dark mode"
+              >
+                <span
+                  id="dark-mode-icon"
+                  class="material-symbols-outlined"
+                  style="font-size: 18px"
+                  >dark_mode</span
+                >
+              </button>
+              <div class="avatar">
+                <span class="material-symbols-outlined" style="font-size: 18px"
+                  >person</span
+                >
+              </div>
+            </div>
+          </header>
+          <main class="{% block main_class %}main-content{% endblock %}">
+            {% block content %}{% endblock %}
+          </main>
         </div>
+      </div>
     </div>
 
     <script>
-        // ── Dark mode toggle ──────────────────────────────────────────────
-        function toggleDarkMode() {
-            var html = document.documentElement;
-            var isDark = html.classList.toggle('dark');
-            html.classList.toggle('light', !isDark);
-            localStorage.setItem('theme', isDark ? 'dark' : 'light');
-            updateDarkModeIcon(isDark);
-        }
-        function updateDarkModeIcon(isDark) {
-            var icon = document.getElementById('dark-mode-icon');
-            if (icon) icon.textContent = isDark ? 'light_mode' : 'dark_mode';
-        }
-        // Set icon to match current theme
-        (function () {
-            var isDark = document.documentElement.classList.contains('dark');
-            updateDarkModeIcon(isDark);
-        })();
+      // ── Dark mode toggle ──────────────────────────────────────────────
+      function toggleDarkMode() {
+        var html = document.documentElement;
+        var isDark = html.classList.toggle("dark");
+        html.classList.toggle("light", !isDark);
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+        updateDarkModeIcon(isDark);
+      }
+      function updateDarkModeIcon(isDark) {
+        var icon = document.getElementById("dark-mode-icon");
+        if (icon) icon.textContent = isDark ? "light_mode" : "dark_mode";
+      }
+      // Set icon to match current theme
+      (function () {
+        var isDark = document.documentElement.classList.contains("dark");
+        updateDarkModeIcon(isDark);
+      })();
     </script>
     <script src="/static/app.js"></script>
     {% block scripts %}{% endblock %}
-</body>
-
+  </body>
 </html>
