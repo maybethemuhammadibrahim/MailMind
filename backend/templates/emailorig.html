@@ -1,737 +1,6 @@
-{% extends "base.html" %} {% block title %}Email — MailMind{% endblock %} {%
+{% extends "base.html" %} {% block title %}Email - MailMind{% endblock %} {%
 block page_styles %}
 <link href="/static/styles/pagestyles.css" rel="stylesheet" />
-<style>
-  /* ─── Google Fonts ─── */
-  @import url("https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap");
-
-  /* ─── Page-scoped tokens (mirror home.html aesthetic) ─── */
-  .email-main-container {
-    --em-surface: var(--surface);
-    --em-surface-2: var(--surface-2);
-    --em-bg: var(--bg);
-    --em-border: var(--border);
-    --em-border-strong: var(--border-strong);
-    --em-text: var(--text);
-    --em-text-body: var(--text-body);
-    --em-text-subtle: var(--text-subtle);
-    --em-text-muted: var(--text-muted);
-    --em-primary: var(--primary);
-    --em-accent: var(--accent);
-    --em-accent-soft: var(--accent-soft);
-    --em-blue: var(--accent);
-    --em-green: var(--success);
-    --em-amber: var(--warning);
-    --em-red: var(--danger);
-    --em-violet: var(--violet-soft-text);
-    --em-shadow-sm:
-      0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
-    --em-shadow-md: 0 4px 14px rgba(15, 23, 42, 0.06);
-    --em-radius-lg: 18px;
-    --em-radius-md: 12px;
-    --em-radius-sm: 10px;
-  }
-
-  /* ─── Layout shell ─── */
-  .email-main-container,
-  .email-main-container * {
-    box-sizing: border-box;
-  }
-
-  .email-main-container {
-    font-family:
-      "DM Sans",
-      system-ui,
-      -apple-system,
-      sans-serif !important;
-
-    color: var(--em-text);
-
-    display: flex;
-    align-items: stretch;
-
-    gap: 16px;
-    padding: 18px;
-
-    width: 100%;
-    height: 100%;
-    min-height: 0;
-
-    background: var(--em-bg);
-
-    overflow: hidden;
-  }
-
-  @media (max-width: 1200px) {
-    .email-main-container {
-      gap: 14px;
-    }
-  }
-  @media (max-width: 980px) {
-    .email-main-container {
-      flex-direction: column;
-      overflow: auto;
-    }
-  }
-
-  /* ─── Panels ─── */
-
-  /* shared panel styles */
-  .email-left-panel,
-  .email-center-panel,
-  .email-right-panel {
-    min-width: 0;
-
-    background: var(--em-surface);
-    border: 1px solid var(--em-border);
-    border-radius: var(--em-radius-lg);
-    box-shadow: var(--em-shadow-sm);
-
-    display: flex;
-    flex-direction: column;
-
-    min-height: 0;
-    overflow: hidden;
-  }
-
-  /* proportional widths */
-  .email-left-panel {
-    flex: 2;
-  }
-
-  .email-center-panel {
-    flex: 4.5;
-  }
-
-  .email-right-panel {
-    flex: 3.5;
-  }
-  /* ─── LEFT: Mailbox tabs ─── */
-  .mailbox-tab-bar {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 14px 14px 10px;
-    border-bottom: 1px solid var(--em-border);
-    background: var(--em-surface);
-  }
-
-  .mailbox-sync-button {
-    margin-left: auto;
-  }
-
-  /* new */
-  /* From Uiverse.io by vinodjangid07 */
-  .tab-btn {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    width: 32px;
-    height: 32px;
-    border-radius: 10px;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    transition-duration: 0.3s;
-    border: 1px solid var(--em-border);
-    background: var(--em-surface);
-    color: var(--em-text-body);
-  }
-
-  /* plus sign */
-  .sign {
-    width: 100%;
-    transition-duration: 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  /* text */
-  .text {
-    position: absolute;
-    right: 0%;
-    width: 0%;
-    opacity: 0;
-    color: var(--em-text-body);
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--em-text-body);
-    transition-duration: 0.3s;
-  }
-  /* hover effect on button width */
-  .tab-btn:hover {
-    width: 125px;
-    border-radius: 10px;
-    transition-duration: 0.3s;
-  }
-
-  .tab-btn:hover .sign {
-    width: 30%;
-    transition-duration: 0.3s;
-    padding-left: 0px;
-  }
-  /* hover effect button's text */
-  .tab-btn:hover .text {
-    opacity: 1;
-    width: 70%;
-    transition-duration: 0.3s;
-    padding-right: 10px;
-  }
-  /* button click effect*/
-  .tab-btn:active {
-    transform: translate(2px, 2px);
-  }
-
-  /* new end */
-  .icon-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    height: 32px;
-    width: 32px;
-    border-radius: 10px;
-    border: 1px solid var(--em-border);
-    background: var(--em-surface);
-    color: var(--em-text-body);
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-  .icon-button:hover:not(:disabled) {
-    background: var(--em-surface-2);
-    border-color: var(--em-border-strong);
-    color: var(--em-text);
-  }
-  .icon-button:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-  .icon-button.primary:hover:not(:disabled) {
-    color: var(--em-accent);
-    border-color: var(--em-accent);
-  }
-  .icon-button.danger:hover:not(:disabled) {
-    color: var(--em-red);
-    border-color: var(--em-red);
-  }
-
-  /* .badge-category {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 2px 8px;
-    border-radius: 999px;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    background: var(--em-surface-2);
-    color: var(--em-text-muted);
-    border: 1px solid var(--em-border);
-    font-family: "DM Mono", monospace;
-  } */
-  /* .badge-primary {
-    background: var(--em-primary);
-    color: #fff;
-    border-color: var(--em-primary);
-  } */
-  .badge-urgent,
-  .badge-confidence-low {
-    background: rgba(239, 68, 68, 0.1);
-    color: var(--em-red);
-    border-color: rgba(239, 68, 68, 0.25);
-  }
-  .badge-action-required {
-    background: rgba(245, 158, 11, 0.12);
-    color: #b45309;
-    border-color: rgba(245, 158, 11, 0.28);
-  }
-  .badge-meeting-request {
-    background: rgba(139, 92, 246, 0.1);
-    color: #6d28d9;
-    border-color: rgba(139, 92, 246, 0.25);
-  }
-  .badge-order-update,
-  .badge-updates {
-    background: var(--em-accent-soft);
-    color: var(--em-accent);
-    border-color: rgba(59, 130, 246, 0.25);
-  }
-  .badge-spam {
-    background: rgba(100, 116, 139, 0.12);
-    color: var(--em-text-muted);
-  }
-  .badge-promotions {
-    background: rgba(236, 72, 153, 0.1);
-    color: #be185d;
-    border-color: rgba(236, 72, 153, 0.25);
-  }
-  .badge-sent-reply {
-    background: rgba(16, 185, 129, 0.1);
-    color: #047857;
-    border-color: rgba(16, 185, 129, 0.25);
-  }
-  .badge-confidence-high {
-    background: rgba(16, 185, 129, 0.12);
-    color: #047857;
-    border-color: rgba(16, 185, 129, 0.28);
-  }
-  .badge-confidence-medium {
-    background: rgba(245, 158, 11, 0.12);
-    color: #b45309;
-    border-color: rgba(245, 158, 11, 0.28);
-  }
-  /* ─── Email list rows ─── */
-  #inbox-list {
-    padding: 6px;
-  }
-  .email-row {
-    position: relative;
-    padding: 12px 12px 12px 14px;
-    border-radius: var(--em-radius-md);
-    cursor: pointer;
-    margin-bottom: 4px;
-    border: 1px solid transparent;
-    transition: all 0.15s ease;
-  }
-  .email-row:hover {
-    background: var(--em-surface-2);
-  }
-  .email-row.active {
-    background: var(--em-accent-soft);
-    border-color: rgba(59, 130, 246, 0.3);
-  }
-  .email-row.active::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 12px;
-    bottom: 12px;
-    width: 3px;
-    border-radius: 0 3px 3px 0;
-    background: var(--em-accent);
-  }
-  .email-row .font-body-lg {
-    font-family: inherit;
-  }
-  .email-row .text-on-surface {
-    color: var(--em-text);
-  }
-  .email-row .text-on-surface-variant {
-    color: var(--em-text-muted);
-  }
-  .email-row .text-outline {
-    color: var(--em-text-subtle);
-  }
-
-  .email-row .bg-secondary-fixed {
-    background: linear-gradient(135deg, var(--em-accent), #6366f1) !important;
-    color: #fff !important;
-  }
-
-  /* ─── States ─── */
-  .email-loading-state,
-  .email-empty-state {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 32px 20px;
-    text-align: center;
-    color: var(--em-text-muted);
-  }
-  .email-empty-state .text-on-surface-variant {
-    color: var(--em-text-muted);
-  }
-  .email-empty-state .text-outline {
-    color: var(--em-text-subtle);
-  }
-  .email-loading-spinner {
-    font-size: 28px !important;
-    color: var(--em-accent);
-    margin-bottom: 10px;
-  }
-
-  /* ─── CENTER: Toolbar ─── */
-  .email-toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 12px 18px;
-    border-bottom: 1px solid var(--em-border);
-    gap: 12px;
-  }
-  .email-toolbar-left {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .divider-vertical {
-    width: 1px;
-    height: 22px;
-    background: var(--em-border);
-    margin: 0 4px;
-  }
-
-  .email-processing-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 12px;
-    border-radius: 999px;
-    background: var(--em-accent-soft);
-    color: var(--em-accent);
-    font-size: 11.5px;
-    font-weight: 600;
-    border: 1px solid rgba(59, 130, 246, 0.25);
-  }
-
-  /* ─── CENTER: Content ─── */
-  .email-content-wrapper {
-    flex: 1;
-    overflow-y: auto;
-    padding: 22px 28px 28px;
-  }
-  .email-summary-bar {
-    display: flex;
-    gap: 12px;
-    padding: 14px 16px;
-    border-radius: var(--em-radius-md);
-    background: linear-gradient(
-      135deg,
-      rgba(59, 130, 246, 0.06),
-      rgba(99, 102, 241, 0.04)
-    );
-    border: 1px solid rgba(59, 130, 246, 0.18);
-    margin-bottom: 20px;
-  }
-  .email-summary-icon {
-    font-size: 20px !important;
-    color: var(--em-accent);
-    flex-shrink: 0;
-    margin-top: 2px;
-  }
-  .email-summary-content {
-    flex: 1;
-    min-width: 0;
-  }
-  .email-summary-headline {
-    font-size: 13.5px;
-    font-weight: 600;
-    color: var(--em-text);
-    line-height: 1.45;
-    margin-bottom: 8px;
-  }
-  .email-summary-facts {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-  .email-summary-fact {
-    font-size: 11px;
-    padding: 3px 9px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.7);
-    border: 1px solid rgba(59, 130, 246, 0.18);
-    color: var(--em-text-body);
-    font-family: "DM Mono", monospace;
-  }
-
-  .email-header {
-    padding-bottom: 18px;
-    border-bottom: 1px solid var(--em-border);
-    margin-bottom: 22px;
-  }
-  .email-subject {
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--em-text);
-    letter-spacing: -0.02em;
-    line-height: 1.25;
-    margin-bottom: 14px;
-  }
-  .email-meta-row {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-  }
-  .email-sender-info {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    min-width: 0;
-    flex: 1;
-  }
-  .email-sender-avatar {
-    height: 40px;
-    width: 40px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, var(--em-accent), #6366f1);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 14px;
-    flex-shrink: 0;
-  }
-  .email-sender-details {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 0;
-  }
-  .email-sender-name {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--em-text);
-  }
-  .email-sender-email {
-    font-size: 12px;
-    color: var(--em-text-muted);
-    font-family: "DM Mono", monospace;
-  }
-  .email-sender-timestamp {
-    font-size: 11.5px;
-    color: var(--em-text-subtle);
-  }
-
-  .email-body {
-    font-size: 14px;
-    line-height: 1.65;
-    color: var(--em-text-body);
-  }
-  .email-body p {
-    margin-bottom: 14px;
-  }
-
-  /* ─── RIGHT: Draft panel ─── */
-  .draft-panel-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 14px 16px;
-    border-bottom: 1px solid var(--em-border);
-  }
-  .draft-panel-icon {
-    height: 30px;
-    width: 30px;
-    border-radius: 9px;
-    background: linear-gradient(135deg, var(--em-accent), #8b5cf6);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .draft-panel-title {
-    font-size: 13.5px;
-    font-weight: 700;
-    color: var(--em-text);
-    flex: 1;
-  }
-
-  .draft-content-area {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    padding: 14px 16px;
-    gap: 10px;
-    overflow-y: auto;
-  }
-  .draft-textarea-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--em-text-subtle);
-  }
-  .draft-textarea {
-    width: 100%;
-    flex: 1;
-    min-height: 180px;
-    padding: 12px 14px;
-    border-radius: var(--em-radius-md);
-    border: 1px solid var(--em-border);
-    background: var(--em-surface-2);
-    font-family: inherit;
-    font-size: 13px;
-    line-height: 1.55;
-    color: var(--em-text);
-    resize: none;
-    outline: none;
-    transition: all 0.15s ease;
-  }
-  .draft-textarea:focus {
-    border-color: var(--em-accent);
-    background: var(--em-surface);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
-  }
-
-  .draft-action-items-section {
-    padding-top: 6px;
-    border-top: 1px dashed var(--em-border);
-  }
-  .draft-action-items-title {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--em-text-subtle);
-    margin-bottom: 8px;
-  }
-  .draft-action-items-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-  .draft-action-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 8px 10px;
-    border-radius: 10px;
-    background: var(--em-surface-2);
-    border: 1px solid var(--em-border);
-  }
-  .draft-action-item-icon {
-    color: var(--em-green);
-    font-size: 16px !important;
-    flex-shrink: 0;
-    margin-top: 1px;
-  }
-  .draft-action-item-text {
-    font-size: 12.5px;
-    color: var(--em-text-body);
-    line-height: 1.4;
-  }
-
-  /* ─── Draft action bar ─── */
-  .draft-action-bar {
-    border-top: 1px solid var(--em-border);
-    padding: 12px 16px 14px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    background: var(--em-surface);
-  }
-  .btn-primary-large {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: 100%;
-    padding: 11px 14px;
-    border-radius: 12px;
-    background: var(--em-primary);
-    color: #fff;
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.18);
-  }
-  .btn-primary-large:hover:not(:disabled) {
-    background: #1e293b;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.22);
-  }
-  .btn-primary-large:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .draft-button-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-  }
-  .btn-secondary-small {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    padding: 8px 10px;
-    border-radius: 10px;
-    background: var(--em-surface);
-    border: 1px solid var(--em-border);
-    color: var(--em-text-body);
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-  .btn-secondary-small:hover:not(:disabled) {
-    background: var(--em-surface-2);
-    border-color: var(--em-border-strong);
-    color: var(--em-text);
-  }
-  .btn-secondary-small.primary:hover:not(:disabled) {
-    border-color: var(--em-accent);
-    color: var(--em-accent);
-    background: var(--em-accent-soft);
-  }
-  .btn-secondary-small:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  /* ─── Scrollbars ─── */
-  .email-main-container *::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
-  .email-main-container *::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 999px;
-  }
-  .email-main-container *::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  /* ─── Toast ─── */
-  .toast {
-    padding: 10px 14px;
-    border-radius: 12px;
-    font-family: "DM Sans", sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
-    animation: toast-in 0.25s ease both;
-  }
-  .toast-leave {
-    animation: toast-out 0.25s ease both;
-  }
-  @keyframes toast-in {
-    from {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  @keyframes toast-out {
-    to {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-  }
-
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-</style>
 {% endblock %} {% block header_title %}Emails{% endblock %} {% block main_class
 %}min-h-0 flex-1 overflow-hidden{% endblock %} {% block content %}
 <div class="email-main-container">
@@ -739,87 +8,105 @@ block page_styles %}
        LEFT PANEL — Inbox list with mailbox tabs
   ══════════════════════════════════════════════════════════ -->
   <section class="email-left-panel">
+    <!-- Mailbox tab bar -->
     <div class="mailbox-tab-bar">
-      <!-- <button
+      <button
         id="folder-btn-important"
         onclick="setFolder('important')"
         class="mailbox-tab active"
       >
-        <span class="material-symbols-outlined">priority_high</span>
+        <!-- Changed icon to paperclip + size 10 -->
+        <!-- <span
+          class="material-symbols-outlined text-[10px]"
+          style="font-variation-settings: &quot;FILL&quot; 1"
+        >
+          attach_file
+        </span> -->
+        <span
+        class="material-symbols-outlined text-[10px]"
+          style="
+            font-size: 20px;
+            display: inline-flex;
+            align-items: center;
+          "
+        >
+          attach_file
+        </span>
+
         Important
+
+        <!-- Badge size 8 -->
         <span
           id="badge-important"
-          class="badge-category badge-primary hidden"
-        ></span>
-      </button> -->
-      <button class="tab-btn">
-        <div class="sign">
-          <span class="material-symbols-outlined"> notifications_active </span>
-        </div>
-        <div class="text">Important</div>
+          class="badge-category badge-primary text-[5px] hidden"
+          style="
+            font-size: 10px;
+            display: inline-flex;
+            align-items: center;
+          "
+        >
+        </span>
       </button>
 
-      <button class="tab-btn">
-        <div class="sign">
-          <span class="material-symbols-outlined"> all_inbox </span>
-        </div>
-        <!-- All -->
-        <div class="text">All</div>
-      </button>
-
-      <!-- <button
+      <button
         id="folder-btn-all"
         onclick="setFolder('all')"
         class="mailbox-tab"
       >
-        <span class="material-symbols-outlined">all_inbox</span>
+        <!-- Icon size changed to 10 -->
+        <span class="material-symbols-outlined text-[10px]"> all_inbox </span>
+
         All Mail
-        <span id="badge-all" class="badge-category badge-primary hidden"></span>
-      </button> -->
+
+        <span
+          id="badge-all"
+          class="badge-category badge-primary text-[10px] hidden"
+        >
+        </span>
+      </button>
 
       <div class="mailbox-sync-button">
         <button onclick="syncEmails()" title="Sync inbox" class="icon-button">
-          <span
-            id="sync-icon"
-            class="material-symbols-outlined"
-            style="font-size: 18px"
-            >sync</span
-          >
+          <span id="sync-icon" class="material-symbols-outlined text-[20px]">
+            sync
+          </span>
         </button>
       </div>
 
       <span id="inbox-count" style="display: none !important"></span>
     </div>
 
+    <!-- Loading state -->
     <div id="inbox-loading" class="email-loading-state">
       <span
         class="material-symbols-outlined email-loading-spinner"
         style="animation: spin 1.2s linear infinite"
         >sync</span
       >
-      <p>Syncing your inbox…</p>
+      <p class="font-body-md text-[13px] text-on-surface-variant">
+        Syncing your inbox…
+      </p>
     </div>
 
-    <div id="inbox-empty" class="email-empty-state hidden">
+    <!-- Empty state -->
+    <div id="inbox-empty" class="email-empty-state">
       <span
-        class="material-symbols-outlined"
-        style="font-size: 44px; color: #cbd5e1; margin-bottom: 10px"
+        class="material-symbols-outlined text-[48px] text-on-surface-variant/30 mb-3"
         >inbox</span
       >
-      <p style="font-weight: 600; color: var(--em-text-body)">
+      <p class="font-body-md text-body-md text-on-surface-variant">
         No recent emails
       </p>
-      <p style="font-size: 12.5px; margin-top: 4px">
+      <p class="font-body-md text-body-md text-outline mt-1 text-[13px]">
         Click
-        <span
-          class="material-symbols-outlined"
-          style="font-size: 14px; vertical-align: middle"
+        <span class="material-symbols-outlined text-[14px] align-middle"
           >sync</span
         >
         to fetch from Gmail
       </p>
     </div>
 
+    <!-- Email list -->
     <div id="inbox-list" class="hidden flex-1 overflow-y-auto"></div>
   </section>
 
@@ -827,6 +114,7 @@ block page_styles %}
        CENTER PANEL — Email content
   ══════════════════════════════════════════════════════════ -->
   <section class="email-center-panel">
+    <!-- Toolbar -->
     <div class="email-toolbar">
       <div class="email-toolbar-left">
         <button
@@ -835,9 +123,7 @@ block page_styles %}
           title="Archive"
           class="icon-button primary"
         >
-          <span class="material-symbols-outlined" style="font-size: 18px"
-            >archive</span
-          >
+          <span class="material-symbols-outlined text-[20px]">archive</span>
         </button>
         <button
           id="btn-delete"
@@ -845,9 +131,7 @@ block page_styles %}
           title="Delete"
           class="icon-button danger"
         >
-          <span class="material-symbols-outlined" style="font-size: 18px"
-            >delete</span
-          >
+          <span class="material-symbols-outlined text-[20px]">delete</span>
         </button>
         <div class="divider-vertical"></div>
         <button
@@ -856,36 +140,38 @@ block page_styles %}
           title="Mark unread"
           class="icon-button primary"
         >
-          <span class="material-symbols-outlined" style="font-size: 18px"
+          <span class="material-symbols-outlined text-[20px]"
             >mark_email_unread</span
           >
         </button>
       </div>
       <div id="email-processing-badge" class="email-processing-badge hidden">
         <span
-          class="email-processing-spinner material-symbols-outlined"
-          style="font-size: 14px; animation: spin 1s linear infinite"
+          class="email-processing-spinner material-symbols-outlined text-[14px]"
+          style="animation: spin 1s linear infinite"
           >autorenew</span
         >
         Running AI pipeline…
       </div>
     </div>
 
+    <!-- Empty state (shown until email selected) -->
     <div id="email-empty" class="email-empty-state">
       <span
-        class="material-symbols-outlined"
-        style="font-size: 56px; color: #cbd5e1; margin-bottom: 14px"
+        class="material-symbols-outlined text-[64px] text-on-surface-variant/20 mb-4"
         >mark_email_read</span
       >
-      <p style="font-size: 15px; font-weight: 600; color: var(--em-text-body)">
+      <p class="font-body-lg text-body-lg text-on-surface-variant">
         Select an email to read it
       </p>
-      <p style="font-size: 12.5px; margin-top: 6px">
+      <p class="font-body-md text-body-md text-outline mt-2 text-[13px]">
         AI summary and draft will appear automatically
       </p>
     </div>
 
+    <!-- Email content (shown when email selected) -->
     <div id="email-content" class="email-content-wrapper hidden">
+      <!-- Summary bar (shown after pipeline) -->
       <div id="summary-bar" class="email-summary-bar hidden">
         <span class="material-symbols-outlined email-summary-icon"
           >summarize</span
@@ -896,6 +182,7 @@ block page_styles %}
         </div>
       </div>
 
+      <!-- Email header -->
       <div class="email-header">
         <h2 id="email-subject" class="email-subject"></h2>
         <div class="email-meta-row">
@@ -905,19 +192,21 @@ block page_styles %}
               <div class="flex items-center gap-2 flex-wrap">
                 <span id="email-sender-name" class="email-sender-name"></span>
                 <span id="email-sender-addr" class="email-sender-email"></span>
-                <span id="email-category-badge" class="hidden"></span>
+                <span
+                  id="email-category-badge"
+                  class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full"
+                ></span>
               </div>
               <span id="email-timestamp" class="email-sender-timestamp"></span>
             </div>
           </div>
           <button class="icon-button primary flex-shrink-0">
-            <span class="material-symbols-outlined" style="font-size: 18px"
-              >reply</span
-            >
+            <span class="material-symbols-outlined text-[20px]">reply</span>
           </button>
         </div>
       </div>
 
+      <!-- Email body -->
       <div id="email-body" class="email-body"></div>
     </div>
   </section>
@@ -926,39 +215,45 @@ block page_styles %}
        RIGHT PANEL — AI Draft Assistant
   ══════════════════════════════════════════════════════════ -->
   <section class="email-right-panel">
+    <!-- Panel header -->
     <div class="draft-panel-header">
       <div class="draft-panel-icon">
-        <span class="material-symbols-outlined" style="font-size: 17px"
-          >auto_awesome</span
-        >
+        <span class="material-symbols-outlined text-[18px]">auto_awesome</span>
       </div>
       <div class="draft-panel-title">AI Draft Assistant</div>
-      <span id="confidence-badge" class="hidden"></span>
+      <span
+        id="confidence-badge"
+        class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full"
+      ></span>
     </div>
 
+    <!-- Empty state -->
     <div id="draft-empty" class="email-empty-state">
       <span
-        class="material-symbols-outlined"
-        style="font-size: 44px; color: #cbd5e1; margin-bottom: 10px"
+        class="material-symbols-outlined text-[48px] text-on-surface-variant/30 mb-3"
         >auto_awesome</span
       >
-      <p style="font-weight: 600; color: var(--em-text-body)">
+      <p class="font-body-md text-body-md text-on-surface-variant">
         No email selected
       </p>
-      <p style="font-size: 12.5px; margin-top: 4px">
+      <p class="font-body-md text-body-md text-outline mt-1 text-[13px]">
         Select an email to generate a draft reply
       </p>
     </div>
 
+    <!-- Loading state -->
     <div id="draft-loading" class="email-loading-state hidden">
       <span
-        class="material-symbols-outlined email-loading-spinner"
+        class="material-symbols-outlined email-loading-spinner text-primary/40"
         style="animation: spin 1.2s linear infinite"
         >autorenew</span
       >
-      <p>Gemini is drafting a reply…</p>
+      <p class="font-body-md text-[13px] text-on-surface-variant">
+        Gemini is drafting a reply…
+      </p>
     </div>
 
+    <!-- Draft content -->
     <div id="draft-content" class="draft-content-area hidden">
       <div class="draft-textarea-header">
         <span>Suggested Reply</span>
@@ -966,9 +261,8 @@ block page_styles %}
           onclick="copyDraft()"
           title="Copy to clipboard"
           class="icon-button"
-          style="height: 26px; width: 26px"
         >
-          <span class="material-symbols-outlined" style="font-size: 14px"
+          <span class="material-symbols-outlined text-[16px]"
             >content_copy</span
           >
         </button>
@@ -984,7 +278,9 @@ block page_styles %}
       </div>
     </div>
 
+    <!-- Action bar (always visible) -->
     <div class="draft-action-bar">
+      <!-- PRIMARY: Save to Gmail Drafts -->
       <button
         id="btn-save-draft"
         disabled
@@ -992,12 +288,11 @@ block page_styles %}
         class="btn-primary-large"
         title="Save this draft to Gmail's Drafts folder"
       >
-        <span class="material-symbols-outlined" style="font-size: 16px"
-          >bookmark_add</span
-        >
+        <span class="material-symbols-outlined text-[18px]">bookmark_add</span>
         Save to Gmail Drafts
       </button>
 
+      <!-- SECONDARY row: Copy | Regenerate | Send -->
       <div class="draft-button-row">
         <button
           id="btn-copy-draft"
@@ -1006,7 +301,7 @@ block page_styles %}
           onclick="copyDraft()"
           title="Copy draft text"
         >
-          <span class="material-symbols-outlined" style="font-size: 14px"
+          <span class="material-symbols-outlined text-[15px]"
             >content_copy</span
           >
           Copy
@@ -1018,10 +313,7 @@ block page_styles %}
           onclick="regenerateDraft()"
           title="Re-generate the draft with Gemini"
         >
-          <span
-            id="regen-icon"
-            class="material-symbols-outlined"
-            style="font-size: 14px"
+          <span id="regen-icon" class="material-symbols-outlined text-[15px]"
             >refresh</span
           >
           Regenerate
@@ -1033,9 +325,7 @@ block page_styles %}
           class="btn-secondary-small primary"
           title="Send this reply via Gmail"
         >
-          <span class="material-symbols-outlined" style="font-size: 14px"
-            >send</span
-          >
+          <span class="material-symbols-outlined text-[15px]">send</span>
           Send
         </button>
       </div>
@@ -1043,6 +333,9 @@ block page_styles %}
   </section>
 </div>
 {% endblock %} {% block scripts %}
+
+<!-- ── Toast notification container ─────────────────────────────────────── -->
+<!-- Toasts are injected here by showToast() and auto-removed after 3s      -->
 <div
   id="toast-container"
   class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 items-end pointer-events-none"
@@ -1051,32 +344,66 @@ block page_styles %}
 <script>
   // ─── State ────────────────────────────────────────────────────────────────────
   const state = {
-    emails: [],
-    selected: null,
-    pipeline: null,
-    activeTab: "important",
-    activeFolder: "important",
+    emails: [], // all fetched emails
+    selected: null, // currently open email object
+    pipeline: null, // last pipeline result {classification, summary, draft}
+    activeTab: "important", // maps to a folder key
+    activeFolder: "important", // tracks the folder-nav active folder
   };
 
+  // Pagination state
   let emailListPage = 1;
   const emailsPerPage = 4;
 
+  // ─── Category config (badge colour + icon) ────────────────────────────────────
   const CAT = {
-    urgent: { label: "Urgent", icon: "priority_high" },
-    "action-required": { label: "Action Req.", icon: "notification_important" },
-    "meeting-request": { label: "Meeting", icon: "event" },
-    "order-update": { label: "Order", icon: "local_shipping" },
-    spam: { label: "Spam", icon: "report" },
-    promotions: { label: "Promotions", icon: "campaign" },
-    forum: { label: "Forum", icon: "forum" },
-    social_media: { label: "Social", icon: "group" },
-    updates: { label: "Updates", icon: "info" },
-    verify_code: { label: "Verify", icon: "verified" },
+    urgent: {
+      label: "Urgent",
+      icon: "priority_high",
+    },
+    "action-required": {
+      label: "Action Req.",
+      icon: "notification_important",
+    },
+    "meeting-request": {
+      label: "Meeting",
+      icon: "event",
+    },
+    "order-update": {
+      label: "Order",
+      icon: "local_shipping",
+    },
+    spam: {
+      label: "Spam",
+      icon: "report",
+    },
+    promotions: {
+      label: "Promotions",
+      icon: "campaign",
+    },
+    forum: {
+      label: "Forum",
+      icon: "forum",
+    },
+    social_media: {
+      label: "Social",
+      icon: "group",
+    },
+    updates: {
+      label: "Updates",
+      icon: "info",
+    },
+    verify_code: {
+      label: "Verify",
+      icon: "verified",
+    },
   };
+
   function catCfg(cat) {
     return CAT[cat] || CAT["updates"];
   }
 
+  // ─── Helpers ──────────────────────────────────────────────────────────────────
   function initials(name) {
     if (!name) return "?";
     return name
@@ -1109,6 +436,8 @@ block page_styles %}
       .join("");
   }
 
+  // ─── Folder nav management ────────────────────────────────────────────────────
+  // Maps folder keys to display labels shown in the inbox list header.
   const FOLDER_LABELS = {
     important: "Important",
     all: "All Mail",
@@ -1120,17 +449,36 @@ block page_styles %}
     state.activeFolder = folder;
     state.activeTab = folder;
     emailListPage = 1;
-    document
-      .querySelectorAll(".mailbox-tab")
-      .forEach((btn) => btn.classList.remove("active"));
-    const active = document.getElementById("folder-btn-" + folder);
-    if (active) active.classList.add("active");
+
+    // Style tab buttons: deactivate all, activate the clicked one
+    var activeCls = "mailbox-tab active";
+    var inactiveCls = "mailbox-tab";
+
+    document.querySelectorAll(".mailbox-tab").forEach(function (btn) {
+      btn.className = inactiveCls;
+      var icon = btn.querySelector(".material-symbols-outlined");
+      if (icon) {
+        icon.style.fontVariationSettings = "'FILL' 0";
+      }
+    });
+
+    var active = document.getElementById("folder-btn-" + folder);
+    if (active) {
+      active.className = activeCls;
+      var icon = active.querySelector(".material-symbols-outlined");
+      if (icon) {
+        icon.style.fontVariationSettings = "'FILL' 1";
+      }
+    }
+
     renderEmailList();
   }
 
+  // Legacy tab alias
   function setTab(tab) {
     setFolder(tab === "important" ? "important" : "all");
   }
+
   function loadMoreEmails() {
     emailListPage++;
     renderEmailList();
@@ -1138,9 +486,13 @@ block page_styles %}
 
   function filteredEmails() {
     var folder = state.activeFolder || state.activeTab;
+
     if (folder === "important") {
+      // Important: non-sent emails with urgent/action/meeting category OR priority >= 6
       return state.emails.filter(function (e) {
-        if (e.is_sent) return false;
+        if (e.is_sent) {
+          return false;
+        }
         var cat = e._pipeline?.classification?.category;
         var score = e._pipeline?.classification?.priority_score || 0;
         return (
@@ -1152,14 +504,24 @@ block page_styles %}
         );
       });
     }
-    if (folder === "drafts") return state.emails.filter((e) => !!e.is_sent);
+
+    if (folder === "drafts") {
+      // Drafts: sent messages (replies that were sent from this app)
+      return state.emails.filter(function (e) {
+        return !!e.is_sent;
+      });
+    }
+
     if (folder === "spam") {
+      // Spam: emails classified as spam or flagged is_spam by the pipeline
       return state.emails.filter(function (e) {
         var cat = e._pipeline?.classification?.category;
         var isSpam = e._pipeline?.classification?.is_spam;
         return cat === "spam" || !!isSpam;
       });
     }
+
+    // All Mail: every email
     return state.emails;
   }
 
@@ -1179,43 +541,57 @@ block page_styles %}
     const byThread = {};
     for (const email of state.emails) {
       const threadKey = email.thread_id || email.id;
-      if (!byThread[threadKey]) byThread[threadKey] = [];
+      if (!byThread[threadKey]) {
+        byThread[threadKey] = [];
+      }
       byThread[threadKey].push(email);
     }
+
     const groups = [];
     for (const threadKey of Object.keys(byThread)) {
       const messages = byThread[threadKey];
       const received = messages.filter((m) => !m.is_sent);
-      if (received.length === 0) continue;
+      if (received.length === 0) {
+        continue;
+      }
+
       received.sort(
         (a, b) =>
           new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
       );
       const parent = received[0];
-      if (state.activeTab === "important" && !isImportantEmail(parent))
+
+      if (state.activeTab === "important" && !isImportantEmail(parent)) {
         continue;
+      }
+
       const sentReplies = messages
         .filter((m) => m.is_sent)
         .sort(
           (a, b) =>
             new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
         );
+
       groups.push({ parent, sentReplies });
     }
+
     groups.sort(
       (a, b) =>
         new Date(b.parent.timestamp).getTime() -
         new Date(a.parent.timestamp).getTime(),
     );
+
     const rows = [];
     for (const group of groups) {
       rows.push({ email: group.parent, isChild: false });
-      for (const reply of group.sentReplies)
+      for (const reply of group.sentReplies) {
         rows.push({ email: reply, isChild: true });
+      }
     }
     return rows;
   }
 
+  // ─── Load emails ──────────────────────────────────────────────────────────────
   function mapEmailWithPipeline(email) {
     const hasCachedPipeline =
       !!email.classification || !!email.summary || !!email.draft;
@@ -1237,8 +613,9 @@ block page_styles %}
       showInboxEmpty();
       return;
     }
+
     state.emails = data.map(mapEmailWithPipeline);
-    emailListPage = 1;
+    emailListPage = 1; // Reset pagination when new emails load
     hide("inbox-loading");
     show("inbox-list");
     renderEmailList();
@@ -1250,9 +627,11 @@ block page_styles %}
     hide("inbox-list");
     document.getElementById("sync-icon").style.animation =
       "spin 1s linear infinite";
+
     try {
       const res = await fetch("/api/emails/recent");
       const data = await res.json();
+
       if (data.error) {
         showInboxEmpty(data.error);
         return;
@@ -1271,9 +650,11 @@ block page_styles %}
     hide("inbox-list");
     document.getElementById("sync-icon").style.animation =
       "spin 1s linear infinite";
+
     try {
       const res = await fetch("/api/emails/sync", { method: "POST" });
       const data = await res.json();
+
       if (data.error) {
         showInboxEmpty(data.error);
         return;
@@ -1293,9 +674,12 @@ block page_styles %}
     if (msg) document.querySelector("#inbox-empty p").textContent = msg;
   }
 
+  // ─── Render email list ────────────────────────────────────────────────────────
   function renderEmailList() {
     const list = document.getElementById("inbox-list");
     const allRows = buildDisplayRows();
+
+    // Update folder badge counts
     updateFolderBadges();
 
     const countEl = document.getElementById("inbox-count");
@@ -1310,6 +694,7 @@ block page_styles %}
       return;
     }
 
+    // Paginate: show only first (emailListPage * emailsPerPage) rows
     const paginatedRows = allRows.slice(0, emailListPage * emailsPerPage);
     const hasMore = emailListPage * emailsPerPage < allRows.length;
 
@@ -1332,47 +717,53 @@ block page_styles %}
         class="email-row ${isActive ? "active" : ""} ${childUi}">
         <div class="flex justify-between items-start mb-0.5 w-full">
           <div class="flex items-center gap-2 min-w-0 flex-1">
-            <div class="h-8 w-8 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center font-bold flex-shrink-0" style="font-size:11px">
+            <div class="h-8 w-8 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center font-label-md text-[12px] font-bold flex-shrink-0">
               ${escHtml(initials(e.sender || e.sender_email))}
             </div>
-            <span class="font-body-lg font-semibold text-on-surface truncate" style="font-size:13.5px">${escHtml(e.sender || e.sender_email)}</span>
+            <span class="font-body-lg text-[14px] font-semibold text-on-surface truncate">${escHtml(e.sender || e.sender_email)}</span>
           </div>
-          <span class="text-outline whitespace-nowrap ml-2" style="font-size:11px;font-family:'DM Mono',monospace">${fmtTime(e.timestamp)}</span>
+          <span class="font-body-md text-[12px] text-outline whitespace-nowrap ml-2">${fmtTime(e.timestamp)}</span>
         </div>
-        <span class="font-semibold text-on-surface line-clamp-1 pl-10" style="font-size:12.5px;display:block;margin-top:2px">${escHtml(e.subject)}</span>
-        <p class="text-on-surface-variant line-clamp-2 pl-10" style="font-size:11.5px;margin-top:2px;line-height:1.45">${escHtml((e.body_plain || "").slice(0, 120))}</p>
-        <div class="pl-10 flex items-center gap-2" style="margin-top:6px">
-          ${sentTag}
+        <span class="font-body-md text-[13px] font-semibold text-on-surface line-clamp-1 pl-10">${escHtml(e.subject)}</span>
+        <p class="font-body-md text-[12px] text-on-surface-variant line-clamp-2 pl-10">${escHtml((e.body_plain || "").slice(0, 120))}</p>
+        <div class="pl-10 flex items-center gap-2 mt-0.5">
+                    ${sentTag}
           ${cfg ? `<span class="badge-category badge-${cat}">${cfg.label}</span>` : ""}
-          ${hasDraft ? `<span title="AI Draft ready" style="color:var(--em-accent)"><span class="material-symbols-outlined" style="font-size:13px">auto_awesome</span></span>` : ""}
+          ${hasDraft ? `<span class="text-primary" title="AI Draft ready"><span class="material-symbols-outlined text-[14px]">auto_awesome</span></span>` : ""}
         </div>
       </div>`;
       })
       .join("");
 
     const showMoreBtn = hasMore
-      ? `<div style="padding:10px 6px 14px">
-           <button onclick="loadMoreEmails()"
-             style="width:100%;padding:8px 12px;border-radius:10px;font-size:12.5px;font-weight:600;color:var(--em-accent);background:var(--em-accent-soft);border:1px solid rgba(59,130,246,.25);cursor:pointer;font-family:inherit">
-             Show more emails
-           </button>
-         </div>`
+      ? `<div class="p-3 border-t border-surface-dim/50">
+                 <button onclick="loadMoreEmails()"
+                   class="w-full py-2 px-3 rounded-lg text-[13px] font-semibold text-primary border border-primary/30 hover:bg-primary/5 transition-colors">
+                   Show more emails
+                 </button>
+               </div>`
       : "";
 
     list.innerHTML = emailRows + showMoreBtn;
   }
 
+  // ─── Select + process email ───────────────────────────────────────────────────
   async function selectEmail(idx) {
     const email = state.emails[idx];
     if (!email) return;
     state.selected = email;
-    renderEmailList();
+    renderEmailList(); // update active state
 
+    // Show email content immediately
     showEmailContent(email, null);
+
+    // Enable toolbar buttons
     ["btn-archive", "btn-delete", "btn-mark-unread"].forEach((id) => {
       document.getElementById(id).disabled = false;
     });
 
+    // Sent replies are shown as part of thread history only.
+    // Do not run the AI pipeline on sent messages.
     if (email.is_sent) {
       hide("email-processing-badge");
       hide("draft-loading");
@@ -1387,11 +778,13 @@ block page_styles %}
       return;
     }
 
+    // If already processed with draft cached, show it
     if (email._pipeline) {
       showPipelineResult(email._pipeline);
       return;
     }
 
+    // Run pipeline
     show("email-processing-badge");
     show("draft-loading");
     hide("draft-empty");
@@ -1412,10 +805,13 @@ block page_styles %}
         }),
       });
       const data = await res.json();
+
+      // Cache pipeline result on email object so switching back is instant
       state.emails[idx]._pipeline = data;
       state.pipeline = data;
+
       showPipelineResult(data);
-      renderEmailList();
+      renderEmailList(); // refresh badges
     } catch (err) {
       console.error("Pipeline failed:", err);
       hide("draft-loading");
@@ -1427,10 +823,12 @@ block page_styles %}
     }
   }
 
+  // ─── Show email content in center panel ───────────────────────────────────────
   function showEmailContent(email, pipeline) {
     hide("email-empty");
     show("email-content");
     hide("summary-bar");
+
     document.getElementById("email-subject").textContent = email.subject;
     document.getElementById("email-avatar").textContent = initials(
       email.sender || email.sender_email,
@@ -1445,14 +843,17 @@ block page_styles %}
     document.getElementById("email-body").innerHTML = bodyToParagraphs(
       email.body_plain,
     );
+
     const badge = document.getElementById("email-category-badge");
-    badge.className = "hidden";
+    badge.className = "hidden text-[10px] font-bold px-2 py-0.5 rounded-full";
     badge.textContent = "";
   }
 
+  // ─── Render pipeline output ───────────────────────────────────────────────────
   function showPipelineResult(data) {
     const { classification, summary, draft } = data;
 
+    // Summary bar
     if (summary?.one_line_summary) {
       document.getElementById("summary-headline").textContent =
         summary.one_line_summary;
@@ -1463,6 +864,7 @@ block page_styles %}
       show("summary-bar");
     }
 
+    // Category badge on email header
     if (classification?.category) {
       const cfg = catCfg(classification.category);
       const badge = document.getElementById("email-category-badge");
@@ -1471,6 +873,7 @@ block page_styles %}
       badge.classList.remove("hidden");
     }
 
+    // Confidence badge — format: "AI Confidence: 92%"
     if (draft?.confidence_score !== undefined) {
       const score = draft.confidence_score;
       const pct = Math.round(score * 100);
@@ -1486,15 +889,17 @@ block page_styles %}
       cb.classList.remove("hidden");
     }
 
+    // Draft textarea
     hide("draft-loading");
     hide("draft-empty");
     show("draft-content");
     document.getElementById("draft-textarea").value = draft?.draft_reply || "";
 
+    // Action items section
     const allActions = [
       ...(classification?.action_items || []),
       ...(summary?.action_items || []),
-    ].filter((v, i, a) => a.indexOf(v) === i);
+    ].filter((v, i, a) => a.indexOf(v) === i); // deduplicate
 
     const actSection = document.getElementById("action-items-section");
     if (allActions.length > 0) {
@@ -1502,9 +907,9 @@ block page_styles %}
         .map(
           (a) =>
             `<div class="draft-action-item">
-           <span class="draft-action-item-icon material-symbols-outlined">check_circle</span>
-           <span class="draft-action-item-text">${escHtml(a)}</span>
-         </div>`,
+         <span class="draft-action-item-icon material-symbols-outlined">check_circle</span>
+         <span class="draft-action-item-text">${escHtml(a)}</span>
+       </div>`,
         )
         .join("");
       actSection.classList.remove("hidden");
@@ -1512,6 +917,7 @@ block page_styles %}
       actSection.classList.add("hidden");
     }
 
+    // Enable action buttons now that a draft exists
     [
       "btn-save-draft",
       "btn-send-reply",
@@ -1522,13 +928,14 @@ block page_styles %}
     });
   }
 
+  // ─── Draft actions ────────────────────────────────────────────────────────────
   function copyDraft() {
     const text = document.getElementById("draft-textarea").value;
     navigator.clipboard.writeText(text).then(() => {
       const btn = document.getElementById("btn-copy-draft");
       const orig = btn.innerHTML;
       btn.innerHTML =
-        '<span class="material-symbols-outlined" style="font-size:14px">check</span> Copied!';
+        '<span class="material-symbols-outlined text-[16px]">check</span> Copied!';
       setTimeout(() => {
         btn.innerHTML = orig;
       }, 2000);
@@ -1536,11 +943,13 @@ block page_styles %}
   }
 
   async function regenerateDraft() {
+    // Guard: need a selected email and an existing pipeline result
     if (!state.selected) return;
     const email = state.selected;
     const pipeline = state.pipeline || email._pipeline;
     if (!pipeline) return;
 
+    // Show spinning icon and disable button during the API call
     const regenBtn = document.getElementById("btn-regenerate");
     const regenIcon = document.getElementById("regen-icon");
     regenBtn.disabled = true;
@@ -1560,14 +969,22 @@ block page_styles %}
         }),
       });
       const data = await res.json();
+
+      // Update textarea with new draft text
       document.getElementById("draft-textarea").value = data.draft_reply || "";
+
+      // Refresh confidence badge with new score
       if (data.confidence_score !== undefined) {
         const pct = Math.round(data.confidence_score * 100);
         const cb = document.getElementById("confidence-badge");
         cb.textContent = `AI Confidence: ${pct}%`;
         cb.classList.remove("hidden");
       }
-      if (pipeline) pipeline.draft = data;
+
+      // Cache the fresh draft on the pipeline object
+      if (pipeline) {
+        pipeline.draft = data;
+      }
       showToast("Draft regenerated", "success");
     } catch (err) {
       document.getElementById("draft-textarea").value =
@@ -1581,6 +998,7 @@ block page_styles %}
 
   async function sendReply() {
     if (!state.selected) return;
+
     const email = state.selected;
     const pipeline = state.pipeline || email._pipeline;
     const draftText = document.getElementById("draft-textarea").value.trim();
@@ -1594,6 +1012,7 @@ block page_styles %}
       }, 2000);
       return;
     }
+
     if (!draftText) {
       btn.innerHTML = "Draft is empty";
       setTimeout(() => {
@@ -1605,9 +1024,10 @@ block page_styles %}
     const subject =
       pipeline?.draft?.suggested_subject ||
       `Re: ${email.subject || "(no subject)"}`;
+
     btn.disabled = true;
     btn.innerHTML =
-      '<span class="material-symbols-outlined" style="font-size:14px;animation:spin 0.8s linear infinite">autorenew</span> Sending...';
+      '<span class="material-symbols-outlined text-[18px] animate-spin">autorenew</span> Sending...';
 
     try {
       const res = await fetch("/api/emails/send", {
@@ -1621,9 +1041,13 @@ block page_styles %}
         }),
       });
       const data = await res.json();
-      if (data.error) throw new Error(data.error);
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
       btn.innerHTML =
-        '<span class="material-symbols-outlined" style="font-size:14px">check</span> Sent';
+        '<span class="material-symbols-outlined text-[18px]">check</span> Sent';
       setTimeout(() => {
         btn.innerHTML = original;
         btn.disabled = false;
@@ -1637,26 +1061,36 @@ block page_styles %}
     }
   }
 
+  // ─── Toast notifications ──────────────────────────────────────────────────────
+  // Creates a transient toast pill in the bottom-right corner.
+  // type: 'success' | 'error' | 'info'
   function showToast(message, type) {
     type = type || "info";
     const container = document.getElementById("toast-container");
+
+    // Choose colour scheme based on type
     const colours = {
       success: "bg-green-600 text-white",
       error: "bg-error text-on-error",
       info: "bg-primary text-on-primary",
     };
     const icons = { success: "check_circle", error: "error", info: "info" };
+
     const toast = document.createElement("div");
     toast.className = [
       "toast pointer-events-auto flex items-center gap-2",
       colours[type] || colours.info,
     ].join(" ");
     toast.innerHTML = [
-      `<span class="material-symbols-outlined" style="font-size:16px;font-variation-settings:'FILL' 1">${icons[type] || "info"}</span>`,
+      `<span class="material-symbols-outlined text-[16px]" style="font-variation-settings:'FILL' 1">${icons[type] || "info"}</span>`,
       `<span>${message}</span>`,
     ].join("");
+
     container.appendChild(toast);
+
+    // Auto-remove: fade out at 2.8s, remove DOM node at 3s
     setTimeout(function () {
+      toast.classList.remove("toast-enter");
       toast.classList.add("toast-leave");
       setTimeout(function () {
         toast.remove();
@@ -1664,24 +1098,33 @@ block page_styles %}
     }, 2800);
   }
 
+  // ─── Save to Gmail Drafts ─────────────────────────────────────────────────────
+  // POSTs the current textarea content to /api/drafts/save which creates a
+  // real Gmail draft (not a sent message). Shows a toast on success or failure.
   async function saveDraftToGmail() {
-    if (!state.selected) return;
+    if (!state.selected) {
+      return;
+    }
     const email = state.selected;
     const pipeline = state.pipeline || email._pipeline;
     const draftText = document.getElementById("draft-textarea").value.trim();
+
     if (!draftText) {
       showToast("Draft is empty — nothing to save", "error");
       return;
     }
 
+    // Build the reply subject line
     const subject =
       pipeline?.draft?.suggested_subject ||
       `Re: ${email.subject || "(no subject)"}`;
+
+    // Disable button and show saving state
     const btn = document.getElementById("btn-save-draft");
     const originalHTML = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML =
-      '<span class="material-symbols-outlined" style="font-size:16px;animation:spin 0.8s linear infinite">autorenew</span> Saving…';
+      '<span class="material-symbols-outlined text-[18px] animate-spin" style="animation:spin 0.8s linear infinite">autorenew</span> Saving…';
 
     try {
       const res = await fetch("/api/drafts/save", {
@@ -1689,18 +1132,23 @@ block page_styles %}
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           to: email.sender_email || "",
-          subject,
+          subject: subject,
           body: draftText,
           thread_id: email.thread_id || null,
         }),
       });
       const data = await res.json();
-      if (data.error) throw new Error(data.error);
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
       showToast("Draft saved to Gmail ✓", "success");
     } catch (err) {
       console.error("[saveDraftToGmail]", err);
       showToast("Could not save draft: " + err.message, "error");
     } finally {
+      // Restore button after a short delay so the user sees the spinner
       setTimeout(function () {
         btn.disabled = false;
         btn.innerHTML = originalHTML;
@@ -1708,6 +1156,7 @@ block page_styles %}
     }
   }
 
+  // ─── DOM helpers ──────────────────────────────────────────────────────────────
   function show(id) {
     document.getElementById(id)?.classList.remove("hidden");
   }
@@ -1715,9 +1164,15 @@ block page_styles %}
     document.getElementById(id)?.classList.add("hidden");
   }
 
+  // ─── Folder badge counts ──────────────────────────────────────────────────────
+  // Updates the small number pills on Important and All Mail folder buttons.
+  // Called after every render so counts stay current after sync/filter changes.
   function updateFolderBadges() {
+    // Important count: non-sent high-priority emails
     var importantCount = state.emails.filter(function (e) {
-      if (e.is_sent) return false;
+      if (e.is_sent) {
+        return false;
+      }
       var cat = e._pipeline?.classification?.category;
       var score = e._pipeline?.classification?.priority_score || 0;
       return (
@@ -1737,6 +1192,7 @@ block page_styles %}
       badgeImportant.classList.add("hidden");
     }
 
+    // All Mail count: total emails in DB
     var allCount = state.emails.length;
     var badgeAll = document.getElementById("badge-all");
     if (allCount > 0) {
@@ -1747,6 +1203,7 @@ block page_styles %}
     }
   }
 
+  // ─── Boot ─────────────────────────────────────────────────────────────────────
   loadEmails();
 </script>
 {% endblock %}

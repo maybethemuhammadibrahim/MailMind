@@ -1,284 +1,1048 @@
-{% extends "base.html" %}
-{% block title %}Home — MailMind{% endblock %}
-{% block page_styles %}
-<link href="/static/styles/pagestyles.css" rel="stylesheet" />
-{% endblock %}
-{% block header_title %}MailMind{% endblock %}
-{% block content %}
-<div class="page-toolbar">
-    <div>
-        <p class="meta-text">Welcome back</p>
-        <h2 id="home-user-name" class="page-title">MailMind User</h2>
+{% extends "base.html" %} {% block title %}Home — MailMind{% endblock %} {%
+block page_styles %}
+<style>
+  /* ─── Fonts ─── */
+  @import url("https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap");
+
+  /* ─── Page-scoped reset ─── */
+  #home-root,
+  #home-root * {
+    box-sizing: border-box;
+  }
+  #home-root {
+    font-family:
+      "DM Sans",
+      system-ui,
+      -apple-system,
+      sans-serif;
+    color: var(--text, #0f172a);
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  /* ─── Header ─── */
+  .hm-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .hm-greeting {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .hm-greeting__eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-subtle, #94a3b8);
+  }
+  .hm-greeting__name {
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+  .hm-greeting__name .hm-name-accent {
+    background: linear-gradient(90deg, var(--accent, #3b82f6), #6366f1);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .hm-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .hm-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: all 0.18s ease;
+  }
+  .hm-btn .material-symbols-outlined {
+    font-size: 16px;
+  }
+  .hm-btn--ghost {
+    background: var(--surface, #fff);
+    color: var(--text-body, #334155);
+    border: 1px solid var(--border, #e8edf3);
+    padding: 8px 14px;
+    box-shadow: var(--shadow-sm);
+  }
+  .hm-btn--ghost:hover {
+    background: var(--surface-2, #f8fafc);
+    border-color: var(--border-strong, #dbe4ee);
+  }
+  .hm-btn--primary {
+    background: var(--primary, #0f172a);
+    color: #fff;
+    padding: 8px 16px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.18);
+  }
+  .hm-btn--primary:hover {
+    background: #1e293b;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.22);
+  }
+
+  /* ─── Summary stat cards ─── */
+  .hm-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .hm-stat-card {
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, #e8edf3);
+    border-radius: 16px;
+    padding: 18px 20px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition:
+      box-shadow 0.18s,
+      transform 0.18s;
+  }
+  .hm-stat-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
+  .hm-stat-card--blue {
+    border-top: 3px solid var(--accent, #3b82f6);
+  }
+  .hm-stat-card--green {
+    border-top: 3px solid var(--success, #10b981);
+  }
+  .hm-stat-card--amber {
+    border-top: 3px solid var(--warning, #f59e0b);
+  }
+  .hm-stat-card__label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-subtle, #94a3b8);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .hm-stat-card__label .material-symbols-outlined {
+    font-size: 15px;
+  }
+  .hm-stat-card__value {
+    font-family: "DM Mono", monospace;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--text, #0f172a);
+  }
+  .hm-stat-card__value.loading {
+    color: var(--text-subtle);
+    font-size: 18px;
+  }
+  .hm-stat-card__sub {
+    font-size: 12px;
+    color: var(--text-muted, #64748b);
+    min-height: 14px;
+  }
+
+  /* ─── Main grid ─── */
+  .hm-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr 280px;
+    gap: 20px;
+    align-items: stretch;
+  }
+
+  /* ─── Card base ─── */
+  .hm-card {
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, #e8edf3);
+    border-radius: 20px;
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    transition: box-shadow 0.18s;
+  }
+  .hm-card:hover {
+    box-shadow: var(--shadow-md);
+  }
+  .hm-card__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid var(--border-muted, #eef2f6);
+  }
+  .hm-card__title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text, #0f172a);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+  }
+  .hm-card__title .material-symbols-outlined {
+    font-size: 16px;
+    color: var(--text-muted);
+  }
+  .hm-card__body {
+    padding: 16px 20px;
+  }
+
+  /* ─── Live pill ─── */
+  .hm-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+  }
+  .hm-pill--live {
+    background: var(--success-soft, #ecfdf5);
+    color: var(--success-soft-text, #047857);
+    border: 1px solid var(--success-soft-border, #bbf7d0);
+  }
+  .hm-pill--live::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--success, #10b981);
+    animation: hm-pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes hm-pulse {
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(0.75);
+    }
+  }
+
+  /* ─── Icon button ─── */
+  .hm-icon-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    border: 1px solid var(--border, #e8edf3);
+    background: var(--surface-2, #f8fafc);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.15s;
+  }
+  .hm-icon-btn:hover {
+    background: var(--surface-3);
+    color: var(--text);
+    border-color: var(--border-strong);
+  }
+  .hm-icon-btn .material-symbols-outlined {
+    font-size: 15px;
+  }
+
+  /* ─── Tasks ─── */
+  .hm-task-list,
+  .hm-meeting-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .hm-task-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border-muted, #eef2f6);
+    background: var(--surface-2, #f8fafc);
+    cursor: pointer;
+    transition: all 0.15s;
+    animation: hm-fade-in 0.3s ease both;
+  }
+  .hm-task-item:hover {
+    border-color: var(--border-strong);
+    background: var(--surface);
+  }
+  @keyframes hm-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .hm-task-item__check {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid var(--border-strong, #dbe4ee);
+    flex-shrink: 0;
+    margin-top: 2px;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .hm-task-item__check:hover {
+    border-color: var(--success);
+    background: var(--success-soft);
+  }
+  .hm-task-item__text {
+    font-size: 13px;
+    color: var(--text-body, #334155);
+    line-height: 1.45;
+    flex: 1;
+    min-width: 0;
+    word-break: break-word;
+  }
+  .hm-task-item__text.done {
+    text-decoration: line-through;
+    color: var(--text-subtle);
+  }
+
+  /* ─── Empty / loading states ─── */
+  .hm-task-empty,
+  .hm-meeting-empty,
+  .hm-no-data {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 28px 16px;
+    color: var(--text-subtle);
+    font-size: 12px;
+    text-align: center;
+  }
+  .hm-task-empty .material-symbols-outlined,
+  .hm-meeting-empty .material-symbols-outlined,
+  .hm-no-data .material-symbols-outlined {
+    font-size: 32px;
+    opacity: 0.35;
+  }
+  .hm-state-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-subtle);
+    padding: 20px 0;
+  }
+  .hm-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid var(--border-strong);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: hm-spin 0.7s linear infinite;
+  }
+  @keyframes hm-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* ─── Meetings ─── */
+  .hm-meeting-item {
+    padding: 10px 12px;
+    border-radius: 12px;
+    border-left: 3px solid var(--accent, #3b82f6);
+    background: var(--info-soft, #eff6ff);
+    border-top: 1px solid var(--info-soft-border, #bfdbfe);
+    border-right: 1px solid var(--info-soft-border, #bfdbfe);
+    border-bottom: 1px solid var(--info-soft-border, #bfdbfe);
+    animation: hm-fade-in 0.3s ease both;
+    transition: transform 0.15s;
+  }
+  .hm-meeting-item:hover {
+    transform: translateX(2px);
+  }
+  .hm-meeting-item__title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--info-soft-text, #1d4ed8);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .hm-meeting-item__time {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 3px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: "DM Mono", monospace;
+  }
+  .hm-meeting-item__time .material-symbols-outlined {
+    font-size: 12px;
+  }
+
+  /* ─── Analytics ─── */
+  .hm-analytics-card {
+    display: flex;
+    flex-direction: column;
+  }
+  .hm-chart-wrap {
+    padding: 16px 20px 20px;
+  }
+
+  .hm-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    background: var(--surface-3, #f1f5f9);
+    border-radius: 10px;
+    width: fit-content;
+    margin-bottom: 18px;
+  }
+  .hm-tab {
+    padding: 5px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    border-radius: 7px;
+    cursor: pointer;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    font-family: inherit;
+    letter-spacing: 0.02em;
+    transition: all 0.15s;
+  }
+  .hm-tab.active {
+    background: var(--surface, #fff);
+    color: var(--text, #0f172a);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .hm-chart-legend {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .hm-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+  .hm-legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+  }
+  .hm-legend-dot--in {
+    background: var(--accent);
+  }
+  .hm-legend-dot--out {
+    background: var(--border-strong);
+  }
+
+  .hm-barchart {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    height: 160px;
+    padding-bottom: 4px;
+  }
+  .hm-barchart__col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    height: 100%;
+    justify-content: flex-end;
+  }
+  .hm-barchart__bar-wrap {
+    flex: 1;
+    width: 100%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 3px;
+  }
+  .hm-barchart__bar {
+    width: 10px;
+    border-radius: 4px 4px 0 0;
+    transition:
+      height 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+      opacity 0.2s;
+    cursor: pointer;
+  }
+  .hm-barchart__bar--in {
+    background: var(--accent, #3b82f6);
+  }
+  .hm-barchart__bar--out {
+    background: var(--border-strong, #dbe4ee);
+  }
+  .hm-barchart__bar:hover {
+    opacity: 0.8;
+  }
+  .hm-barchart__label {
+    font-size: 10px;
+    color: var(--text-subtle);
+    font-weight: 500;
+  }
+
+  /* metrics row */
+  .hm-metrics-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-top: 1px solid var(--border-muted);
+  }
+  .hm-metric {
+    padding: 14px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    border-right: 1px solid var(--border-muted);
+  }
+  .hm-metric:last-child {
+    border-right: none;
+  }
+  .hm-metric__label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-subtle);
+  }
+  .hm-metric__value {
+    font-family: "DM Mono", monospace;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--text);
+  }
+  .hm-metric__value.loading {
+    color: var(--text-subtle);
+    font-size: 14px;
+  }
+  .hm-metric__delta {
+    font-size: 11px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .hm-metric__delta--up {
+    color: var(--success);
+  }
+  .hm-metric__delta--down {
+    color: var(--danger);
+  }
+  .hm-metric__delta--neu {
+    color: var(--text-subtle);
+  }
+  .hm-metric__delta .material-symbols-outlined {
+    font-size: 13px;
+  }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 1024px) {
+    .hm-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .hm-analytics-card {
+      grid-column: 1 / -1;
+      order: -1;
+    }
+  }
+  @media (max-width: 640px) {
+    #home-root {
+      padding: 16px 14px 32px;
+    }
+    .hm-grid,
+    .hm-stats {
+      grid-template-columns: 1fr;
+    }
+    .hm-greeting__name {
+      font-size: 22px;
+    }
+  }
+</style>
+{% endblock %} {% block header_title %}MailMind{% endblock %} {% block content
+%}
+<div id="home-root">
+  <!-- Header -->
+  <header class="hm-header">
+    <div class="hm-greeting">
+      <span class="hm-greeting__eyebrow">Welcome back</span>
+      <span class="hm-greeting__name"
+        >Hello,
+        <span class="hm-name-accent" id="home-user-name"
+          >MailMind User</span
+        ></span
+      >
     </div>
-    <a href="/crafter" class="btn btn-primary">
-        <span class="material-symbols-outlined" style="font-size:16px">edit</span>
-        New Email
-    </a>
-</div>
-<div class="grid grid-xl-12">
-    <!-- Row 1: Tasks + Meetings -->
-    <section class="card col-span-6-xl" data-animate="1">
-        <div class="card-header">
-            <h3 class="card-title">My Tasks</h3>
-            <div class="card-actions">
-                <button class="icon-btn small" title="Add task">
-                    <span class="material-symbols-outlined" style="font-size:16px">add</span>
-                </button>
-            </div>
-        </div>
-        <div id="tasks-loading" class="loading-placeholder">Loading tasks…</div>
-        <div id="tasks-list" class="hidden list-scroll"></div>
-        <div id="tasks-empty" class="hidden loading-placeholder">No tasks yet</div>
-    </section>
-    <section class="card col-span-6-xl" data-animate="2">
-        <div class="card-header">
-            <h3 class="card-title">Meeting Overview</h3>
-            <div class="badge-live">Live</div>
-        </div>
-        <div id="meetings-loading" class="loading-placeholder">Loading meetings…</div>
-        <div id="meetings-list" class="hidden list-scroll"></div>
-        <div id="meetings-empty" class="hidden loading-placeholder">No upcoming meetings</div>
-    </section>
+    <div class="hm-header-actions">
+      <a href="/profile" class="hm-btn hm-btn--ghost">
+        <span class="material-symbols-outlined">edit</span>Edit
+      </a>
+      <a href="/compose" class="hm-btn hm-btn--primary">
+        <span class="material-symbols-outlined">add</span>New Email
+      </a>
+    </div>
+  </header>
 
-    <!-- Row 2: Analytics + Stats -->
-    <section class="card col-span-8-xl" data-animate="3">
-        <h3 class="card-title" style="margin-bottom:16px">Emails Overview</h3>
-        <div id="analytics-loading" class="loading-placeholder">Loading analytics…</div>
-        <div id="analytics-empty" class="hidden loading-placeholder">No analytics data yet</div>
-        <div id="analytics-data" class="hidden analytics-grid">
-            <div style="display:flex;align-items:center;justify-content:center">
-                <svg id="analytics-pie" viewBox="0 0 120 120"
-                    style="height:200px;width:200px;transform:rotate(-90deg)"></svg>
-            </div>
-            <div id="analytics-legend" style="display:flex;flex-direction:column;gap:6px"></div>
-        </div>
-    </section>
-    <section class="card col-span-4-xl" data-animate="4">
-        <h3 class="card-title" style="margin-bottom:16px">Email Summary</h3>
-        <div class="stack">
-            <div class="stat-block">
-                <p class="stat-label">Emails Processed</p>
-                <p id="stat-total" class="stat-value">—</p>
-            </div>
-            <div class="stat-block">
-                <p class="stat-label">Spam Blocked</p>
-                <p id="stat-spam" class="stat-value">—</p>
-            </div>
-            <div class="stat-block">
-                <p class="stat-label">Needs Reply</p>
-                <p id="stat-reply" class="stat-value">—</p>
-            </div>
-        </div>
-    </section>
-</div>
-{% endblock %}
+  <!-- Top stat cards -->
+  <section class="hm-stats">
+    <div class="hm-stat-card hm-stat-card--blue">
+      <div class="hm-stat-card__label">
+        <span class="material-symbols-outlined">mail</span>Emails Processed
+      </div>
+      <div class="hm-stat-card__value loading" id="stat-processed">—</div>
+      <div class="hm-stat-card__sub" id="stat-processed-sub">&nbsp;</div>
+    </div>
+    <div class="hm-stat-card hm-stat-card--green">
+      <div class="hm-stat-card__label">
+        <span class="material-symbols-outlined">block</span>Spam Blocked
+      </div>
+      <div class="hm-stat-card__value loading" id="stat-spam">—</div>
+      <div class="hm-stat-card__sub" id="stat-spam-sub">&nbsp;</div>
+    </div>
+    <div class="hm-stat-card hm-stat-card--amber">
+      <div class="hm-stat-card__label">
+        <span class="material-symbols-outlined">mark_email_unread</span>Needs
+        Reply
+      </div>
+      <div class="hm-stat-card__value loading" id="stat-reply">—</div>
+      <div class="hm-stat-card__sub" id="stat-reply-sub">&nbsp;</div>
+    </div>
+  </section>
 
-{% block scripts %}
+  <!-- Main grid -->
+  <section class="hm-grid">
+    <!-- Tasks -->
+    <article class="hm-card">
+      <div class="hm-card__head">
+        <div class="hm-card__title">
+          <span class="material-symbols-outlined">checklist</span>My Tasks
+        </div>
+        <button class="hm-icon-btn" id="hm-add-task-btn" aria-label="Add task">
+          <span class="material-symbols-outlined">add</span>
+        </button>
+      </div>
+      <div class="hm-card__body">
+        <div class="hm-state-loading" id="hm-tasks-loading">
+          <div class="hm-spinner"></div>
+          Loading tasks…
+        </div>
+        <div class="hm-task-list" id="hm-task-list" hidden></div>
+        <div class="hm-task-empty" id="hm-tasks-empty">
+          <span class="material-symbols-outlined">task_alt</span>No tasks yet
+        </div>
+      </div>
+    </article>
+
+    <!-- Analytics -->
+    <article class="hm-card hm-analytics-card">
+      <div class="hm-card__head">
+        <div class="hm-card__title">
+          <span class="material-symbols-outlined">bar_chart</span>Emails
+          Overview
+        </div>
+        <div class="hm-tabs" role="tablist">
+          <button class="hm-tab active" data-period="week">Week</button>
+          <button class="hm-tab" data-period="month">Month</button>
+          <button class="hm-tab" data-period="year">Year</button>
+        </div>
+      </div>
+
+      <div class="hm-chart-wrap">
+        <div class="hm-state-loading" id="hm-analytics-loading">
+          <div class="hm-spinner"></div>
+          Loading analytics…
+        </div>
+
+        <div id="hm-analytics-content" hidden>
+          <div class="hm-chart-legend">
+            <div class="hm-legend-item">
+              <span class="hm-legend-dot hm-legend-dot--in"></span>Incoming
+            </div>
+            <div class="hm-legend-item">
+              <span class="hm-legend-dot hm-legend-dot--out"></span>Sent
+            </div>
+          </div>
+          <div class="hm-barchart" id="hm-barchart"></div>
+        </div>
+
+        <div class="hm-no-data" id="hm-analytics-empty">
+          <span class="material-symbols-outlined">bar_chart</span>No analytics
+          data yet
+        </div>
+      </div>
+
+      <div class="hm-metrics-row">
+        <div class="hm-metric">
+          <div class="hm-metric__label">Processed</div>
+          <div class="hm-metric__value loading" id="m-processed">—</div>
+          <div
+            class="hm-metric__delta hm-metric__delta--neu"
+            id="m-processed-d"
+          ></div>
+        </div>
+        <div class="hm-metric">
+          <div class="hm-metric__label">Spam</div>
+          <div class="hm-metric__value loading" id="m-spam">—</div>
+          <div
+            class="hm-metric__delta hm-metric__delta--neu"
+            id="m-spam-d"
+          ></div>
+        </div>
+        <div class="hm-metric">
+          <div class="hm-metric__label">Needs Reply</div>
+          <div class="hm-metric__value loading" id="m-reply">—</div>
+          <div
+            class="hm-metric__delta hm-metric__delta--neu"
+            id="m-reply-d"
+          ></div>
+        </div>
+      </div>
+    </article>
+
+    <!-- Meetings -->
+    <article class="hm-card">
+      <div class="hm-card__head">
+        <div class="hm-card__title">
+          <span class="material-symbols-outlined">event</span>Meeting Overview
+        </div>
+        <span class="hm-pill hm-pill--live">Live</span>
+      </div>
+      <div class="hm-card__body">
+        <div class="hm-state-loading" id="hm-meetings-loading">
+          <div class="hm-spinner"></div>
+          Loading meetings…
+        </div>
+        <div class="hm-meeting-list" id="hm-meeting-list" hidden></div>
+        <div class="hm-meeting-empty" id="hm-meetings-empty">
+          <span class="material-symbols-outlined">event_busy</span>No upcoming
+          meetings
+        </div>
+      </div>
+    </article>
+  </section>
+</div>
+{% endblock %} {% block scripts %}
 <script>
-    /* ── Category colors (hex for SVG, no inline color styles) ── */
-    const CAT_COLORS = {
-        urgent:           { hex: "#ef4444", label: "Urgent" },
-        "action-required":{ hex: "#f59e0b", label: "Action Required" },
-        "meeting-request":{ hex: "#3b82f6", label: "Meeting Request" },
-        "order-update":   { hex: "#8b5cf6", label: "Order Update" },
-        spam:             { hex: "#dc2626", label: "Spam" },
-        promotions:       { hex: "#d97706", label: "Promotions" },
-        forum:            { hex: "#14b8a6", label: "Forum" },
-        social_media:     { hex: "#6366f1", label: "Social Media" },
-        updates:          { hex: "#94a3b8", label: "Updates" },
-        verify_code:      { hex: "#06b6d4", label: "Verify Code" },
+  (function () {
+    const qs = (s, r = document) => r.querySelector(s);
+    const qsa = (s, r = document) => Array.from(r.querySelectorAll(s));
+    const hideEl = (el) => {
+      if (el) el.style.display = "none";
+    };
+    const showEl = (el) => {
+      if (el) {
+        el.hidden = false;
+        el.style.display = "";
+      }
+    };
+    const showFlex = (el) => {
+      if (el) el.style.display = "flex";
     };
 
-    function escHtml(str) {
-        return String(str || "")
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;");
+    /* ─── User name ─── */
+    async function loadHomeUserName() {
+      const nameEl = qs("#home-user-name");
+      if (!nameEl) return;
+      try {
+        const res = await fetch("/api/me");
+        if (!res.ok) throw new Error("me failed");
+        const data = await res.json();
+        const raw = data.name || data.email || "MailMind User";
+        const base = String(raw).split("@")[0] || "MailMind User";
+        nameEl.textContent = base.charAt(0).toUpperCase() + base.slice(1);
+      } catch {
+        nameEl.textContent = "MailMind User";
+      }
     }
 
-    function priorityClass(priority) {
-        if (priority === "high") return "priority-high";
-        if (priority === "medium") return "priority-medium";
-        return "priority-low";
+    /* ─── Analytics ─── */
+    function buildBarChart(dataWeek) {
+      const container = qs("#hm-barchart");
+      if (!container) return;
+      container.innerHTML = "";
+
+      const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+      const items =
+        dataWeek ||
+        days.map((_, i) => ({
+          label: days[i],
+          incoming: Math.floor(Math.random() * 80 + 10),
+          sent: Math.floor(Math.random() * 40 + 5),
+        }));
+
+      const maxVal = Math.max(
+        ...items.map((d) => Math.max(d.incoming || 0, d.sent || 0)),
+        1,
+      );
+
+      items.forEach((d, i) => {
+        const col = document.createElement("div");
+        col.className = "hm-barchart__col";
+
+        const barWrap = document.createElement("div");
+        barWrap.className = "hm-barchart__bar-wrap";
+
+        const bIn = document.createElement("div");
+        bIn.className = "hm-barchart__bar hm-barchart__bar--in";
+        bIn.style.height = "0";
+        bIn.title = `Incoming: ${d.incoming}`;
+
+        const bOut = document.createElement("div");
+        bOut.className = "hm-barchart__bar hm-barchart__bar--out";
+        bOut.style.height = "0";
+        bOut.title = `Sent: ${d.sent}`;
+
+        barWrap.append(bIn, bOut);
+
+        const lbl = document.createElement("div");
+        lbl.className = "hm-barchart__label";
+        lbl.textContent = d.label;
+
+        col.append(barWrap, lbl);
+        container.appendChild(col);
+
+        setTimeout(
+          () => {
+            bIn.style.height = ((d.incoming || 0) / maxVal) * 140 + "px";
+            bOut.style.height = ((d.sent || 0) / maxVal) * 140 + "px";
+          },
+          i * 50 + 80,
+        );
+      });
     }
 
-    /* ── Tasks ── */
-    async function markTaskDone(todoId) {
-        try {
-            await fetch(`/api/todos/${todoId}/done`, { method: "PATCH" });
-            await loadTodos();
-        } catch (err) {
-            console.error("Mark todo done failed:", err);
-        }
+    function fillMetric(id, value, delta, dir) {
+      const el = qs("#" + id);
+      if (el) {
+        el.textContent = value;
+        el.classList.remove("loading");
+      }
+      const de = qs("#" + id + "-d");
+      if (!de || delta == null) return;
+      const icons = {
+        up: "arrow_upward",
+        down: "arrow_downward",
+        neu: "remove",
+      };
+      de.innerHTML = `<span class="material-symbols-outlined">${icons[dir] || "remove"}</span>${delta}`;
+      de.className = `hm-metric__delta hm-metric__delta--${dir || "neu"}`;
     }
 
-    async function loadTodos() {
-        const loadingEl = document.getElementById("tasks-loading");
-        const listEl = document.getElementById("tasks-list");
-        const emptyEl = document.getElementById("tasks-empty");
-        loadingEl.classList.remove("hidden");
-        listEl.classList.add("hidden");
-        emptyEl.classList.add("hidden");
-        try {
-            const res = await fetch("/api/todos");
-            const todos = await res.json();
-            if (!Array.isArray(todos) || todos.length === 0) {
-                loadingEl.classList.add("hidden");
-                emptyEl.classList.remove("hidden");
-                return;
-            }
-            listEl.innerHTML = todos.map((todo) => `
-                <div class="card-item">
-                    <div class="task-row">
-                        <button onclick="markTaskDone(${todo.id})" class="checkbox-btn" title="Mark done">
-                            <span class="material-symbols-outlined" style="font-size:12px">check</span>
-                        </button>
-                        <div style="flex:1;min-width:0">
-                            <p class="task-title">${escHtml(todo.title)}</p>
-                            <p class="task-meta">${todo.due_date ? `Due: ${escHtml(todo.due_date)}` : "No due date"}</p>
-                            <p class="task-source truncate">Source: ${escHtml(todo.source_email_subject || "Unknown email")}</p>
-                        </div>
-                        <span class="${priorityClass(todo.priority)}">${escHtml((todo.priority || "low").toUpperCase())}</span>
-                    </div>
-                </div>
-            `).join("");
-            loadingEl.classList.add("hidden");
-            listEl.classList.remove("hidden");
-        } catch (err) {
-            console.error("Todo load failed:", err);
-            loadingEl.classList.add("hidden");
-            emptyEl.classList.remove("hidden");
-        }
+    function fillStat(id, value, sub) {
+      const el = qs("#" + id);
+      if (el) {
+        el.textContent = value ?? "—";
+        el.classList.remove("loading");
+      }
+      const s = qs("#" + id + "-sub");
+      if (s) {
+        s.textContent = sub || "\u00A0";
+      }
     }
 
-    /* ── Meetings ── */
-    async function loadMeetings() {
-        const loadingEl = document.getElementById("meetings-loading");
-        const listEl = document.getElementById("meetings-list");
-        const emptyEl = document.getElementById("meetings-empty");
-        loadingEl.classList.remove("hidden");
-        listEl.classList.add("hidden");
-        emptyEl.classList.add("hidden");
-        try {
-            const res = await fetch("/api/meetings");
-            const meetings = await res.json();
-            if (!Array.isArray(meetings) || meetings.length === 0) {
-                loadingEl.classList.add("hidden");
-                emptyEl.classList.remove("hidden");
-                return;
-            }
-            listEl.innerHTML = meetings.slice(0, 5).map((meeting) => `
-                <div class="card-item">
-                    <p class="meeting-title">${escHtml(meeting.title)}</p>
-                    <p class="meeting-meta">
-                        ${escHtml(meeting.date || "Date TBD")}${meeting.time ? ` · ${escHtml(meeting.time)}` : ""}
-                    </p>
-                    <p class="meeting-detail truncate">
-                        ${meeting.location_or_link ? escHtml(meeting.location_or_link) : "Location not specified"}
-                    </p>
-                    <p class="meeting-detail truncate">
-                        Attendees: ${Array.isArray(meeting.attendees) && meeting.attendees.length
-                            ? escHtml(meeting.attendees.join(", "))
-                            : "Not specified"}
-                    </p>
-                    <p class="meeting-detail truncate">
-                        Source: ${escHtml(meeting.source_email_subject || "Unknown email")}
-                    </p>
-                </div>
-            `).join("");
-            loadingEl.classList.add("hidden");
-            listEl.classList.remove("hidden");
-        } catch (err) {
-            console.error("Meeting load failed:", err);
-            loadingEl.classList.add("hidden");
-            emptyEl.classList.remove("hidden");
-        }
-    }
-
-    /* ── Analytics ── */
     async function loadAnalytics() {
-        try {
-            const res = await fetch("/api/analytics/summary");
-            const data = await res.json();
+      const loadingEl = qs("#hm-analytics-loading");
+      const contentEl = qs("#hm-analytics-content");
+      const emptyEl = qs("#hm-analytics-empty");
 
-            document.getElementById("stat-total").textContent = data.total_processed || 0;
-            document.getElementById("stat-spam").textContent = data.spam_blocked || 0;
-            document.getElementById("stat-reply").textContent = data.requires_reply_count || 0;
+      try {
+        const res = await fetch("/api/analytics/overview");
+        const data = res.ok ? await res.json() : null;
 
-            if (!data.total_processed || data.total_processed === 0) {
-                document.getElementById("analytics-loading").classList.add("hidden");
-                document.getElementById("analytics-empty").classList.remove("hidden");
-                return;
+        hideEl(loadingEl);
+
+        if (data && (data.chart || data.processed != null)) {
+          showEl(contentEl);
+          buildBarChart(data.chart);
+          fillMetric(
+            "m-processed",
+            data.processed ?? "—",
+            data.processed_delta,
+            data.processed_dir,
+          );
+          fillMetric(
+            "m-spam",
+            data.spam ?? "—",
+            data.spam_delta,
+            data.spam_dir,
+          );
+          fillMetric(
+            "m-reply",
+            data.reply ?? "—",
+            data.reply_delta,
+            data.reply_dir,
+          );
+
+          fillStat("stat-processed", data.processed, data.processed_sub);
+          fillStat("stat-spam", data.spam, data.spam_sub);
+          fillStat("stat-reply", data.reply, data.reply_sub);
+        } else {
+          showFlex(emptyEl);
+          ["m-processed", "m-spam", "m-reply"].forEach((id) => {
+            const el = qs("#" + id);
+            if (el) {
+              el.textContent = "—";
+              el.classList.remove("loading");
             }
+          });
+        }
+      } catch {
+        hideEl(loadingEl);
+        showFlex(emptyEl);
+      }
+    }
 
-            const categories = data.categories || {};
-            const total = Math.max(
-                Object.values(categories).reduce((sum, v) => sum + Number(v || 0), 0),
-                1
-            );
-            const sorted = Object.entries(categories).sort((a, b) => b[1] - a[1]);
+    qsa(".hm-tab").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        qsa(".hm-tab").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        loadAnalytics();
+      });
+    });
 
-            const pieEl = document.getElementById("analytics-pie");
-            const legendEl = document.getElementById("analytics-legend");
-            const radius = 44;
-            const circumference = 2 * Math.PI * radius;
-            let offset = 0;
+    /* ─── Todos ─── */
+    async function loadTodos() {
+      const loadingEl = qs("#hm-tasks-loading");
+      const listEl = qs("#hm-task-list");
+      const emptyEl = qs("#hm-tasks-empty");
 
-            pieEl.innerHTML = `<circle cx="60" cy="60" r="${radius}" fill="none" stroke="var(--border)" stroke-width="18"></circle>`;
-            sorted.forEach(([cat, count]) => {
-                const cfg = CAT_COLORS[cat] || CAT_COLORS["updates"];
-                const pct = count / total;
-                const segment = pct * circumference;
-                pieEl.innerHTML += `<circle cx="60" cy="60" r="${radius}" fill="none" stroke="${cfg.hex}" stroke-width="18" stroke-linecap="butt" stroke-dasharray="${segment} ${circumference - segment}" stroke-dashoffset="${-offset}"></circle>`;
-                offset += segment;
+      try {
+        const res = await fetch("/api/todos");
+        const todos = res.ok ? await res.json() : [];
+
+        hideEl(loadingEl);
+
+        if (Array.isArray(todos) && todos.length) {
+          showEl(listEl);
+          todos.forEach((todo, i) => {
+            const item = document.createElement("div");
+            item.className = "hm-task-item";
+            item.style.animationDelay = i * 60 + "ms";
+
+            const check = document.createElement("div");
+            check.className = "hm-task-item__check";
+            check.title = "Mark complete";
+
+            const textEl = document.createElement("div");
+            textEl.className = "hm-task-item__text";
+            textEl.textContent = todo.title || todo.text || "Untitled task";
+
+            check.addEventListener("click", () => {
+              textEl.classList.toggle("done");
+              const on = textEl.classList.contains("done");
+              check.style.borderColor = on ? "var(--success)" : "";
+              check.style.background = on ? "var(--success-soft)" : "";
             });
 
-            legendEl.innerHTML = sorted.map(([cat, count]) => {
-                const cfg = CAT_COLORS[cat] || CAT_COLORS["updates"];
-                const pct = Math.round((count / total) * 100);
-                return `
-                    <div class="legend-item">
-                        <div class="legend-left">
-                            <span class="legend-dot" style="background:${cfg.hex}"></span>
-                            <span class="legend-label">${cfg.label}</span>
-                        </div>
-                        <span class="legend-count">${count} (${pct}%)</span>
-                    </div>
-                `;
-            }).join("");
-
-            document.getElementById("analytics-loading").classList.add("hidden");
-            document.getElementById("analytics-data").classList.remove("hidden");
-        } catch (err) {
-            console.error("Analytics load failed:", err);
-            document.getElementById("analytics-loading").classList.add("hidden");
-            document.getElementById("analytics-empty").classList.remove("hidden");
+            item.append(check, textEl);
+            listEl.appendChild(item);
+          });
+        } else {
+          showFlex(emptyEl);
         }
+      } catch {
+        hideEl(loadingEl);
+        showFlex(emptyEl);
+      }
     }
 
-    /* ── User name ── */
-    async function loadHomeUserName() {
-        try {
-            const res = await fetch("/api/auth/status");
-            const data = await res.json();
-            const nameEl = document.getElementById("home-user-name");
-            if (!nameEl) return;
-            if (data.connected && data.email) {
-                const baseName = data.email.split("@")[0] || "MailMind User";
-                nameEl.textContent = baseName.charAt(0).toUpperCase() + baseName.slice(1);
-            } else {
-                nameEl.textContent = "MailMind User";
-            }
-        } catch (err) {
-            console.error("User name load failed:", err);
-        }
+    const addBtn = qs("#hm-add-task-btn");
+    if (addBtn)
+      addBtn.addEventListener("click", () => {
+        window.location.href = "/todos/new";
+      });
+
+    /* ─── Meetings ─── */
+    function fmt(dateStr) {
+      try {
+        const d = new Date(dateStr);
+        return d.toLocaleString("en-US", {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      } catch {
+        return dateStr || "";
+      }
     }
 
-    /* ── Init ── */
+    async function loadMeetings() {
+      const loadingEl = qs("#hm-meetings-loading");
+      const listEl = qs("#hm-meeting-list");
+      const emptyEl = qs("#hm-meetings-empty");
+
+      try {
+        const res = await fetch("/api/meetings");
+        const meetings = res.ok ? await res.json() : [];
+
+        hideEl(loadingEl);
+
+        if (Array.isArray(meetings) && meetings.length) {
+          showEl(listEl);
+          meetings.forEach((m, i) => {
+            const item = document.createElement("div");
+            item.className = "hm-meeting-item";
+            item.style.animationDelay = i * 70 + "ms";
+
+            const title = document.createElement("div");
+            title.className = "hm-meeting-item__title";
+            title.textContent = m.title || m.subject || "Meeting";
+
+            const time = document.createElement("div");
+            time.className = "hm-meeting-item__time";
+            time.innerHTML = `<span class="material-symbols-outlined">schedule</span>${fmt(m.start || m.time || m.date)}`;
+
+            item.append(title, time);
+            listEl.appendChild(item);
+          });
+        } else {
+          showFlex(emptyEl);
+        }
+      } catch {
+        hideEl(loadingEl);
+        showFlex(emptyEl);
+      }
+    }
+
+    /* ─── Bootstrap ─── */
+    loadHomeUserName();
     loadAnalytics();
     loadTodos();
     loadMeetings();
-    loadHomeUserName();
+  })();
 </script>
 {% endblock %}
