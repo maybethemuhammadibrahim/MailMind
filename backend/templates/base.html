@@ -29,6 +29,124 @@
       href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
       rel="stylesheet"
     />
+    <style>
+      .header-controls {
+        position: relative;
+      }
+      .dropdown-panel {
+        position: absolute;
+        top: 40px;
+        right: 0;
+        width: 260px;
+        background: var(--surface, #fff);
+        border: 1px solid var(--border, #e8edf3);
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+        border-radius: 12px;
+        overflow: hidden;
+        z-index: 60;
+        font-family: inherit;
+      }
+      .dropdown-panel[hidden] {
+        display: none;
+      }
+      .dropdown-header {
+        padding: 10px 12px;
+        font-weight: 700;
+        font-size: 13px;
+        border-bottom: 1px solid var(--border-muted, #eef2f6);
+      }
+      .notif-list,
+      .account-actions {
+        list-style: none;
+        margin: 0;
+        padding: 8px;
+      }
+      .notif-item,
+      .account-actions li {
+        padding: 8px 10px;
+        border-radius: 8px;
+      }
+      .notif-item:hover,
+      .account-actions li:hover {
+        background: var(--surface-3, #f1f5f9);
+        cursor: pointer;
+      }
+      .dropdown-footer {
+        padding: 8px 12px;
+        border-top: 1px solid var(--border-muted, #eef2f6);
+        text-align: right;
+      }
+      .avatar-wrapper {
+        display: inline-block;
+        position: relative;
+      }
+      .avatar {
+        background: transparent;
+        border: none;
+        padding: 6px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      .link-like {
+        background: none;
+        border: none;
+        padding: 0;
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+      }
+      .account-info {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border-muted, #eef2f6);
+      }
+      .account-name {
+        font-weight: 700;
+      }
+      .account-email {
+        font-size: 12px;
+        color: var(--text-subtle, #94a3b8);
+      }
+      .panel-btn {
+        /* Layout: Fills the dropdown width and aligns contents perfectly */
+        display: flex;
+        align-items: center;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px 12px;
+
+        /* Typography */
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 500;
+        color: #52525b; /* Medium-dark zinc */
+        text-decoration: none;
+        text-align: left;
+
+        /* Visuals: Transparent base to blend into the dropdown container */
+        background-color: transparent;
+        border: none;
+        border-radius: 6px; /* Soft inner corners */
+
+        /* Fast, snappy transition for dropdowns */
+        transition:
+          background-color 0.15s ease,
+          color 0.15s ease;
+        cursor: pointer;
+      }
+
+      /* Hover & Focus States */
+      .panel-btn:hover,
+      .panel-btn:focus-visible {
+        background-color: #f4f4f5; /* Subtle light gray highlight */
+        color: #09090b; /* Darkens text for better contrast on hover */
+        outline: none; /* Removes default browser outline on click */
+      }
+
+      /* Active State (When clicked) */
+      .panel-btn:active {
+        background-color: #e4e4e7; /* Slightly darker gray to confirm the click */
+      }
+    </style>
   </head>
 
   <body>
@@ -99,11 +217,27 @@
                   type="text"
                 />
               </div>
-              <button class="icon-btn" title="Notifications">
+              <button
+                id="notif-btn"
+                class="icon-btn"
+                aria-haspopup="true"
+                aria-expanded="false"
+                aria-controls="notif-panel"
+                title="Notifications"
+              >
                 <span class="material-symbols-outlined" style="font-size: 18px"
                   >notifications</span
                 >
               </button>
+              <div id="notif-panel" class="dropdown-panel" hidden>
+                <div class="dropdown-header">Notifications</div>
+                <ul class="notif-list">
+                  <li class="notif-item">No notifications yet</li>
+                </ul>
+                <div class="dropdown-footer">
+                  <a class="panel-btn" href="/email">View all</a>
+                </div>
+              </div>
               <button
                 id="dark-mode-toggle"
                 onclick="toggleDarkMode()"
@@ -117,10 +251,40 @@
                   >dark_mode</span
                 >
               </button>
-              <div class="avatar">
-                <span class="material-symbols-outlined" style="font-size: 18px"
-                  >person</span
+              <div class="avatar-wrapper icon-btn">
+                <button
+                  id="account-btn"
+                  class="avatar"
+                  aria-haspopup="true"
+                  aria-expanded="false"
+                  aria-controls="account-panel"
+                  title="Account"
                 >
+                  <span
+                    class="material-symbols-outlined"
+                    style="font-size: 18px"
+                    >person</span
+                  >
+                </button>
+                <div id="account-panel" class="dropdown-panel" hidden>
+                  <div class="account-info">
+                    <div class="account-name">MailMind User</div>
+                    <div class="account-email">user@example.com</div>
+                  </div>
+                  <ul class="account-actions" role="menu">
+                    <li role="menuitem">
+                      <a class="panel-btn" href="/profile">Info</a>
+                    </li>
+                    <li role="menuitem">
+                      <a class="panel-btn" href="/settings">Settings</a>
+                    </li>
+                    <li role="menuitem">
+                      <button id="logout-btn" class="link-like panel-btn">
+                        Logout
+                      </button>
+                    </li>
+                  </ul>
+                </div>
               </div>
             </div>
           </header>
@@ -151,6 +315,98 @@
       })();
     </script>
     <script src="/static/app.js"></script>
+    <script>
+      (function () {
+        const $ = (s) => document.querySelector(s);
+        const notifBtn = $("#notif-btn");
+        const notifPanel = $("#notif-panel");
+        const accountBtn = $("#account-btn");
+        const accountPanel = $("#account-panel");
+
+        function closePanel(panel, btn) {
+          if (!panel) return;
+          panel.hidden = true;
+          if (btn) btn.setAttribute("aria-expanded", "false");
+        }
+        function openPanel(panel, btn) {
+          if (!panel) return;
+          panel.hidden = false;
+          if (btn) btn.setAttribute("aria-expanded", "true");
+        }
+
+        function toggle(panel, btn) {
+          if (!panel) return;
+          if (panel.hidden) openPanel(panel, btn);
+          else closePanel(panel, btn);
+        }
+
+        // Only one panel open at a time
+        function closeAll(except) {
+          [
+            [notifPanel, notifBtn],
+            [accountPanel, accountBtn],
+          ].forEach(([p, b]) => {
+            if (p && p !== except) closePanel(p, b);
+          });
+        }
+
+        if (notifBtn) {
+          notifBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            closeAll(notifPanel);
+            toggle(notifPanel, notifBtn);
+          });
+        }
+
+        if (accountBtn) {
+          accountBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            closeAll(accountPanel);
+            toggle(accountPanel, accountBtn);
+          });
+        }
+
+        // Close on outside click
+        document.addEventListener("click", (e) => {
+          const target = e.target;
+          if (
+            notifPanel &&
+            !notifPanel.contains(target) &&
+            notifBtn &&
+            !notifBtn.contains(target)
+          )
+            closePanel(notifPanel, notifBtn);
+          if (
+            accountPanel &&
+            !accountPanel.contains(target) &&
+            accountBtn &&
+            !accountBtn.contains(target)
+          )
+            closePanel(accountPanel, accountBtn);
+        });
+
+        // Close on Escape
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") {
+            closeAll();
+          }
+        });
+
+        // Prevent clicks inside panels from closing when handlers run
+        [notifPanel, accountPanel].forEach((p) => {
+          if (p) p.addEventListener("click", (e) => e.stopPropagation());
+        });
+
+        // Logout button stub (no backend action) — keep UI-only
+        const logoutBtn = $("#logout-btn");
+        if (logoutBtn)
+          logoutBtn.addEventListener("click", () => {
+            // UI-only: close panel and show a temporary message
+            closePanel(accountPanel, accountBtn);
+            // Optionally, show a toast or visual hint in future
+          });
+      })();
+    </script>
     {% block scripts %}{% endblock %}
   </body>
 </html>

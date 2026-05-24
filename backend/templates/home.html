@@ -95,10 +95,17 @@ block page_styles %}
     padding: 8px 16px;
     box-shadow: 0 2px 8px rgba(15, 23, 42, 0.18);
   }
-  .hm-btn--primary:hover {
-    background: #1e293b;
-    transform: translateY(-1px);
+  .hm-btn--primary:hover,
+  .hm-btn--primary:hover * {
+    background: var(--surface);
+    color: var(--text) !important;
+    /* transform: translateY(-1px); */
     box-shadow: 0 4px 14px rgba(15, 23, 42, 0.22);
+  }
+  .hm-btn--primary:hover span {
+    outline: none; /* Removes the box outline */
+    background: none; /* Ensures the span doesn't have its own box color */
+    box-shadow: none; /* Removes any inner glows/shadows on the text */
   }
 
   /* ─── Summary stat cards ─── */
@@ -120,18 +127,39 @@ block page_styles %}
       box-shadow 0.18s,
       transform 0.18s;
   }
-  .hm-stat-card:hover {
-    box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
-  }
+
   .hm-stat-card--blue {
     border-top: 3px solid var(--accent, #3b82f6);
+    /* Add a smooth transition so the glow fades in nicely */
+    transition:
+      box-shadow 0.3s ease-out,
+      border-color 0.3s ease-out;
   }
+
+  .hm-stat-card--blue:hover {
+    box-shadow: 0 -7px 12px -9px rgba(59, 130, 246, 0.6);
+    border-top: 3px solid #60a5fa;
+  }
+
   .hm-stat-card--green {
     border-top: 3px solid var(--success, #10b981);
+    transition:
+      box-shadow 0.3s ease-out,
+      border-color 0.3s ease-out;
+  }
+  .hm-stat-card--green:hover {
+    box-shadow: 0 -7px 12px -9px rgba(16, 185, 129, 0.6);
+    border-top: 3px solid #34d399;
   }
   .hm-stat-card--amber {
     border-top: 3px solid var(--warning, #f59e0b);
+    transition:
+      box-shadow 0.3s ease-out,
+      border-color 0.3s ease-out;
+  }
+  .hm-stat-card--amber:hover {
+    box-shadow: 0 -7px 12px -9px rgba(245, 158, 11, 0.6);
+    border-top: 3px solid #fbbf24;
   }
   .hm-stat-card__label {
     font-size: 11px;
@@ -610,8 +638,12 @@ block page_styles %}
       <a href="/profile" class="hm-btn hm-btn--ghost">
         <span class="material-symbols-outlined">edit</span>Edit
       </a>
-      <a href="/compose" class="hm-btn hm-btn--primary">
-        <span class="material-symbols-outlined">add</span>New Email
+      <a href="/crafter" class="hm-btn hm-btn--primary">
+        <span
+          class="material-symbols-outlined"
+          style="color: contrast-color(var(--text))"
+          >add</span
+        ><span style="color: contrast-color(var(--text))">New Email</span>
       </a>
     </div>
   </header>

@@ -42,9 +42,9 @@ body {
   justify-content: space-between;
 }
 
-.avatar {
-  width: 96px;
-  height: 96px;
+.avatar--big {
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: var(--surface-3);
   display: inline-flex;
