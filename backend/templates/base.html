@@ -1,143 +1,412 @@
 <!doctype html>
 <html class="light" lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-        <title>{% block title %}AI Assistant Dashboard{% endblock %}</title>
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>{% block title %}MailMind — AI Email Assistant{% endblock %}</title>
 
-        <!-- Link to the Tailwind compiled CSS -->
-        <link href="/static/style.css" rel="stylesheet" />
+    <!-- Prevent FOUC: apply saved theme immediately -->
+    <script>
+      (function () {
+        var saved = localStorage.getItem("theme");
+        var isDark = saved === "dark";
+        document.documentElement.classList.toggle("dark", isDark);
+        document.documentElement.classList.toggle("light", !isDark);
+      })();
+    </script>
 
-        <!-- Google Fonts & Material Symbols -->
-        <link
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-            rel="stylesheet"
-        />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
-            rel="stylesheet"
-        />
-    </head>
-    <body
-        class="bg-surface-bright text-on-surface font-body-md min-h-screen flex flex-col"
-    >
-        <!-- SideNavBar -->
-        <aside
-            class="fixed left-0 top-0 h-full w-[80px] bg-surface-container-lowest dark:bg-inverse-surface shadow-sm flex flex-col items-center py-2 z-50"
-        >
-            <!-- Brand/Logo Area -->
-            <div class="mb-gutter mt-2">
-                <span
-                    class="material-symbols-outlined font-h1 text-h1 font-bold text-primary dark:text-primary-fixed-dim"
-                    style="font-variation-settings: &quot;FILL&quot; 1"
-                >
-                    cruelty_free
-                </span>
-            </div>
-            <nav
-                class="flex flex-col gap-2 w-full items-center flex-1 mt-gutter"
+    <!-- Design system -->
+    <link href="/static/styles/basestyle.css" rel="stylesheet" />
+    <link href="/static/styles/colors.css" rel="stylesheet" />
+    {% block page_styles %}{% endblock %}
+
+    <!-- Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      .header-controls {
+        position: relative;
+      }
+      .dropdown-panel {
+        position: absolute;
+        top: 40px;
+        right: 0;
+        width: 260px;
+        background: var(--surface, #fff);
+        border: 1px solid var(--border, #e8edf3);
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+        border-radius: 12px;
+        overflow: hidden;
+        z-index: 60;
+        font-family: inherit;
+      }
+      .dropdown-panel[hidden] {
+        display: none;
+      }
+      .dropdown-header {
+        padding: 10px 12px;
+        font-weight: 700;
+        font-size: 13px;
+        border-bottom: 1px solid var(--border-muted, #eef2f6);
+      }
+      .notif-list,
+      .account-actions {
+        list-style: none;
+        margin: 0;
+        padding: 8px;
+      }
+      .notif-item,
+      .account-actions li {
+        padding: 8px 10px;
+        border-radius: 8px;
+      }
+      .notif-item:hover,
+      .account-actions li:hover {
+        background: var(--surface-3, #f1f5f9);
+        cursor: pointer;
+      }
+      .dropdown-footer {
+        padding: 8px 12px;
+        border-top: 1px solid var(--border-muted, #eef2f6);
+        text-align: right;
+      }
+      .avatar-wrapper {
+        display: inline-block;
+        position: relative;
+      }
+      .avatar {
+        background: transparent;
+        border: none;
+        padding: 6px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      .link-like {
+        background: none;
+        border: none;
+        padding: 0;
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+      }
+      .account-info {
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--border-muted, #eef2f6);
+      }
+      .account-name {
+        font-weight: 700;
+      }
+      .account-email {
+        font-size: 12px;
+        color: var(--text-subtle, #94a3b8);
+      }
+      .panel-btn {
+        /* Layout: Fills the dropdown width and aligns contents perfectly */
+        display: flex;
+        align-items: center;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px 12px;
+
+        /* Typography */
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 500;
+        color: #52525b; /* Medium-dark zinc */
+        text-decoration: none;
+        text-align: left;
+
+        /* Visuals: Transparent base to blend into the dropdown container */
+        background-color: transparent;
+        border: none;
+        border-radius: 6px; /* Soft inner corners */
+
+        /* Fast, snappy transition for dropdowns */
+        transition:
+          background-color 0.15s ease,
+          color 0.15s ease;
+        cursor: pointer;
+      }
+
+      /* Hover & Focus States */
+      .panel-btn:hover,
+      .panel-btn:focus-visible {
+        background-color: #f4f4f5; /* Subtle light gray highlight */
+        color: #09090b; /* Darkens text for better contrast on hover */
+        outline: none; /* Removes default browser outline on click */
+      }
+
+      /* Active State (When clicked) */
+      .panel-btn:active {
+        background-color: #e4e4e7; /* Slightly darker gray to confirm the click */
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="app-shell">
+      <div class="app-row">
+        <aside class="sidebar">
+          <div class="logo">
+            <span class="logo-icon material-symbols-outlined"
+              >cruelty_free</span
             >
-                <!-- Home -->
-                <a
-                    href="/"
-                    class="relative flex flex-col items-center justify-center p-2 text-on-surface-variant dark:text-surface-variant transition-all duration-200 active:scale-95 w-full hover:bg-surface-container-low dark:hover:bg-surface-container-highest"
-                >
-                    <span class="material-symbols-outlined mb-1">home</span>
-                    <span class="font-label-sm text-label-sm">Home</span>
-                </a>
-                <!-- Email -->
-                <a
-                    href="/email"
-                    class="relative flex flex-col items-center justify-center p-2 text-on-surface-variant dark:text-surface-variant transition-all duration-200 active:scale-95 w-full hover:bg-surface-container-low dark:hover:bg-surface-container-highest"
-                >
-                    <span class="material-symbols-outlined mb-1">mail</span>
-                    <span class="font-label-sm text-label-sm">Email</span>
-                </a>
-                <!-- Crafter -->
-                <a
-                    href="/crafter"
-                    class="relative flex flex-col items-center justify-center p-2 text-on-surface-variant dark:text-surface-variant transition-all duration-200 active:scale-95 w-full hover:bg-surface-container-low dark:hover:bg-surface-container-highest"
-                >
-                    <span class="material-symbols-outlined mb-1"
-                        >auto_awesome</span
-                    >
-                    <span class="font-label-sm text-label-sm">Crafter</span>
-                </a>
-                <!-- Orders -->
-                <a
-                    href="/orders"
-                    class="relative flex flex-col items-center justify-center p-2 text-on-surface-variant dark:text-surface-variant transition-all duration-200 active:scale-95 w-full hover:bg-surface-container-low dark:hover:bg-surface-container-highest"
-                >
-                    <span class="material-symbols-outlined mb-1"
-                        >shopping_cart</span
-                    >
-                    <span class="font-label-sm text-label-sm">Orders</span>
-                </a>
-                <!-- Settings -->
-                <a
-                    href="/settings"
-                    class="relative flex flex-col items-center justify-center p-2 text-on-surface-variant dark:text-surface-variant transition-all duration-200 active:scale-95 w-full hover:bg-surface-container-low dark:hover:bg-surface-container-highest mt-auto mb-gutter"
-                >
-                    <span class="material-symbols-outlined mb-1">settings</span>
-                    <span class="font-label-sm text-label-sm">Settings</span>
-                </a>
-            </nav>
+          </div>
+          <nav class="nav">
+            <a href="/" class="nav-link" data-page="/" title="Home">
+              <span class="material-symbols-outlined">home</span>
+            </a>
+            <a href="/email" class="nav-link" data-page="/email" title="Email">
+              <span class="material-symbols-outlined">mail</span>
+            </a>
+            <a
+              href="/crafter"
+              class="nav-link"
+              data-page="/crafter"
+              title="Crafter"
+            >
+              <span class="material-symbols-outlined">auto_awesome</span>
+            </a>
+            <a
+              href="/orders"
+              class="nav-link"
+              data-page="/orders"
+              title="Orders"
+            >
+              <span class="material-symbols-outlined">shopping_bag</span>
+            </a>
+            <a href="#" class="nav-link placeholder" title="Coming soon">
+              <span class="material-symbols-outlined">view_kanban</span>
+            </a>
+            <div class="nav-footer">
+              <a href="#" class="nav-link" title="Help">
+                <span class="material-symbols-outlined">help</span>
+              </a>
+              <a
+                href="/settings"
+                class="nav-link"
+                data-page="/settings"
+                title="Settings"
+              >
+                <span class="material-symbols-outlined">settings</span>
+              </a>
+            </div>
+          </nav>
         </aside>
-
-        <!-- TopNavBar -->
-        <header
-            class="fixed top-0 right-0 w-[calc(100%-80px)] h-16 bg-surface/80 dark:bg-inverse-surface/80 backdrop-blur-md shadow-sm flex justify-between items-center px-container-margin z-40"
-        >
-            <div class="flex items-center gap-gutter">
-                <h1
-                    class="font-h2 text-h2 font-semibold text-on-surface dark:text-inverse-on-surface"
-                >
-                    {% block header_title %}Dashboard{% endblock %}
-                </h1>
-                <div
-                    class="relative hidden md:block w-64 focus-within:ring-2 focus-within:ring-primary/20 rounded-full transition-all duration-200"
-                >
-                    <span
-                        class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant"
-                        >search</span
-                    >
-                    <input
-                        class="w-full bg-surface-container-lowest border border-outline-variant rounded-full py-2 pl-10 pr-4 font-label-md text-label-md text-on-surface placeholder:text-on-surface-variant focus:outline-none focus:border-primary"
-                        placeholder="Search..."
-                        type="text"
-                    />
-                </div>
+        <div class="main-container">
+          <header class="header">
+            <div>
+              <h1 class="header-title">
+                {% block header_title %}Dashboard{% endblock %}
+              </h1>
             </div>
-            <div class="flex items-center gap-2">
-                <button
-                    class="p-2 text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors rounded-full hover:bg-surface-container-low"
+            <div class="header-controls">
+              <div class="search-container">
+                <span class="search-icon material-symbols-outlined"
+                  >search</span
                 >
-                    <span class="material-symbols-outlined">notifications</span>
-                </button>
-                <button
-                    class="p-2 text-on-surface-variant dark:text-surface-variant hover:text-primary dark:hover:text-primary-fixed-dim transition-colors rounded-full hover:bg-surface-container-low"
+                <input
+                  class="search-input"
+                  placeholder="Search..."
+                  type="text"
+                />
+              </div>
+              <button
+                id="notif-btn"
+                class="icon-btn"
+                aria-haspopup="true"
+                aria-expanded="false"
+                aria-controls="notif-panel"
+                title="Notifications"
+              >
+                <span class="material-symbols-outlined" style="font-size: 18px"
+                  >notifications</span
                 >
-                    <span class="material-symbols-outlined">help</span>
-                </button>
-                <div
-                    class="h-8 w-8 rounded-full ml-2 border border-outline-variant bg-surface-container-high flex items-center justify-center"
-                >
-                    <span
-                        class="material-symbols-outlined text-[20px] text-on-surface-variant"
-                        >person</span
-                    >
+              </button>
+              <div id="notif-panel" class="dropdown-panel" hidden>
+                <div class="dropdown-header">Notifications</div>
+                <ul class="notif-list">
+                  <li class="notif-item">No notifications yet</li>
+                </ul>
+                <div class="dropdown-footer">
+                  <a class="panel-btn" href="/email">View all</a>
                 </div>
+              </div>
+              <button
+                id="dark-mode-toggle"
+                onclick="toggleDarkMode()"
+                class="icon-btn"
+                title="Toggle dark mode"
+              >
+                <span
+                  id="dark-mode-icon"
+                  class="material-symbols-outlined"
+                  style="font-size: 18px"
+                  >dark_mode</span
+                >
+              </button>
+              <div class="avatar-wrapper icon-btn">
+                <button
+                  id="account-btn"
+                  class="avatar"
+                  aria-haspopup="true"
+                  aria-expanded="false"
+                  aria-controls="account-panel"
+                  title="Account"
+                >
+                  <span
+                    class="material-symbols-outlined"
+                    style="font-size: 18px"
+                    >person</span
+                  >
+                </button>
+                <div id="account-panel" class="dropdown-panel" hidden>
+                  <div class="account-info">
+                    <div class="account-name">MailMind User</div>
+                    <div class="account-email">user@example.com</div>
+                  </div>
+                  <ul class="account-actions" role="menu">
+                    <li role="menuitem">
+                      <a class="panel-btn" href="/profile">Info</a>
+                    </li>
+                    <li role="menuitem">
+                      <a class="panel-btn" href="/settings">Settings</a>
+                    </li>
+                    <li role="menuitem">
+                      <button id="logout-btn" class="link-like panel-btn">
+                        Logout
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+              </div>
             </div>
-        </header>
-
-        <!-- Main Content Canvas -->
-        <main
-            class="ml-[80px] mt-16 p-container-margin flex flex-col gap-gutter flex-1 relative"
-        >
+          </header>
+          <main class="{% block main_class %}main-content{% endblock %}">
             {% block content %}{% endblock %}
-        </main>
+          </main>
+        </div>
+      </div>
+    </div>
 
-        <script src="/static/app.js"></script>
-        {% block scripts %}{% endblock %}
-    </body>
+    <script>
+      // ── Dark mode toggle ──────────────────────────────────────────────
+      function toggleDarkMode() {
+        var html = document.documentElement;
+        var isDark = html.classList.toggle("dark");
+        html.classList.toggle("light", !isDark);
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+        updateDarkModeIcon(isDark);
+      }
+      function updateDarkModeIcon(isDark) {
+        var icon = document.getElementById("dark-mode-icon");
+        if (icon) icon.textContent = isDark ? "light_mode" : "dark_mode";
+      }
+      // Set icon to match current theme
+      (function () {
+        var isDark = document.documentElement.classList.contains("dark");
+        updateDarkModeIcon(isDark);
+      })();
+    </script>
+    <script src="/static/app.js"></script>
+    <script>
+      (function () {
+        const $ = (s) => document.querySelector(s);
+        const notifBtn = $("#notif-btn");
+        const notifPanel = $("#notif-panel");
+        const accountBtn = $("#account-btn");
+        const accountPanel = $("#account-panel");
+
+        function closePanel(panel, btn) {
+          if (!panel) return;
+          panel.hidden = true;
+          if (btn) btn.setAttribute("aria-expanded", "false");
+        }
+        function openPanel(panel, btn) {
+          if (!panel) return;
+          panel.hidden = false;
+          if (btn) btn.setAttribute("aria-expanded", "true");
+        }
+
+        function toggle(panel, btn) {
+          if (!panel) return;
+          if (panel.hidden) openPanel(panel, btn);
+          else closePanel(panel, btn);
+        }
+
+        // Only one panel open at a time
+        function closeAll(except) {
+          [
+            [notifPanel, notifBtn],
+            [accountPanel, accountBtn],
+          ].forEach(([p, b]) => {
+            if (p && p !== except) closePanel(p, b);
+          });
+        }
+
+        if (notifBtn) {
+          notifBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            closeAll(notifPanel);
+            toggle(notifPanel, notifBtn);
+          });
+        }
+
+        if (accountBtn) {
+          accountBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            closeAll(accountPanel);
+            toggle(accountPanel, accountBtn);
+          });
+        }
+
+        // Close on outside click
+        document.addEventListener("click", (e) => {
+          const target = e.target;
+          if (
+            notifPanel &&
+            !notifPanel.contains(target) &&
+            notifBtn &&
+            !notifBtn.contains(target)
+          )
+            closePanel(notifPanel, notifBtn);
+          if (
+            accountPanel &&
+            !accountPanel.contains(target) &&
+            accountBtn &&
+            !accountBtn.contains(target)
+          )
+            closePanel(accountPanel, accountBtn);
+        });
+
+        // Close on Escape
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") {
+            closeAll();
+          }
+        });
+
+        // Prevent clicks inside panels from closing when handlers run
+        [notifPanel, accountPanel].forEach((p) => {
+          if (p) p.addEventListener("click", (e) => e.stopPropagation());
+        });
+
+        // Logout button stub (no backend action) — keep UI-only
+        const logoutBtn = $("#logout-btn");
+        if (logoutBtn)
+          logoutBtn.addEventListener("click", () => {
+            // UI-only: close panel and show a temporary message
+            closePanel(accountPanel, accountBtn);
+            // Optionally, show a toast or visual hint in future
+          });
+      })();
+    </script>
+    {% block scripts %}{% endblock %}
+  </body>
 </html>

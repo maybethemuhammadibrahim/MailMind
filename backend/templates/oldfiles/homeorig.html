@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+{% block title %}Home — MailMind{% endblock %}
+{% block page_styles %}
+<link href="/static/styles/pagestyles.css" rel="stylesheet" />
+{% endblock %}
+{% block header_title %}MailMind{% endblock %}
+{% block content %}
+<div class="page-toolbar">
+    <div>
+        <p class="meta-text">Welcome back</p>
+        <h2 id="home-user-name" class="page-title">MailMind User</h2>
+    </div>
+    <a href="/crafter" class="btn btn-primary">
+        <span class="material-symbols-outlined" style="font-size:16px">edit</span>
+        New Email
+    </a>
+</div>
+<div class="grid grid-xl-12">
+    <!-- Row 1: Tasks + Meetings -->
+    <section class="card col-span-6-xl" data-animate="1">
+        <div class="card-header">
+            <h3 class="card-title">My Tasks</h3>
+            <div class="card-actions">
+                <button class="icon-btn small" title="Add task">
+                    <span class="material-symbols-outlined" style="font-size:16px">add</span>
+                </button>
+            </div>
+        </div>
+        <div id="tasks-loading" class="loading-placeholder">Loading tasks…</div>
+        <div id="tasks-list" class="hidden list-scroll"></div>
+        <div id="tasks-empty" class="hidden loading-placeholder">No tasks yet</div>
+    </section>
+    <section class="card col-span-6-xl" data-animate="2">
+        <div class="card-header">
+            <h3 class="card-title">Meeting Overview</h3>
+            <div class="badge-live">Live</div>
+        </div>
+        <div id="meetings-loading" class="loading-placeholder">Loading meetings…</div>
+        <div id="meetings-list" class="hidden list-scroll"></div>
+        <div id="meetings-empty" class="hidden loading-placeholder">No upcoming meetings</div>
+    </section>
+
+    <!-- Row 2: Analytics + Stats -->
+    <section class="card col-span-8-xl" data-animate="3">
+        <h3 class="card-title" style="margin-bottom:16px">Emails Overview</h3>
+        <div id="analytics-loading" class="loading-placeholder">Loading analytics…</div>
+        <div id="analytics-empty" class="hidden loading-placeholder">No analytics data yet</div>
+        <div id="analytics-data" class="hidden analytics-grid">
+            <div style="display:flex;align-items:center;justify-content:center">
+                <svg id="analytics-pie" viewBox="0 0 120 120"
+                    style="height:200px;width:200px;transform:rotate(-90deg)"></svg>
+            </div>
+            <div id="analytics-legend" style="display:flex;flex-direction:column;gap:6px"></div>
+        </div>
+    </section>
+    <section class="card col-span-4-xl" data-animate="4">
+        <h3 class="card-title" style="margin-bottom:16px">Email Summary</h3>
+        <div class="stack">
+            <div class="stat-block">
+                <p class="stat-label">Emails Processed</p>
+                <p id="stat-total" class="stat-value">—</p>
+            </div>
+            <div class="stat-block">
+                <p class="stat-label">Spam Blocked</p>
+                <p id="stat-spam" class="stat-value">—</p>
+            </div>
+            <div class="stat-block">
+                <p class="stat-label">Needs Reply</p>
+                <p id="stat-reply" class="stat-value">—</p>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    /* ── Category colors (hex for SVG, no inline color styles) ── */
+    const CAT_COLORS = {
+        urgent:           { hex: "#ef4444", label: "Urgent" },
+        "action-required":{ hex: "#f59e0b", label: "Action Required" },
+        "meeting-request":{ hex: "#3b82f6", label: "Meeting Request" },
+        "order-update":   { hex: "#8b5cf6", label: "Order Update" },
+        spam:             { hex: "#dc2626", label: "Spam" },
+        promotions:       { hex: "#d97706", label: "Promotions" },
+        forum:            { hex: "#14b8a6", label: "Forum" },
+        social_media:     { hex: "#6366f1", label: "Social Media" },
+        updates:          { hex: "#94a3b8", label: "Updates" },
+        verify_code:      { hex: "#06b6d4", label: "Verify Code" },
+    };
+
+    function escHtml(str) {
+        return String(str || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+    }
+
+    function priorityClass(priority) {
+        if (priority === "high") return "priority-high";
+        if (priority === "medium") return "priority-medium";
+        return "priority-low";
+    }
+
+    /* ── Tasks ── */
+    async function markTaskDone(todoId) {
+        try {
+            await fetch(`/api/todos/${todoId}/done`, { method: "PATCH" });
+            await loadTodos();
+        } catch (err) {
+            console.error("Mark todo done failed:", err);
+        }
+    }
+
+    async function loadTodos() {
+        const loadingEl = document.getElementById("tasks-loading");
+        const listEl = document.getElementById("tasks-list");
+        const emptyEl = document.getElementById("tasks-empty");
+        loadingEl.classList.remove("hidden");
+        listEl.classList.add("hidden");
+        emptyEl.classList.add("hidden");
+        try {
+            const res = await fetch("/api/todos");
+            const todos = await res.json();
+            if (!Array.isArray(todos) || todos.length === 0) {
+                loadingEl.classList.add("hidden");
+                emptyEl.classList.remove("hidden");
+                return;
+            }
+            listEl.innerHTML = todos.map((todo) => `
+                <div class="card-item">
+                    <div class="task-row">
+                        <button onclick="markTaskDone(${todo.id})" class="checkbox-btn" title="Mark done">
+                            <span class="material-symbols-outlined" style="font-size:12px">check</span>
+                        </button>
+                        <div style="flex:1;min-width:0">
+                            <p class="task-title">${escHtml(todo.title)}</p>
+                            <p class="task-meta">${todo.due_date ? `Due: ${escHtml(todo.due_date)}` : "No due date"}</p>
+                            <p class="task-source truncate">Source: ${escHtml(todo.source_email_subject || "Unknown email")}</p>
+                        </div>
+                        <span class="${priorityClass(todo.priority)}">${escHtml((todo.priority || "low").toUpperCase())}</span>
+                    </div>
+                </div>
+            `).join("");
+            loadingEl.classList.add("hidden");
+            listEl.classList.remove("hidden");
+        } catch (err) {
+            console.error("Todo load failed:", err);
+            loadingEl.classList.add("hidden");
+            emptyEl.classList.remove("hidden");
+        }
+    }
+
+    /* ── Meetings ── */
+    async function loadMeetings() {
+        const loadingEl = document.getElementById("meetings-loading");
+        const listEl = document.getElementById("meetings-list");
+        const emptyEl = document.getElementById("meetings-empty");
+        loadingEl.classList.remove("hidden");
+        listEl.classList.add("hidden");
+        emptyEl.classList.add("hidden");
+        try {
+            const res = await fetch("/api/meetings");
+            const meetings = await res.json();
+            if (!Array.isArray(meetings) || meetings.length === 0) {
+                loadingEl.classList.add("hidden");
+                emptyEl.classList.remove("hidden");
+                return;
+            }
+            listEl.innerHTML = meetings.slice(0, 5).map((meeting) => `
+                <div class="card-item">
+                    <p class="meeting-title">${escHtml(meeting.title)}</p>
+                    <p class="meeting-meta">
+                        ${escHtml(meeting.date || "Date TBD")}${meeting.time ? ` · ${escHtml(meeting.time)}` : ""}
+                    </p>
+                    <p class="meeting-detail truncate">
+                        ${meeting.location_or_link ? escHtml(meeting.location_or_link) : "Location not specified"}
+                    </p>
+                    <p class="meeting-detail truncate">
+                        Attendees: ${Array.isArray(meeting.attendees) && meeting.attendees.length
+                            ? escHtml(meeting.attendees.join(", "))
+                            : "Not specified"}
+                    </p>
+                    <p class="meeting-detail truncate">
+                        Source: ${escHtml(meeting.source_email_subject || "Unknown email")}
+                    </p>
+                </div>
+            `).join("");
+            loadingEl.classList.add("hidden");
+            listEl.classList.remove("hidden");
+        } catch (err) {
+            console.error("Meeting load failed:", err);
+            loadingEl.classList.add("hidden");
+            emptyEl.classList.remove("hidden");
+        }
+    }
+
+    /* ── Analytics ── */
+    async function loadAnalytics() {
+        try {
+            const res = await fetch("/api/analytics/summary");
+            const data = await res.json();
+
+            document.getElementById("stat-total").textContent = data.total_processed || 0;
+            document.getElementById("stat-spam").textContent = data.spam_blocked || 0;
+            document.getElementById("stat-reply").textContent = data.requires_reply_count || 0;
+
+            if (!data.total_processed || data.total_processed === 0) {
+                document.getElementById("analytics-loading").classList.add("hidden");
+                document.getElementById("analytics-empty").classList.remove("hidden");
+                return;
+            }
+
+            const categories = data.categories || {};
+            const total = Math.max(
+                Object.values(categories).reduce((sum, v) => sum + Number(v || 0), 0),
+                1
+            );
+            const sorted = Object.entries(categories).sort((a, b) => b[1] - a[1]);
+
+            const pieEl = document.getElementById("analytics-pie");
+            const legendEl = document.getElementById("analytics-legend");
+            const radius = 44;
+            const circumference = 2 * Math.PI * radius;
+            let offset = 0;
+
+            pieEl.innerHTML = `<circle cx="60" cy="60" r="${radius}" fill="none" stroke="var(--border)" stroke-width="18"></circle>`;
+            sorted.forEach(([cat, count]) => {
+                const cfg = CAT_COLORS[cat] || CAT_COLORS["updates"];
+                const pct = count / total;
+                const segment = pct * circumference;
+                pieEl.innerHTML += `<circle cx="60" cy="60" r="${radius}" fill="none" stroke="${cfg.hex}" stroke-width="18" stroke-linecap="butt" stroke-dasharray="${segment} ${circumference - segment}" stroke-dashoffset="${-offset}"></circle>`;
+                offset += segment;
+            });
+
+            legendEl.innerHTML = sorted.map(([cat, count]) => {
+                const cfg = CAT_COLORS[cat] || CAT_COLORS["updates"];
+                const pct = Math.round((count / total) * 100);
+                return `
+                    <div class="legend-item">
+                        <div class="legend-left">
+                            <span class="legend-dot" style="background:${cfg.hex}"></span>
+                            <span class="legend-label">${cfg.label}</span>
+                        </div>
+                        <span class="legend-count">${count} (${pct}%)</span>
+                    </div>
+                `;
+            }).join("");
+
+            document.getElementById("analytics-loading").classList.add("hidden");
+            document.getElementById("analytics-data").classList.remove("hidden");
+        } catch (err) {
+            console.error("Analytics load failed:", err);
+            document.getElementById("analytics-loading").classList.add("hidden");
+            document.getElementById("analytics-empty").classList.remove("hidden");
+        }
+    }
+
+    /* ── User name ── */
+    async function loadHomeUserName() {
+        try {
+            const res = await fetch("/api/auth/status");
+            const data = await res.json();
+            const nameEl = document.getElementById("home-user-name");
+            if (!nameEl) return;
+            if (data.connected && data.email) {
+                const baseName = data.email.split("@")[0] || "MailMind User";
+                nameEl.textContent = baseName.charAt(0).toUpperCase() + baseName.slice(1);
+            } else {
+                nameEl.textContent = "MailMind User";
+            }
+        } catch (err) {
+            console.error("User name load failed:", err);
+        }
+    }
+
+    /* ── Init ── */
+    loadAnalytics();
+    loadTodos();
+    loadMeetings();
+    loadHomeUserName();
+</script>
+{% endblock %}

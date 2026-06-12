@@ -1,1202 +1,1884 @@
-{% extends "base.html" %} {% block title %}Email - MailMind{% endblock %} {%
-block header_title %}Email{% endblock %} {% block content %}
-<div class="flex flex-row gap-gutter h-full w-full flex-1 min-h-0">
-    <!-- ══════════════════════════════════════════════════════════
-       FOLDER NAV — Folder list (Important / All Mail / Drafts / Spam)
-  ══════════════════════════════════════════════════════════ -->
-    <aside
-        id="folder-nav"
-        class="w-48 flex-shrink-0 flex flex-col bg-surface-container-lowest rounded-xl border border-surface-dim shadow-[0px_4px_20px_rgba(0,0,0,0.03)] overflow-hidden max-h-[700px]">
-
-        <!-- Nav header -->
-        <div class="px-4 py-3 border-b border-surface-dim">
-            <span class="font-label-md text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Mailboxes</span>
-        </div>
-
-        <!-- Folder buttons -->
-        <nav class="flex flex-col py-2 gap-0.5 px-2">
-            <!-- Important -->
-            <button id="folder-btn-important" onclick="setFolder('important')"
-                class="folder-btn flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-left transition-colors
-                       bg-primary/10 text-primary">
-                <span class="material-symbols-outlined text-[18px]" style="font-variation-settings:'FILL' 1">star</span>
-                <span class="font-label-md text-[13px] font-semibold">Important</span>
-                <span id="badge-important" class="ml-auto text-[10px] font-bold bg-primary text-on-primary rounded-full px-1.5 py-0.5 hidden"></span>
-            </button>
-
-            <!-- All Mail -->
-            <button id="folder-btn-all" onclick="setFolder('all')"
-                class="folder-btn flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-left transition-colors
-                       text-on-surface-variant hover:bg-surface-container-low">
-                <span class="material-symbols-outlined text-[18px]">all_inbox</span>
-                <span class="font-label-md text-[13px] font-medium">All Mail</span>
-                <span id="badge-all" class="ml-auto text-[10px] font-bold bg-secondary text-on-secondary rounded-full px-1.5 py-0.5 hidden"></span>
-            </button>
-
-            <!-- Divider -->
-            <div class="my-1 mx-1 h-px bg-surface-dim"></div>
-
-            <!-- Drafts -->
-            <button id="folder-btn-drafts" onclick="setFolder('drafts')"
-                class="folder-btn flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-left transition-colors
-                       text-on-surface-variant hover:bg-surface-container-low">
-                <span class="material-symbols-outlined text-[18px]">drafts</span>
-                <span class="font-label-md text-[13px] font-medium">Drafts</span>
-            </button>
-
-            <!-- Spam -->
-            <button id="folder-btn-spam" onclick="setFolder('spam')"
-                class="folder-btn flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-left transition-colors
-                       text-on-surface-variant hover:bg-surface-container-low">
-                <span class="material-symbols-outlined text-[18px]">report</span>
-                <span class="font-label-md text-[13px] font-medium">Spam</span>
-            </button>
-        </nav>
-
-        <!-- Spacer -->
-        <div class="flex-1"></div>
-
-        <!-- Storage indicator (decorative) -->
-        <div class="p-3 border-t border-surface-dim">
-            <p class="text-[10px] text-outline text-center">MailMind · AI inbox</p>
-        </div>
-    </aside>
-
-    <!-- ══════════════════════════════════════════════════════════
-       CENTER-LEFT PANEL — Inbox list
-  ══════════════════════════════════════════════════════════ -->
-    <section
-        class="w-72 flex-shrink-0 flex flex-col bg-surface-container-lowest rounded-xl border border-surface-dim shadow-[0px_4px_20px_rgba(0,0,0,0.03)] overflow-hidden max-h-[700px]">
-        <!-- Tab bar -->
-        <div class="flex border-b border-surface-dim px-4 pt-2 items-center">
-            <button id="tab-important" onclick="setTab('important')"
-                class="px-4 py-3 font-label-md text-label-md text-primary border-b-2 border-primary transition-colors">
-                Important
-            </button>
-            <button id="tab-all" onclick="setTab('all')"
-                class="px-4 py-3 font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors">
-                All
-            </button>
-            <div class="ml-auto flex items-center gap-1">
-                <span id="inbox-count"
-                    class="hidden text-[11px] font-bold text-on-surface-variant bg-surface-container-low px-2 py-0.5 rounded-full"></span>
-                <button onclick="syncEmails()" title="Sync inbox"
-                    class="p-1.5 text-outline hover:text-primary transition-colors rounded-full hover:bg-surface-container-low">
-                    <span id="sync-icon" class="material-symbols-outlined text-[20px]">sync</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- Loading state -->
-        <div id="inbox-loading" class="hidden flex-1 flex flex-col items-center justify-center p-6 text-center">
-            <span class="material-symbols-outlined text-[40px] text-on-surface-variant/30 mb-3 animate-spin"
-                style="animation: spin 1.2s linear infinite">sync</span>
-            <p class="font-body-md text-[13px] text-on-surface-variant">
-                Syncing your inbox…
-            </p>
-        </div>
-
-        <!-- Empty state -->
-        <div id="inbox-empty" class="flex-1 flex flex-col items-center justify-center p-6 text-center">
-            <span class="material-symbols-outlined text-[48px] text-on-surface-variant/30 mb-3">inbox</span>
-            <p class="font-body-md text-body-md text-on-surface-variant">
-                No recent emails
-            </p>
-            <p class="font-body-md text-body-md text-outline mt-1 text-[13px]">
-                Click
-                <span class="material-symbols-outlined text-[14px] align-middle">sync</span>
-                to fetch from Gmail
-            </p>
-        </div>
-
-        <!-- Email list -->
-        <div id="inbox-list" class="hidden flex-1 overflow-y-auto" style="max-height: 620px;"></div>
-    </section>
-
-    <!-- ══════════════════════════════════════════════════════════
-       CENTER PANEL — Email content
-  ══════════════════════════════════════════════════════════ -->
-    <section
-        class="flex-1 flex flex-col bg-surface-container-lowest rounded-xl border border-surface-dim shadow-[0px_4px_20px_rgba(0,0,0,0.03)] overflow-hidden min-w-0">
-        <!-- Toolbar -->
-        <div class="flex items-center justify-between px-4 py-3 border-b border-surface-dim bg-surface-bright/50">
-            <div class="flex items-center gap-1">
-                <button id="btn-archive" disabled title="Archive"
-                    class="p-2 text-on-surface-variant/40 rounded-full transition-colors disabled:cursor-not-allowed enabled:hover:text-primary enabled:hover:bg-surface-container-low">
-                    <span class="material-symbols-outlined text-[20px]">archive</span>
-                </button>
-                <button id="btn-delete" disabled title="Delete"
-                    class="p-2 text-on-surface-variant/40 rounded-full transition-colors disabled:cursor-not-allowed enabled:hover:text-error enabled:hover:bg-error-container/30">
-                    <span class="material-symbols-outlined text-[20px]">delete</span>
-                </button>
-                <div class="h-4 w-px bg-surface-dim mx-1"></div>
-                <button id="btn-mark-unread" disabled title="Mark unread"
-                    class="p-2 text-on-surface-variant/40 rounded-full transition-colors disabled:cursor-not-allowed enabled:hover:text-primary enabled:hover:bg-surface-container-low">
-                    <span class="material-symbols-outlined text-[20px]">mark_email_unread</span>
-                </button>
-            </div>
-            <div id="email-processing-badge"
-                class="hidden flex items-center gap-2 text-[12px] text-primary font-medium bg-primary/5 px-3 py-1.5 rounded-full border border-primary/20">
-                <span class="material-symbols-outlined text-[14px] animate-spin"
-                    style="animation: spin 1s linear infinite">autorenew</span>
-                Running AI pipeline…
-            </div>
-        </div>
-
-        <!-- Empty state (shown until email selected) -->
-        <div id="email-empty" class="flex-1 flex flex-col items-center justify-center text-center p-8">
-            <span class="material-symbols-outlined text-[64px] text-on-surface-variant/20 mb-4">mark_email_read</span>
-            <p class="font-body-lg text-body-lg text-on-surface-variant">
-                Select an email to read it
-            </p>
-            <p class="font-body-md text-body-md text-outline mt-2 text-[13px]">
-                AI summary and draft will appear automatically
-            </p>
-        </div>
-
-        <!-- Email content (shown when email selected) -->
-        <div id="email-content" class="hidden flex-1 overflow-y-auto flex flex-col">
-            <!-- Summary bar (shown after pipeline) -->
-            <div id="summary-bar" class="hidden mx-4 mt-4 p-3 bg-primary/5 border border-primary/15 rounded-lg">
-                <div class="flex items-start gap-3">
-                    <span
-                        class="material-symbols-outlined text-[18px] text-primary mt-0.5 flex-shrink-0">summarize</span>
-                    <div class="flex-1 min-w-0">
-                        <p id="summary-headline" class="font-body-md text-[13px] font-semibold text-on-surface"></p>
-                        <div id="summary-facts" class="mt-2 flex flex-wrap gap-2"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Email header -->
-            <div class="px-6 pt-5 pb-4">
-                <h2 id="email-subject" class="font-h1 text-[22px] font-bold text-on-surface mb-5"></h2>
-                <div class="flex items-center justify-between gap-4">
-                    <div class="flex items-center gap-3">
-                        <div id="email-avatar"
-                            class="h-11 w-11 rounded-full flex items-center justify-center font-label-md text-label-md flex-shrink-0 bg-secondary-fixed text-on-secondary-fixed text-[16px] font-bold">
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <span id="email-sender-name"
-                                    class="font-body-lg text-[15px] font-semibold text-on-surface"></span>
-                                <span id="email-sender-addr"
-                                    class="font-body-md text-[13px] text-on-surface-variant"></span>
-                                <span id="email-category-badge"
-                                    class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full"></span>
-                            </div>
-                            <span id="email-timestamp" class="font-body-md text-[13px] text-outline"></span>
-                        </div>
-                    </div>
-                    <button
-                        class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-full hover:bg-surface-container-low flex-shrink-0">
-                        <span class="material-symbols-outlined text-[20px]">reply</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Email body -->
-            <div id="email-body"
-                class="px-6 pb-8 font-body-lg text-[15px] text-on-surface-variant leading-relaxed space-y-4 border-t border-surface-dim pt-5 flex-1">
-            </div>
-        </div>
-    </section>
-
-    <!-- ══════════════════════════════════════════════════════════
-       RIGHT PANEL — AI Draft Assistant
-  ══════════════════════════════════════════════════════════ -->
-    <section
-        class="w-80 flex-shrink-0 flex flex-col bg-surface-container-lowest rounded-xl border border-surface-dim shadow-[0px_4px_20px_rgba(0,0,0,0.03)] overflow-hidden relative">
-        <!-- Gradient accent top bar -->
-        <div
-            class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-secondary-container via-primary to-primary-container">
-        </div>
-
-        <!-- Panel header -->
-        <div class="flex items-center gap-3 px-4 py-3 border-b border-surface-dim bg-primary-fixed/20 mt-1">
-            <div class="h-8 w-8 rounded-full bg-primary text-on-primary flex items-center justify-center flex-shrink-0">
-                <span class="material-symbols-outlined text-[18px]">auto_awesome</span>
-            </div>
-            <div class="flex-1 min-w-0">
-                <span class="font-h2 text-body-lg font-semibold text-on-primary-fixed">AI Draft Assistant</span>
-            </div>
-            <span id="confidence-badge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full"></span>
-        </div>
-
-        <!-- Empty state -->
-        <div id="draft-empty" class="flex-1 flex flex-col items-center justify-center p-6 text-center">
-            <span class="material-symbols-outlined text-[48px] text-on-surface-variant/30 mb-3">auto_awesome</span>
-            <p class="font-body-md text-body-md text-on-surface-variant">
-                No email selected
-            </p>
-            <p class="font-body-md text-body-md text-outline mt-1 text-[13px]">
-                Select an email to generate a draft reply
-            </p>
-        </div>
-
-        <!-- Loading state -->
-        <div id="draft-loading" class="hidden flex-1 flex flex-col items-center justify-center p-6 text-center gap-3">
-            <span class="material-symbols-outlined text-[40px] text-primary/40 animate-spin"
-                style="animation: spin 1.2s linear infinite">autorenew</span>
-            <p class="font-body-md text-[13px] text-on-surface-variant">
-                Gemini is drafting a reply…
-            </p>
-        </div>
-
-        <!-- Draft content -->
-        <div id="draft-content" class="hidden flex-1 flex flex-col p-4 gap-3 overflow-y-auto">
-            <div class="flex items-center justify-between">
-                <span class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant">Suggested
-                    Reply</span>
-                <button onclick="copyDraft()" title="Copy to clipboard"
-                    class="text-outline hover:text-primary transition-colors p-1 rounded">
-                    <span class="material-symbols-outlined text-[16px]">content_copy</span>
-                </button>
-            </div>
-            <textarea id="draft-textarea"
-                class="flex-1 w-full min-h-[200px] resize-none bg-surface-bright border border-surface-dim rounded-lg p-3 font-body-md text-[13px] text-on-surface leading-relaxed focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-                placeholder="AI draft will appear here…"></textarea>
-            <div id="action-items-section" class="hidden">
-                <p class="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant mb-2">
-                    Action Items
-                </p>
-                <div id="action-items-list" class="flex flex-col gap-1.5"></div>
-            </div>
-        </div>
-
-        <!-- Action bar (always visible) -->
-        <div class="p-4 border-t border-surface-dim bg-surface-container-lowest flex flex-col gap-3">
-
-            <!-- PRIMARY: Save to Gmail Drafts -->
-            <button id="btn-save-draft" disabled onclick="saveDraftToGmail()"
-                class="w-full py-2.5 rounded-lg font-h2 text-body-lg font-semibold flex items-center justify-center gap-2 transition-all
-                       bg-on-surface/20 text-on-surface-variant cursor-not-allowed
-                       disabled:bg-on-surface/20 disabled:text-on-surface-variant disabled:cursor-not-allowed
-                       enabled:bg-secondary enabled:text-on-secondary enabled:hover:opacity-90 enabled:cursor-pointer"
-                title="Save this draft to Gmail's Drafts folder">
-                <span class="material-symbols-outlined text-[18px]">bookmark_add</span>
-                Save to Gmail Drafts
-            </button>
-
-            <!-- SECONDARY row: Copy | Regenerate | Send -->
-            <div class="flex gap-2">
-                <button id="btn-copy-draft" disabled
-                    class="flex-1 py-2 rounded-lg border text-[12px] font-medium flex items-center justify-center gap-1 transition-colors
-                           border-surface-dim text-on-surface-variant/40 cursor-not-allowed
-                           disabled:opacity-40 disabled:cursor-not-allowed
-                           enabled:border-outline-variant enabled:text-on-surface-variant enabled:hover:bg-surface-container-low enabled:cursor-pointer"
-                    onclick="copyDraft()" title="Copy draft text">
-                    <span class="material-symbols-outlined text-[15px]">content_copy</span>
-                    Copy
-                </button>
-                <button id="btn-regenerate" disabled
-                    class="flex-1 py-2 rounded-lg border text-[12px] font-medium flex items-center justify-center gap-1 transition-colors
-                           border-surface-dim text-on-surface-variant/40 cursor-not-allowed
-                           disabled:opacity-40 disabled:cursor-not-allowed
-                           enabled:border-outline-variant enabled:text-primary enabled:hover:bg-primary/5 enabled:cursor-pointer"
-                    onclick="regenerateDraft()" title="Re-generate the draft with Gemini">
-                    <span id="regen-icon" class="material-symbols-outlined text-[15px]">refresh</span>
-                    Regenerate
-                </button>
-                <button id="btn-send-reply" disabled onclick="sendReply()"
-                    class="flex-1 py-2 rounded-lg border text-[12px] font-medium flex items-center justify-center gap-1 transition-colors
-                           border-surface-dim text-on-surface-variant/40 cursor-not-allowed
-                           disabled:opacity-40 disabled:cursor-not-allowed
-                           enabled:border-primary/40 enabled:text-primary enabled:hover:bg-primary/5 enabled:cursor-pointer"
-                    title="Send this reply via Gmail">
-                    <span class="material-symbols-outlined text-[15px]">send</span>
-                    Send
-                </button>
-            </div>
-        </div>
-    </section>
-</div>
-{% endblock %} {% block scripts %}
-
-<!-- ── Toast notification container ─────────────────────────────────────── -->
-<!-- Toasts are injected here by showToast() and auto-removed after 3s      -->
-<div id="toast-container"
-    class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 items-end pointer-events-none">
-</div>
+{% extends "base.html" %} {% block title %}Email — MailMind{% endblock %} {%
+block page_styles %}
+<!-- <link href="/static/styles/pagestyles.css" rel="stylesheet" /> -->
 
 <style>
-    @keyframes spin { to { transform: rotate(360deg); } }
-    @keyframes toast-in {
-        from { opacity: 0; transform: translateY(12px) scale(0.96); }
-        to   { opacity: 1; transform: translateY(0)   scale(1); }
+  /* ─── Google Fonts ─── */
+  @import url("https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&display=swap");
+
+  /* ─── Page-scoped tokens (mirror home.html aesthetic) ─── */
+  .email-main-container {
+    --em-surface: var(--surface);
+    --em-surface-2: var(--surface-2);
+    --em-bg: var(--bg);
+    --em-border: var(--border);
+    --em-border-strong: var(--border-strong);
+    --em-text: var(--text);
+    --em-text-body: var(--text-body);
+    --em-text-subtle: var(--text-subtle);
+    --em-text-muted: var(--text-muted);
+    --em-primary: var(--primary);
+    --em-accent: var(--accent);
+    --em-accent-soft: var(--accent-soft);
+    --em-blue: var(--accent);
+    --em-green: var(--success);
+    --em-amber: var(--warning);
+    --em-red: var(--danger);
+    --em-violet: var(--violet-soft-text);
+    --em-shadow-sm:
+      0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
+    --em-shadow-md: 0 4px 14px rgba(15, 23, 42, 0.06);
+    --em-radius-lg: 18px;
+    --em-radius-md: 12px;
+    --em-radius-sm: 10px;
+  }
+
+  /* ─── Layout shell ─── */
+  .email-main-container,
+  .email-main-container * {
+    box-sizing: border-box;
+  }
+
+  .email-main-container {
+    font-family:
+      "DM Sans",
+      system-ui,
+      -apple-system,
+      sans-serif !important;
+
+    color: var(--em-text);
+
+    display: flex;
+    align-items: stretch;
+
+    gap: 16px;
+    padding: 18px;
+
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+
+    background: var(--em-bg);
+
+    overflow: hidden;
+  }
+
+  @media (max-width: 1200px) {
+    .email-main-container {
+      gap: 14px;
     }
-    @keyframes toast-out {
-        from { opacity: 1; transform: translateY(0)   scale(1); }
-        to   { opacity: 0; transform: translateY(8px)  scale(0.96); }
+  }
+  @media (max-width: 980px) {
+    .email-main-container {
+      flex-direction: column;
+      overflow: auto;
     }
-    .toast-enter { animation: toast-in  0.22s ease forwards; }
-    .toast-leave { animation: toast-out 0.22s ease forwards; }
+  }
+
+  /* ─── Panels ─── */
+
+  /* shared panel styles */
+  .email-left-panel,
+  .email-center-panel,
+  .email-right-panel {
+    min-width: 0;
+
+    background: var(--em-surface);
+    border: 1px solid var(--em-border);
+    border-radius: var(--em-radius-lg);
+    box-shadow: var(--em-shadow-sm);
+
+    display: flex;
+    flex-direction: column;
+
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* proportional widths */
+  .email-left-panel {
+    flex: 2;
+  }
+
+  .email-center-panel {
+    flex: 4.5;
+  }
+
+  .email-right-panel {
+    flex: 3.5;
+  }
+
+  /* ─── LEFT: Material Design 3 Tabs ─── */
+  .mailbox-tab-bar {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 0 8px 0 0;
+    border-bottom: 1px solid var(--em-border);
+    background: var(--em-surface);
+  }
+
+  .mailbox-sync-button {
+    margin-left: auto;
+  }
+
+  /* ── MD3 Tabs container ── */
+  .md3-tabs {
+    display: flex;
+    position: relative;
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Sliding active indicator */
+  .md3-tabs-indicator {
+    position: absolute;
+    bottom: 0;
+    height: 3px;
+    border-radius: 3px 3px 0 0;
+    background: var(--em-accent);
+    transition: left 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+                width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 2;
+  }
+
+  /* ── Individual tab button ── */
+  .md3-tab {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+    height: 48px;
+    padding: 0 16px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: var(--em-text-muted);
+    font-family: "DM Sans", system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    overflow: hidden;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+    transition: color 0.2s ease;
+  }
+
+  .md3-tab .md3-tab-icon {
+    font-size: 15px;
+    line-height: 1;
+    transition: color 0.2s ease;
+  }
+
+  /* ── State layer (hover/press) ── */
+  .md3-tab::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: var(--em-accent);
+    opacity: 0;
+    transition: opacity 0.15s ease;
+    pointer-events: none;
+  }
+
+  .md3-tab:hover::before {
+    opacity: 0.06;
+  }
+
+  .md3-tab:active::before {
+    opacity: 0.1;
+  }
+
+  /* ── Ripple effect ── */
+  .md3-tab .md3-ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: var(--em-accent);
+    opacity: 0.15;
+    transform: scale(0);
+    animation: md3-ripple-anim 0.5s cubic-bezier(0, 0, 0.2, 1) forwards;
+    pointer-events: none;
+  }
+
+  @keyframes md3-ripple-anim {
+    to {
+      transform: scale(2.5);
+      opacity: 0;
+    }
+  }
+
+  /* ── Active state ── */
+  .md3-tab.active {
+    color: var(--em-accent);
+  }
+
+  .md3-tab.active .md3-tab-icon {
+    color: var(--em-accent);
+  }
+
+  .md3-tab:hover {
+    color: var(--em-text);
+  }
+
+  .md3-tab.active:hover {
+    color: var(--em-accent);
+  }
+  .icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 32px;
+    width: 32px;
+    border-radius: 10px;
+    border: 1px solid var(--em-border);
+    background: var(--em-surface);
+    color: var(--em-text-body);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .icon-button:hover:not(:disabled) {
+    background: var(--em-surface-2);
+    border-color: var(--em-border-strong);
+    color: var(--em-text);
+  }
+  .icon-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .icon-button.primary:hover:not(:disabled) {
+    color: var(--em-accent);
+    border-color: var(--em-accent);
+  }
+  .icon-button.danger:hover:not(:disabled) {
+    color: var(--em-red);
+    border-color: var(--em-red);
+  }
+
+  /* .badge-category {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    background: var(--em-surface-2);
+    color: var(--em-text-muted);
+    border: 1px solid var(--em-border);
+    font-family: "DM Mono", monospace;
+  } */
+  /* .badge-primary {
+    background: var(--em-primary);
+    color: #fff;
+    border-color: var(--em-primary);
+  } */
+  .badge-urgent,
+  .badge-confidence-low {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--em-red);
+    border-color: rgba(239, 68, 68, 0.25);
+  }
+  .badge-action-required {
+    background: rgba(245, 158, 11, 0.12);
+    color: #b45309;
+    border-color: rgba(245, 158, 11, 0.28);
+  }
+  .badge-meeting-request {
+    background: rgba(139, 92, 246, 0.1);
+    color: #6d28d9;
+    border-color: rgba(139, 92, 246, 0.25);
+  }
+  .badge-order-update,
+  .badge-updates {
+    background: var(--em-accent-soft);
+    color: var(--em-accent);
+    border-color: rgba(59, 130, 246, 0.25);
+  }
+  .badge-spam {
+    background: rgba(100, 116, 139, 0.12);
+    color: var(--em-text-muted);
+  }
+  .badge-promotions {
+    background: rgba(236, 72, 153, 0.1);
+    color: #be185d;
+    border-color: rgba(236, 72, 153, 0.25);
+  }
+  .badge-sent-reply {
+    background: rgba(16, 185, 129, 0.1);
+    color: #047857;
+    border-color: rgba(16, 185, 129, 0.25);
+  }
+  .badge-confidence-high {
+    background: rgba(16, 185, 129, 0.12);
+    color: #047857;
+    border-color: rgba(16, 185, 129, 0.28);
+  }
+  .badge-confidence-medium {
+    background: rgba(245, 158, 11, 0.12);
+    color: #b45309;
+    border-color: rgba(245, 158, 11, 0.28);
+  }
+  /* ─── Tailwind-equivalent utility classes ─── */
+
+  /* Layout */
+  .flex         { display: flex; }
+  .flex-col     { flex-direction: column; }
+  .flex-1       { flex: 1 1 0%; }
+  .items-start  { align-items: flex-start; }
+  .items-center { align-items: center; }
+  .items-end    { align-items: flex-end; }
+  .justify-between  { justify-content: space-between; }
+  .justify-center   { justify-content: center; }
+  .flex-shrink-0    { flex-shrink: 0; }
+  .min-w-0      { min-width: 0; }
+  .w-full       { width: 100%; }
+  .gap-2        { gap: 0.5rem; }
+
+  /* Spacing */
+  .mb-0\.5  { margin-bottom: 0.125rem; }
+  .ml-2     { margin-left: 0.5rem; }
+  .ml-6     { margin-left: 1.5rem; }
+  .pl-3     { padding-left: 0.75rem; }
+  .pl-10    { padding-left: 2.5rem; }
+
+  /* Sizing */
+  .h-8  { height: 2rem; }
+  .w-8  { width: 2rem; }
+
+  /* Borders */
+  .rounded-full   { border-radius: 9999px; }
+  .border-l-2     { border-left: 2px solid; }
+  .border-surface-dim { border-color: var(--em-border); }
+
+  /* Typography */
+  .font-bold      { font-weight: 700; }
+  .font-semibold  { font-weight: 600; }
+  .whitespace-nowrap { white-space: nowrap; }
+  .truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Visibility */
+  .hidden { display: none; }
+
+  /* Positioning / Overlay (toast container) */
+  .fixed      { position: fixed; }
+  .bottom-6   { bottom: 1.5rem; }
+  .right-6    { right: 1.5rem; }
+  .z-50       { z-index: 50; }
+  .pointer-events-none { pointer-events: none; }
+  .pointer-events-auto { pointer-events: auto; }
+
+  /* Color utilities (toast) */
+  .bg-green-600     { background-color: #16a34a; }
+  .text-white       { color: #fff; }
+  .bg-error         { background-color: var(--em-red); }
+  .text-on-error    { color: #fff; }
+  .bg-primary       { background-color: var(--em-primary); }
+  .text-on-primary  { color: #fff; }
+
+  /* Semantic color classes (scoped to email-row) */
+  .bg-secondary-fixed {
+    background: linear-gradient(135deg, var(--em-accent), #6366f1);
+    color: #fff;
+  }
+  .text-on-secondary-fixed { color: #fff; }
+  .text-on-surface         { color: var(--em-text); }
+  .text-on-surface-variant { color: var(--em-text-muted); }
+  .text-outline            { color: var(--em-text-subtle); }
+  .font-body-lg            { font-family: inherit; }
+
+  /* ─── Email list rows ─── */
+  #inbox-list {
+    padding: 6px;
+  }
+  .email-row {
+    position: relative;
+    padding: 12px 12px 12px 14px;
+    border-radius: var(--em-radius-md);
+    cursor: pointer;
+    margin-bottom: 4px;
+    border: 1px solid transparent;
+    transition: all 0.15s ease;
+  }
+  .email-row:hover {
+    background: var(--em-surface-2);
+  }
+  .email-row.active {
+    background: var(--em-accent-soft);
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+  .email-row.active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 12px;
+    bottom: 12px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--em-accent);
+  }
+
+  .email-row .bg-secondary-fixed {
+    background: linear-gradient(135deg, var(--em-accent), #6366f1) !important;
+    color: #fff !important;
+  }
+
+  /* ─── States ─── */
+  .email-loading-state,
+  .email-empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+    text-align: center;
+    color: var(--em-text-muted);
+  }
+  .email-empty-state .text-on-surface-variant {
+    color: var(--em-text-muted);
+  }
+  .email-empty-state .text-outline {
+    color: var(--em-text-subtle);
+  }
+  .email-loading-spinner {
+    font-size: 28px !important;
+    color: var(--em-accent);
+    margin-bottom: 10px;
+  }
+
+  /* ─── CENTER: Toolbar ─── */
+  .email-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--em-border);
+    gap: 12px;
+  }
+  .email-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .divider-vertical {
+    width: 1px;
+    height: 22px;
+    background: var(--em-border);
+    margin: 0 4px;
+  }
+
+  .email-processing-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: var(--em-accent-soft);
+    color: var(--em-accent);
+    font-size: 11.5px;
+    font-weight: 600;
+    border: 1px solid rgba(59, 130, 246, 0.25);
+  }
+
+  /* ─── CENTER: Content ─── */
+  .email-content-wrapper {
+    flex: 1;
+    overflow-y: auto;
+    padding: 22px 28px 28px;
+  }
+  .email-summary-bar {
+    display: flex;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: var(--em-radius-md);
+    background: linear-gradient(
+      135deg,
+      rgba(59, 130, 246, 0.06),
+      rgba(99, 102, 241, 0.04)
+    );
+    border: 1px solid rgba(59, 130, 246, 0.18);
+    margin-bottom: 20px;
+  }
+  .email-summary-icon {
+    font-size: 20px !important;
+    color: var(--em-accent);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .email-summary-content {
+    flex: 1;
+    min-width: 0;
+  }
+  .email-summary-headline {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--em-text);
+    line-height: 1.45;
+    margin-bottom: 8px;
+  }
+  .email-summary-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .email-summary-fact {
+    font-size: 11px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(59, 130, 246, 0.18);
+    color: var(--em-text-body);
+    font-family: "DM Mono", monospace;
+  }
+
+  .email-header {
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--em-border);
+    margin-bottom: 22px;
+  }
+  .email-subject {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--em-text);
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    margin-bottom: 14px;
+  }
+  .email-meta-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .email-sender-info {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    min-width: 0;
+    flex: 1;
+  }
+  .email-sender-avatar {
+    height: 40px;
+    width: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--em-accent), #6366f1);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .email-sender-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .email-sender-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--em-text);
+  }
+  .email-sender-email {
+    font-size: 12px;
+    color: var(--em-text-muted);
+    font-family: "DM Mono", monospace;
+  }
+  .email-sender-timestamp {
+    font-size: 11.5px;
+    color: var(--em-text-subtle);
+  }
+
+  .email-body {
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--em-text-body);
+  }
+  .email-body p {
+    margin-bottom: 14px;
+  }
+
+  /* ─── RIGHT: Draft panel ─── */
+  .draft-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--em-border);
+  }
+  .draft-panel-icon {
+    height: 30px;
+    width: 30px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, var(--em-accent), #8b5cf6);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .draft-panel-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--em-text);
+    flex: 1;
+  }
+
+  .draft-content-area {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 14px 16px;
+    gap: 10px;
+    overflow-y: auto;
+  }
+  .draft-textarea-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--em-text-subtle);
+  }
+  .draft-textarea {
+    width: 100%;
+    flex: 1;
+    min-height: 180px;
+    padding: 12px 14px;
+    border-radius: var(--em-radius-md);
+    border: 1px solid var(--em-border);
+    background: var(--em-surface-2);
+    font-family: inherit;
+    font-size: 13px;
+    line-height: 1.55;
+    color: var(--em-text);
+    resize: none;
+    outline: none;
+    transition: all 0.15s ease;
+  }
+  .draft-textarea:focus {
+    border-color: var(--em-accent);
+    background: var(--em-surface);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  }
+
+  .draft-action-items-section {
+    padding-top: 6px;
+    border-top: 1px dashed var(--em-border);
+  }
+  .draft-action-items-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--em-text-subtle);
+    margin-bottom: 8px;
+  }
+  .draft-action-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .draft-action-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: var(--em-surface-2);
+    border: 1px solid var(--em-border);
+  }
+  .draft-action-item-icon {
+    color: var(--em-green);
+    font-size: 16px !important;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .draft-action-item-text {
+    font-size: 12.5px;
+    color: var(--em-text-body);
+    line-height: 1.4;
+  }
+
+  /* ─── Draft action bar ─── */
+  .draft-action-bar {
+    border-top: 1px solid var(--em-border);
+    padding: 12px 16px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: var(--em-surface);
+  }
+  .btn-primary-large {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 11px 14px;
+    border-radius: 12px;
+    background: var(--em-primary);
+    color: #fff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.18);
+  }
+  .btn-primary-large:hover:not(:disabled) {
+    background: #1e293b;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.22);
+  }
+  .btn-primary-large:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .draft-button-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  .btn-secondary-small {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: var(--em-surface);
+    border: 1px solid var(--em-border);
+    color: var(--em-text-body);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-secondary-small:hover:not(:disabled) {
+    background: var(--em-surface-2);
+    border-color: var(--em-border-strong);
+    color: var(--em-text);
+  }
+  .btn-secondary-small.primary:hover:not(:disabled) {
+    border-color: var(--em-accent);
+    color: var(--em-accent);
+    background: var(--em-accent-soft);
+  }
+  .btn-secondary-small:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* ─── Scrollbars ─── */
+  .email-main-container *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .email-main-container *::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
+  }
+  .email-main-container *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /* ─── Toast ─── */
+  .toast {
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-family: "DM Sans", sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+    animation: toast-in 0.25s ease both;
+  }
+  .toast-leave {
+    animation: toast-out 0.25s ease both;
+  }
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes toast-out {
+    to {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
 </style>
+{% endblock %} {% block header_title %}Emails{% endblock %} {% block main_class
+%}min-h-0 flex-1 overflow-hidden{% endblock %} {% block content %}
+<div class="email-main-container">
+  <!-- ══════════════════════════════════════════════════════════
+       LEFT PANEL — Inbox list with mailbox tabs
+  ══════════════════════════════════════════════════════════ -->
+  <section class="email-left-panel">
+    <div class="mailbox-tab-bar">
+      <div class="md3-tabs" id="mailbox-tabs">
+        <button class="md3-tab active" data-folder="important" onclick="switchTab(this)">
+          <span class="material-symbols-outlined md3-tab-icon">notifications_active</span>
+          <span class="md3-tab-label">Important</span>
+        </button>
+        <button class="md3-tab" data-folder="all" onclick="switchTab(this)">
+          <span class="material-symbols-outlined md3-tab-icon">all_inbox</span>
+          <span class="md3-tab-label">All</span>
+        </button>
+        <div class="md3-tabs-indicator" id="md3-indicator"></div>
+      </div>
+
+      <div class="mailbox-sync-button">
+        <button onclick="syncEmails()" title="Sync inbox" class="icon-button" style="margin-left: 6px;">
+          <span
+            id="sync-icon"
+            class="material-symbols-outlined"
+            style="font-size: 18px"
+            >sync</span
+          >
+        </button>
+      </div>
+
+      <span id="inbox-count" style="display: none !important"></span>
+    </div>
+
+    <div id="inbox-loading" class="email-loading-state">
+      <span
+        class="material-symbols-outlined email-loading-spinner"
+        style="animation: spin 1.2s linear infinite"
+        >sync</span
+      >
+      <p>Syncing your inbox…</p>
+    </div>
+
+    <div id="inbox-empty" class="email-empty-state hidden">
+      <span
+        class="material-symbols-outlined"
+        style="font-size: 44px; color: #cbd5e1; margin-bottom: 10px"
+        >inbox</span
+      >
+      <p style="font-weight: 600; color: var(--em-text-body)">
+        No recent emails
+      </p>
+      <p style="font-size: 12.5px; margin-top: 4px">
+        Click
+        <span
+          class="material-symbols-outlined"
+          style="font-size: 14px; vertical-align: middle"
+          >sync</span
+        >
+        to fetch from Gmail
+      </p>
+    </div>
+
+    <div id="inbox-list" class="hidden flex-1 overflow-y-auto"></div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════
+       CENTER PANEL — Email content
+  ══════════════════════════════════════════════════════════ -->
+  <section class="email-center-panel">
+    <div class="email-toolbar">
+      <div class="email-toolbar-left">
+        <button
+          id="btn-archive"
+          disabled
+          title="Archive"
+          class="icon-button primary"
+        >
+          <span class="material-symbols-outlined" style="font-size: 18px"
+            >archive</span
+          >
+        </button>
+        <button
+          id="btn-delete"
+          disabled
+          title="Delete"
+          class="icon-button danger"
+        >
+          <span class="material-symbols-outlined" style="font-size: 18px"
+            >delete</span
+          >
+        </button>
+        <div class="divider-vertical"></div>
+        <button
+          id="btn-mark-unread"
+          disabled
+          title="Mark unread"
+          class="icon-button primary"
+        >
+          <span class="material-symbols-outlined" style="font-size: 18px"
+            >mark_email_unread</span
+          >
+        </button>
+      </div>
+      <div id="email-processing-badge" class="email-processing-badge hidden">
+        <span
+          class="email-processing-spinner material-symbols-outlined"
+          style="font-size: 14px; animation: spin 1s linear infinite"
+          >autorenew</span
+        >
+        Running AI pipeline…
+      </div>
+    </div>
+
+    <div id="email-empty" class="email-empty-state">
+      <span
+        class="material-symbols-outlined"
+        style="font-size: 56px; color: #cbd5e1; margin-bottom: 14px"
+        >mark_email_read</span
+      >
+      <p style="font-size: 15px; font-weight: 600; color: var(--em-text-body)">
+        Select an email to read it
+      </p>
+      <p style="font-size: 12.5px; margin-top: 6px">
+        AI summary and draft will appear automatically
+      </p>
+    </div>
+
+    <div id="email-content" class="email-content-wrapper hidden">
+      <div id="summary-bar" class="email-summary-bar hidden">
+        <span class="material-symbols-outlined email-summary-icon"
+          >summarize</span
+        >
+        <div class="email-summary-content">
+          <p id="summary-headline" class="email-summary-headline"></p>
+          <div id="summary-facts" class="email-summary-facts"></div>
+        </div>
+      </div>
+
+      <div class="email-header">
+        <h2 id="email-subject" class="email-subject"></h2>
+        <div class="email-meta-row">
+          <div class="email-sender-info">
+            <div id="email-avatar" class="email-sender-avatar"></div>
+            <div class="email-sender-details">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span id="email-sender-name" class="email-sender-name"></span>
+                <span id="email-sender-addr" class="email-sender-email"></span>
+                <span id="email-category-badge" class="hidden"></span>
+              </div>
+              <span id="email-timestamp" class="email-sender-timestamp"></span>
+            </div>
+          </div>
+          <button class="icon-button primary flex-shrink-0">
+            <span class="material-symbols-outlined" style="font-size: 18px"
+              >reply</span
+            >
+          </button>
+        </div>
+      </div>
+
+      <div id="email-body" class="email-body"></div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════
+       RIGHT PANEL — AI Draft Assistant
+  ══════════════════════════════════════════════════════════ -->
+  <section class="email-right-panel">
+    <div class="draft-panel-header">
+      <div class="draft-panel-icon">
+        <span class="material-symbols-outlined" style="font-size: 17px"
+          >auto_awesome</span
+        >
+      </div>
+      <div class="draft-panel-title">AI Draft Assistant</div>
+      <span id="confidence-badge" class="hidden"></span>
+    </div>
+
+    <div id="draft-empty" class="email-empty-state">
+      <span
+        class="material-symbols-outlined"
+        style="font-size: 44px; color: #cbd5e1; margin-bottom: 10px"
+        >auto_awesome</span
+      >
+      <p style="font-weight: 600; color: var(--em-text-body)">
+        No email selected
+      </p>
+      <p style="font-size: 12.5px; margin-top: 4px">
+        Select an email to generate a draft reply
+      </p>
+    </div>
+
+    <div id="draft-loading" class="email-loading-state hidden">
+      <span
+        class="material-symbols-outlined email-loading-spinner"
+        style="animation: spin 1.2s linear infinite"
+        >autorenew</span
+      >
+      <p>Gemini is drafting a reply…</p>
+    </div>
+
+    <div id="draft-content" class="draft-content-area hidden">
+      <div class="draft-textarea-header">
+        <span>Suggested Reply</span>
+        <button
+          onclick="copyDraft()"
+          title="Copy to clipboard"
+          class="icon-button"
+          style="height: 26px; width: 26px"
+        >
+          <span class="material-symbols-outlined" style="font-size: 14px"
+            >content_copy</span
+          >
+        </button>
+      </div>
+      <textarea
+        id="draft-textarea"
+        class="draft-textarea"
+        placeholder="AI draft will appear here…"
+      ></textarea>
+      <div id="action-items-section" class="draft-action-items-section hidden">
+        <p class="draft-action-items-title">Action Items</p>
+        <div id="action-items-list" class="draft-action-items-list"></div>
+      </div>
+    </div>
+
+    <div class="draft-action-bar">
+      <button
+        id="btn-save-draft"
+        disabled
+        onclick="saveDraftToGmail()"
+        class="btn-primary-large"
+        title="Save this draft to Gmail's Drafts folder"
+      >
+        <span class="material-symbols-outlined" style="font-size: 16px"
+          >bookmark_add</span
+        >
+        Save to Gmail Drafts
+      </button>
+
+      <div class="draft-button-row">
+        <button
+          id="btn-copy-draft"
+          disabled
+          class="btn-secondary-small"
+          onclick="copyDraft()"
+          title="Copy draft text"
+        >
+          <span class="material-symbols-outlined" style="font-size: 14px"
+            >content_copy</span
+          >
+          Copy
+        </button>
+        <button
+          id="btn-regenerate"
+          disabled
+          class="btn-secondary-small primary"
+          onclick="regenerateDraft()"
+          title="Re-generate the draft with Gemini"
+        >
+          <span
+            id="regen-icon"
+            class="material-symbols-outlined"
+            style="font-size: 14px"
+            >refresh</span
+          >
+          Regenerate
+        </button>
+        <button
+          id="btn-send-reply"
+          disabled
+          onclick="sendReply()"
+          class="btn-secondary-small primary"
+          title="Send this reply via Gmail"
+        >
+          <span class="material-symbols-outlined" style="font-size: 14px"
+            >send</span
+          >
+          Send
+        </button>
+      </div>
+    </div>
+  </section>
+</div>
+{% endblock %} {% block scripts %}
+<div
+  id="toast-container"
+  class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 items-end pointer-events-none"
+></div>
+
 <script>
-    // ─── State ────────────────────────────────────────────────────────────────────
-    const state = {
-        emails: [],          // all fetched emails
-        selected: null,      // currently open email object
-        pipeline: null,      // last pipeline result {classification, summary, draft}
-        activeTab: "important", // maps to a folder key
-        activeFolder: "important", // tracks the folder-nav active folder
-    };
+  // ─── State ────────────────────────────────────────────────────────────────────
+  const state = {
+    emails: [],
+    selected: null,
+    pipeline: null,
+    activeTab: "important",
+    activeFolder: "important",
+  };
 
-    // Pagination state
-    let emailListPage = 1;
-    const emailsPerPage = 4;
+  let emailListPage = 1;
+  const emailsPerPage = 4;
 
-    // ─── Category config (badge colour + icon) ────────────────────────────────────
-    const CAT = {
-        urgent: {
-            label: "Urgent",
-            bg: "bg-red-100",
-            text: "text-red-700",
-            icon: "priority_high",
-        },
-        "action-required": {
-            label: "Action Req.",
-            bg: "bg-orange-100",
-            text: "text-orange-700",
-            icon: "notification_important",
-        },
-        "meeting-request": {
-            label: "Meeting",
-            bg: "bg-blue-100",
-            text: "text-blue-700",
-            icon: "event",
-        },
-        "order-update": {
-            label: "Order",
-            bg: "bg-purple-100",
-            text: "text-purple-700",
-            icon: "local_shipping",
-        },
-        spam: {
-            label: "Spam",
-            bg: "bg-red-50",
-            text: "text-red-400",
-            icon: "report",
-        },
-        promotions: {
-            label: "Promotions",
-            bg: "bg-amber-100",
-            text: "text-amber-700",
-            icon: "campaign",
-        },
-        forum: {
-            label: "Forum",
-            bg: "bg-teal-100",
-            text: "text-teal-700",
-            icon: "forum",
-        },
-        social_media: {
-            label: "Social",
-            bg: "bg-indigo-100",
-            text: "text-indigo-700",
-            icon: "group",
-        },
-        updates: {
-            label: "Updates",
-            bg: "bg-surface-container-high",
-            text: "text-on-surface-variant",
-            icon: "info",
-        },
-        verify_code: {
-            label: "Verify",
-            bg: "bg-cyan-100",
-            text: "text-cyan-700",
-            icon: "verified",
-        },
-    };
+  const CAT = {
+    urgent: { label: "Urgent", icon: "priority_high" },
+    "action-required": { label: "Action Req.", icon: "notification_important" },
+    "meeting-request": { label: "Meeting", icon: "event" },
+    "order-update": { label: "Order", icon: "local_shipping" },
+    spam: { label: "Spam", icon: "report" },
+    promotions: { label: "Promotions", icon: "campaign" },
+    forum: { label: "Forum", icon: "forum" },
+    social_media: { label: "Social", icon: "group" },
+    updates: { label: "Updates", icon: "info" },
+    verify_code: { label: "Verify", icon: "verified" },
+  };
+  function catCfg(cat) {
+    return CAT[cat] || CAT["updates"];
+  }
 
-    function catCfg(cat) {
-        return CAT[cat] || CAT["updates"];
-    }
+  function initials(name) {
+    if (!name) return "?";
+    return name
+      .split(" ")
+      .slice(0, 2)
+      .map((p) => p[0])
+      .join("")
+      .toUpperCase();
+  }
+  function fmtTime(iso) {
+    if (!iso) return "";
+    const d = new Date(iso);
+    const now = new Date();
+    const sameDay = d.toDateString() === now.toDateString();
+    return sameDay
+      ? d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+      : d.toLocaleDateString([], { month: "short", day: "numeric" });
+  }
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+  function bodyToParagraphs(text) {
+    return (text || "")
+      .split(/\n{2,}/)
+      .map((p) => `<p>${escHtml(p.trim()).replace(/\n/g, "<br>")}</p>`)
+      .join("");
+  }
 
-    // ─── Helpers ──────────────────────────────────────────────────────────────────
-    function initials(name) {
-        if (!name) return "?";
-        return name
-            .split(" ")
-            .slice(0, 2)
-            .map((p) => p[0])
-            .join("")
-            .toUpperCase();
-    }
-    function fmtTime(iso) {
-        if (!iso) return "";
-        const d = new Date(iso);
-        const now = new Date();
-        const sameDay = d.toDateString() === now.toDateString();
-        return sameDay
-            ? d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-            : d.toLocaleDateString([], { month: "short", day: "numeric" });
-    }
-    function escHtml(str) {
-        return String(str)
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;");
-    }
-    function bodyToParagraphs(text) {
-        return (text || "")
-            .split(/\n{2,}/)
-            .map((p) => `<p>${escHtml(p.trim()).replace(/\n/g, "<br>")}</p>`)
-            .join("");
-    }
+  const FOLDER_LABELS = {
+    important: "Important",
+    all: "All Mail",
+    drafts: "Sent / Drafts",
+    spam: "Spam",
+  };
 
-    // ─── Folder nav management ────────────────────────────────────────────────────
-    // Maps folder keys to display labels shown in the inbox list header.
-    const FOLDER_LABELS = {
-        important: "Important",
-        all:       "All Mail",
-        drafts:    "Sent / Drafts",
-        spam:      "Spam",
-    };
+  function setFolder(folder) {
+    state.activeFolder = folder;
+    state.activeTab = folder;
+    emailListPage = 1;
+    document
+      .querySelectorAll(".mailbox-tab")
+      .forEach((btn) => btn.classList.remove("active"));
+    const active = document.getElementById("folder-btn-" + folder);
+    if (active) active.classList.add("active");
+    renderEmailList();
+  }
 
-    function setFolder(folder) {
-        state.activeFolder = folder;
-        // Map folders onto the internal tab filter used by filteredEmails()
-        state.activeTab = folder; // we extend filteredEmails() to handle all 4
-        emailListPage = 1; // reset pagination on folder switch
+  function setTab(tab) {
+    setFolder(tab === "important" ? "important" : "all");
+  }
+  function loadMoreEmails() {
+    emailListPage++;
+    renderEmailList();
+  }
 
-        // Style all folder buttons: deactivate all, activate the clicked one
-        document.querySelectorAll(".folder-btn").forEach(function(btn) {
-            btn.classList.remove("bg-primary/10", "text-primary", "font-semibold");
-            btn.classList.add("text-on-surface-variant", "hover:bg-surface-container-low");
-            // Reset icon fill
-            var icon = btn.querySelector(".material-symbols-outlined");
-            if (icon) { icon.style.fontVariationSettings = "'FILL' 0"; }
-        });
-
-        var active = document.getElementById("folder-btn-" + folder);
-        if (active) {
-            active.classList.add("bg-primary/10", "text-primary", "font-semibold");
-            active.classList.remove("text-on-surface-variant", "hover:bg-surface-container-low");
-            var icon = active.querySelector(".material-symbols-outlined");
-            if (icon) { icon.style.fontVariationSettings = "'FILL' 1"; }
-        }
-
-        // Sync the inbox-list tab buttons (Important / All) if applicable
-        var tabImportant = document.getElementById("tab-important");
-        var tabAll = document.getElementById("tab-all");
-        var activeTabCls = "px-4 py-3 font-label-md text-label-md text-primary border-b-2 border-primary transition-colors";
-        var inactiveTabCls = "px-4 py-3 font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors";
-        tabImportant.className = folder === "important" ? activeTabCls : inactiveTabCls;
-        tabAll.className = (folder === "all" || folder === "drafts" || folder === "spam") ? activeTabCls : inactiveTabCls;
-
-        renderEmailList();
-    }
-
-    // Legacy tab click handler — keeps existing tab buttons in sync with folder nav
-    function setTab(tab) {
-        // Map the simple tab click to the appropriate folder
-        setFolder(tab === "important" ? "important" : "all");
-    }
-
-    function loadMoreEmails() {
-        emailListPage++;
-        renderEmailList();
-    }
-
-    function filteredEmails() {
-        var folder = state.activeFolder || state.activeTab;
-
-        if (folder === "important") {
-            // Important: non-sent emails with urgent/action/meeting category OR priority >= 6
-            return state.emails.filter(function(e) {
-                if (e.is_sent) { return false; }
-                var cat = e._pipeline?.classification?.category;
-                var score = e._pipeline?.classification?.priority_score || 0;
-                return !cat || cat === "urgent" || cat === "action-required" ||
-                       cat === "meeting-request" || score >= 6;
-            });
-        }
-
-        if (folder === "drafts") {
-            // Drafts: sent messages (replies that were sent from this app)
-            return state.emails.filter(function(e) { return !!e.is_sent; });
-        }
-
-        if (folder === "spam") {
-            // Spam: emails classified as spam or flagged is_spam by the pipeline
-            return state.emails.filter(function(e) {
-                var cat = e._pipeline?.classification?.category;
-                var isSpam = e._pipeline?.classification?.is_spam;
-                return cat === "spam" || !!isSpam;
-            });
-        }
-
-        // All Mail: every email
-        return state.emails;
-    }
-
-    function isImportantEmail(email) {
-        const cat = email._pipeline?.classification?.category;
-        const score = email._pipeline?.classification?.priority_score || 0;
+  function filteredEmails() {
+    var folder = state.activeFolder || state.activeTab;
+    if (folder === "important") {
+      return state.emails.filter(function (e) {
+        if (e.is_sent) return false;
+        var cat = e._pipeline?.classification?.category;
+        var score = e._pipeline?.classification?.priority_score || 0;
         return (
-            !cat ||
-            cat === "urgent" ||
-            cat === "action-required" ||
-            cat === "meeting-request" ||
-            score >= 6
+          !cat ||
+          cat === "urgent" ||
+          cat === "action-required" ||
+          cat === "meeting-request" ||
+          score >= 6
         );
+      });
     }
+    if (folder === "drafts") return state.emails.filter((e) => !!e.is_sent);
+    if (folder === "spam") {
+      return state.emails.filter(function (e) {
+        var cat = e._pipeline?.classification?.category;
+        var isSpam = e._pipeline?.classification?.is_spam;
+        return cat === "spam" || !!isSpam;
+      });
+    }
+    return state.emails;
+  }
 
-    function buildDisplayRows() {
-        const byThread = {};
-        for (const email of state.emails) {
-            const threadKey = email.thread_id || email.id;
-            if (!byThread[threadKey]) {
-                byThread[threadKey] = [];
-            }
-            byThread[threadKey].push(email);
-        }
+  function isImportantEmail(email) {
+    const cat = email._pipeline?.classification?.category;
+    const score = email._pipeline?.classification?.priority_score || 0;
+    return (
+      !cat ||
+      cat === "urgent" ||
+      cat === "action-required" ||
+      cat === "meeting-request" ||
+      score >= 6
+    );
+  }
 
-        const groups = [];
-        for (const threadKey of Object.keys(byThread)) {
-            const messages = byThread[threadKey];
-            const received = messages.filter((m) => !m.is_sent);
-            if (received.length === 0) {
-                continue;
-            }
-
-            received.sort(
-                (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
-            );
-            const parent = received[0];
-
-            if (state.activeTab === "important" && !isImportantEmail(parent)) {
-                continue;
-            }
-
-            const sentReplies = messages
-                .filter((m) => m.is_sent)
-                .sort(
-                    (a, b) =>
-                        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-                );
-
-            groups.push({ parent, sentReplies });
-        }
-
-        groups.sort(
-            (a, b) =>
-                new Date(b.parent.timestamp).getTime() -
-                new Date(a.parent.timestamp).getTime(),
+  function buildDisplayRows() {
+    const byThread = {};
+    for (const email of state.emails) {
+      const threadKey = email.thread_id || email.id;
+      if (!byThread[threadKey]) byThread[threadKey] = [];
+      byThread[threadKey].push(email);
+    }
+    const groups = [];
+    for (const threadKey of Object.keys(byThread)) {
+      const messages = byThread[threadKey];
+      const received = messages.filter((m) => !m.is_sent);
+      if (received.length === 0) continue;
+      received.sort(
+        (a, b) =>
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+      );
+      const parent = received[0];
+      if (state.activeTab === "important" && !isImportantEmail(parent))
+        continue;
+      const sentReplies = messages
+        .filter((m) => m.is_sent)
+        .sort(
+          (a, b) =>
+            new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
         );
+      groups.push({ parent, sentReplies });
+    }
+    groups.sort(
+      (a, b) =>
+        new Date(b.parent.timestamp).getTime() -
+        new Date(a.parent.timestamp).getTime(),
+    );
+    const rows = [];
+    for (const group of groups) {
+      rows.push({ email: group.parent, isChild: false });
+      for (const reply of group.sentReplies)
+        rows.push({ email: reply, isChild: true });
+    }
+    return rows;
+  }
 
-        const rows = [];
-        for (const group of groups) {
-            rows.push({ email: group.parent, isChild: false });
-            for (const reply of group.sentReplies) {
-                rows.push({ email: reply, isChild: true });
-            }
-        }
-        return rows;
+  function mapEmailWithPipeline(email) {
+    const hasCachedPipeline =
+      !!email.classification || !!email.summary || !!email.draft;
+    return {
+      ...email,
+      _pipeline: hasCachedPipeline
+        ? {
+            email_id: email.id,
+            classification: email.classification || null,
+            summary: email.summary || null,
+            draft: email.draft || null,
+          }
+        : null,
+    };
+  }
+
+  function setInboxState(data) {
+    if (!Array.isArray(data) || data.length === 0) {
+      showInboxEmpty();
+      return;
+    }
+    state.emails = data.map(mapEmailWithPipeline);
+    emailListPage = 1;
+    hide("inbox-loading");
+    show("inbox-list");
+    renderEmailList();
+  }
+
+  async function loadEmails() {
+    show("inbox-loading");
+    hide("inbox-empty");
+    hide("inbox-list");
+    document.getElementById("sync-icon").style.animation =
+      "spin 1s linear infinite";
+    try {
+      const res = await fetch("/api/emails/recent");
+      const data = await res.json();
+      if (data.error) {
+        showInboxEmpty(data.error);
+        return;
+      }
+      setInboxState(data);
+    } catch (err) {
+      showInboxEmpty("Could not reach server: " + err.message);
+    } finally {
+      document.getElementById("sync-icon").style.animation = "";
+    }
+  }
+
+  async function syncEmails() {
+    show("inbox-loading");
+    hide("inbox-empty");
+    hide("inbox-list");
+    document.getElementById("sync-icon").style.animation =
+      "spin 1s linear infinite";
+    try {
+      const res = await fetch("/api/emails/sync", { method: "POST" });
+      const data = await res.json();
+      if (data.error) {
+        showInboxEmpty(data.error);
+        return;
+      }
+      setInboxState(data);
+    } catch (err) {
+      showInboxEmpty("Could not sync inbox: " + err.message);
+    } finally {
+      document.getElementById("sync-icon").style.animation = "";
+    }
+  }
+
+  function showInboxEmpty(msg) {
+    hide("inbox-loading");
+    hide("inbox-list");
+    show("inbox-empty");
+    if (msg) document.querySelector("#inbox-empty p").textContent = msg;
+  }
+
+  function renderEmailList() {
+    const list = document.getElementById("inbox-list");
+    const allRows = buildDisplayRows();
+    updateFolderBadges();
+
+    const countEl = document.getElementById("inbox-count");
+    countEl.textContent = allRows.filter((r) => !r.isChild).length;
+    countEl.classList.remove("hidden");
+
+    if (allRows.length === 0) {
+      list.innerHTML =
+        '<div class="email-empty-state">No emails in this tab.</div>';
+      show("inbox-list");
+      hide("inbox-empty");
+      return;
     }
 
-    // ─── Load emails ──────────────────────────────────────────────────────────────
-    function mapEmailWithPipeline(email) {
-        const hasCachedPipeline =
-            !!email.classification || !!email.summary || !!email.draft;
-        return {
-            ...email,
-            _pipeline: hasCachedPipeline
-                ? {
-                    email_id: email.id,
-                    classification: email.classification || null,
-                    summary: email.summary || null,
-                    draft: email.draft || null,
-                }
-                : null,
-        };
-    }
+    const paginatedRows = allRows.slice(0, emailListPage * emailsPerPage);
+    const hasMore = emailListPage * emailsPerPage < allRows.length;
 
-    function setInboxState(data) {
-        if (!Array.isArray(data) || data.length === 0) {
-            showInboxEmpty();
-            return;
-        }
-
-        state.emails = data.map(mapEmailWithPipeline);
-        emailListPage = 1; // Reset pagination when new emails load
-        hide("inbox-loading");
-        show("inbox-list");
-        renderEmailList();
-    }
-
-    async function loadEmails() {
-        show("inbox-loading");
-        hide("inbox-empty");
-        hide("inbox-list");
-        document.getElementById("sync-icon").style.animation =
-            "spin 1s linear infinite";
-
-        try {
-            const res = await fetch("/api/emails/recent");
-            const data = await res.json();
-
-            if (data.error) {
-                showInboxEmpty(data.error);
-                return;
-            }
-            setInboxState(data);
-        } catch (err) {
-            showInboxEmpty("Could not reach server: " + err.message);
-        } finally {
-            document.getElementById("sync-icon").style.animation = "";
-        }
-    }
-
-    async function syncEmails() {
-        show("inbox-loading");
-        hide("inbox-empty");
-        hide("inbox-list");
-        document.getElementById("sync-icon").style.animation =
-            "spin 1s linear infinite";
-
-        try {
-            const res = await fetch("/api/emails/sync", { method: "POST" });
-            const data = await res.json();
-
-            if (data.error) {
-                showInboxEmpty(data.error);
-                return;
-            }
-            setInboxState(data);
-        } catch (err) {
-            showInboxEmpty("Could not sync inbox: " + err.message);
-        } finally {
-            document.getElementById("sync-icon").style.animation = "";
-        }
-    }
-
-    function showInboxEmpty(msg) {
-        hide("inbox-loading");
-        hide("inbox-list");
-        show("inbox-empty");
-        if (msg) document.querySelector("#inbox-empty p").textContent = msg;
-    }
-
-    // ─── Render email list ────────────────────────────────────────────────────────
-    function renderEmailList() {
-        const list = document.getElementById("inbox-list");
-        const allRows = buildDisplayRows();
-
-        // Update folder badge counts
-        updateFolderBadges();
-
-        const countEl = document.getElementById("inbox-count");
-        countEl.textContent = allRows.filter((r) => !r.isChild).length;
-        countEl.classList.remove("hidden");
-
-        if (allRows.length === 0) {
-            list.innerHTML =
-                '<div class="flex-1 flex flex-col items-center justify-center p-6 text-center text-[13px] text-on-surface-variant">No emails in this tab.</div>';
-            show("inbox-list");
-            hide("inbox-empty");
-            return;
-        }
-
-        // Paginate: show only first (emailListPage * emailsPerPage) rows
-        const paginatedRows = allRows.slice(0, emailListPage * emailsPerPage);
-        const hasMore = emailListPage * emailsPerPage < allRows.length;
-
-        const emailRows = paginatedRows
-            .map((row) => {
-                const e = row.email;
-                const isActive = state.selected?.id === e.id;
-                const cat = e._pipeline?.classification?.category;
-                const cfg = cat ? catCfg(cat) : null;
-                const hasDraft = !!e._pipeline?.draft?.draft_reply;
-                const isSent = !!e.is_sent;
-                const childUi = row.isChild
-                    ? "ml-6 border-l-2 border-surface-dim pl-3"
-                    : "";
-                const sentTag = isSent
-                    ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary/10 text-primary">Sent reply</span>`
-                    : "";
-                return `
+    const emailRows = paginatedRows
+      .map((row) => {
+        const e = row.email;
+        const isActive = state.selected?.id === e.id;
+        const cat = e._pipeline?.classification?.category;
+        const cfg = cat ? catCfg(cat) : null;
+        const hasDraft = !!e._pipeline?.draft?.draft_reply;
+        const isSent = !!e.is_sent;
+        const childUi = row.isChild
+          ? "ml-6 border-l-2 border-surface-dim pl-3"
+          : "";
+        const sentTag = isSent
+          ? `<span class="badge-category badge-sent-reply">Sent reply</span>`
+          : "";
+        return `
       <div onclick="selectEmail(${state.emails.indexOf(e)})"
-        class="flex flex-col gap-1 p-4 cursor-pointer transition-colors border-b border-surface-dim/50 ${childUi}
-               ${isActive ? "bg-surface-container-low border-l-4 border-l-primary" : "hover:bg-surface-bright border-l-4 border-l-transparent"}">
-        <div class="flex justify-between items-start mb-0.5">
-          <div class="flex items-center gap-2 min-w-0">
-            <div class="h-8 w-8 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center font-label-md text-[12px] font-bold flex-shrink-0">
+        class="email-row ${isActive ? "active" : ""} ${childUi}">
+        <div class="flex justify-between items-start mb-0.5 w-full">
+          <div class="flex items-center gap-2 min-w-0 flex-1">
+            <div class="h-8 w-8 rounded-full bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center font-bold flex-shrink-0" style="font-size:11px">
               ${escHtml(initials(e.sender || e.sender_email))}
             </div>
-            <span class="font-body-lg text-[14px] font-semibold text-on-surface truncate">${escHtml(e.sender || e.sender_email)}</span>
+            <span class="font-body-lg font-semibold text-on-surface truncate" style="font-size:13.5px">${escHtml(e.sender || e.sender_email)}</span>
           </div>
-          <span class="font-body-md text-[12px] text-outline whitespace-nowrap ml-2">${fmtTime(e.timestamp)}</span>
+          <span class="text-outline whitespace-nowrap ml-2" style="font-size:11px;font-family:'DM Mono',monospace">${fmtTime(e.timestamp)}</span>
         </div>
-        <span class="font-body-md text-[13px] font-semibold text-on-surface line-clamp-1 pl-10">${escHtml(e.subject)}</span>
-        <p class="font-body-md text-[12px] text-on-surface-variant line-clamp-2 pl-10">${escHtml((e.body_plain || "").slice(0, 120))}</p>
-        <div class="pl-10 flex items-center gap-2 mt-0.5">
-                    ${sentTag}
-          ${cfg ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${cfg.bg} ${cfg.text}">${cfg.label}</span>` : ""}
-          ${hasDraft ? `<span class="text-primary" title="AI Draft ready"><span class="material-symbols-outlined text-[14px]">auto_awesome</span></span>` : ""}
+        <span class="font-semibold text-on-surface line-clamp-1 pl-10" style="font-size:12.5px;display:block;margin-top:2px">${escHtml(e.subject)}</span>
+        <p class="text-on-surface-variant line-clamp-2 pl-10" style="font-size:11.5px;margin-top:2px;line-height:1.45">${escHtml((e.body_plain || "").slice(0, 120))}</p>
+        <div class="pl-10 flex items-center gap-2" style="margin-top:6px">
+          ${sentTag}
+          ${cfg ? `<span class="badge-category badge-${cat}">${cfg.label}</span>` : ""}
+          ${hasDraft ? `<span title="AI Draft ready" style="color:var(--em-accent)"><span class="material-symbols-outlined" style="font-size:13px">auto_awesome</span></span>` : ""}
         </div>
       </div>`;
-            })
-            .join("");
+      })
+      .join("");
 
-        const showMoreBtn = hasMore
-            ? `<div class="p-3 border-t border-surface-dim/50">
-                 <button onclick="loadMoreEmails()"
-                   class="w-full py-2 px-3 rounded-lg text-[13px] font-semibold text-primary border border-primary/30 hover:bg-primary/5 transition-colors">
-                   Show more emails
-                 </button>
-               </div>`
-            : "";
+    const showMoreBtn = hasMore
+      ? `<div style="padding:10px 6px 14px">
+           <button onclick="loadMoreEmails()"
+             style="width:100%;padding:8px 12px;border-radius:10px;font-size:12.5px;font-weight:600;color:var(--em-accent);background:var(--em-accent-soft);border:1px solid rgba(59,130,246,.25);cursor:pointer;font-family:inherit">
+             Show more emails
+           </button>
+         </div>`
+      : "";
 
-        list.innerHTML = emailRows + showMoreBtn;
+    list.innerHTML = emailRows + showMoreBtn;
+  }
+
+  async function selectEmail(idx) {
+    const email = state.emails[idx];
+    if (!email) return;
+    state.selected = email;
+    renderEmailList();
+
+    showEmailContent(email, null);
+    ["btn-archive", "btn-delete", "btn-mark-unread"].forEach((id) => {
+      document.getElementById(id).disabled = false;
+    });
+
+    if (email.is_sent) {
+      hide("email-processing-badge");
+      hide("draft-loading");
+      hide("draft-content");
+      show("draft-empty");
+      hide("confidence-badge");
+      document.querySelector("#draft-empty p").textContent =
+        "This message is your sent reply in this thread.";
+      ["btn-send-reply", "btn-copy-draft", "btn-regenerate"].forEach((id) => {
+        document.getElementById(id).disabled = true;
+      });
+      return;
     }
 
-    // ─── Select + process email ───────────────────────────────────────────────────
-    async function selectEmail(idx) {
-        const email = state.emails[idx];
-        if (!email) return;
-        state.selected = email;
-        renderEmailList(); // update active state
-
-        // Show email content immediately
-        showEmailContent(email, null);
-
-        // Enable toolbar buttons
-        ["btn-archive", "btn-delete", "btn-mark-unread"].forEach((id) => {
-            document.getElementById(id).disabled = false;
-        });
-
-        // Sent replies are shown as part of thread history only.
-        // Do not run the AI pipeline on sent messages.
-        if (email.is_sent) {
-            hide("email-processing-badge");
-            hide("draft-loading");
-            hide("draft-content");
-            show("draft-empty");
-            hide("confidence-badge");
-            document.querySelector("#draft-empty p").textContent =
-                "This message is your sent reply in this thread.";
-            ["btn-send-reply", "btn-copy-draft", "btn-regenerate"].forEach((id) => {
-                document.getElementById(id).disabled = true;
-            });
-            return;
-        }
-
-        // If already processed with draft cached, show it
-        if (email._pipeline) {
-            showPipelineResult(email._pipeline);
-            return;
-        }
-
-        // Run pipeline
-        show("email-processing-badge");
-        show("draft-loading");
-        hide("draft-empty");
-        hide("draft-content");
-
-        try {
-            const res = await fetch("/api/process-email", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    email_id: email.id,
-                    subject: email.subject,
-                    sender: email.sender,
-                    sender_email: email.sender_email,
-                    body_plain: email.body_plain,
-                    thread_id: email.thread_id,
-                    timestamp: email.timestamp,
-                }),
-            });
-            const data = await res.json();
-
-            // Cache pipeline result on email object so switching back is instant
-            state.emails[idx]._pipeline = data;
-            state.pipeline = data;
-
-            showPipelineResult(data);
-            renderEmailList(); // refresh badges
-        } catch (err) {
-            console.error("Pipeline failed:", err);
-            hide("draft-loading");
-            show("draft-empty");
-            document.querySelector("#draft-empty p").textContent =
-                "AI pipeline failed. Try again.";
-        } finally {
-            hide("email-processing-badge");
-        }
+    if (email._pipeline) {
+      showPipelineResult(email._pipeline);
+      return;
     }
 
-    // ─── Show email content in center panel ───────────────────────────────────────
-    function showEmailContent(email, pipeline) {
-        hide("email-empty");
-        show("email-content");
-        hide("summary-bar");
+    show("email-processing-badge");
+    show("draft-loading");
+    hide("draft-empty");
+    hide("draft-content");
 
-        document.getElementById("email-subject").textContent = email.subject;
-        document.getElementById("email-avatar").textContent = initials(
-            email.sender || email.sender_email,
-        );
-        document.getElementById("email-sender-name").textContent =
-            email.sender || email.sender_email;
-        document.getElementById("email-sender-addr").textContent =
-            email.sender_email ? `<${email.sender_email}>` : "";
-        document.getElementById("email-timestamp").textContent = fmtTime(
-            email.timestamp,
-        );
-        document.getElementById("email-body").innerHTML = bodyToParagraphs(
-            email.body_plain,
-        );
+    try {
+      const res = await fetch("/api/process-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email_id: email.id,
+          subject: email.subject,
+          sender: email.sender,
+          sender_email: email.sender_email,
+          body_plain: email.body_plain,
+          thread_id: email.thread_id,
+          timestamp: email.timestamp,
+        }),
+      });
+      const data = await res.json();
+      state.emails[idx]._pipeline = data;
+      state.pipeline = data;
+      showPipelineResult(data);
+      renderEmailList();
+    } catch (err) {
+      console.error("Pipeline failed:", err);
+      hide("draft-loading");
+      show("draft-empty");
+      document.querySelector("#draft-empty p").textContent =
+        "AI pipeline failed. Try again.";
+    } finally {
+      hide("email-processing-badge");
+    }
+  }
 
-        const badge = document.getElementById("email-category-badge");
-        badge.className =
-            "hidden text-[10px] font-bold px-2 py-0.5 rounded-full";
-        badge.textContent = "";
+  function showEmailContent(email, pipeline) {
+    hide("email-empty");
+    show("email-content");
+    hide("summary-bar");
+    document.getElementById("email-subject").textContent = email.subject;
+    document.getElementById("email-avatar").textContent = initials(
+      email.sender || email.sender_email,
+    );
+    document.getElementById("email-sender-name").textContent =
+      email.sender || email.sender_email;
+    document.getElementById("email-sender-addr").textContent =
+      email.sender_email ? `<${email.sender_email}>` : "";
+    document.getElementById("email-timestamp").textContent = fmtTime(
+      email.timestamp,
+    );
+    document.getElementById("email-body").innerHTML = bodyToParagraphs(
+      email.body_plain,
+    );
+    const badge = document.getElementById("email-category-badge");
+    badge.className = "hidden";
+    badge.textContent = "";
+  }
+
+  function showPipelineResult(data) {
+    const { classification, summary, draft } = data;
+
+    if (summary?.one_line_summary) {
+      document.getElementById("summary-headline").textContent =
+        summary.one_line_summary;
+      const factsEl = document.getElementById("summary-facts");
+      factsEl.innerHTML = (summary.key_facts || [])
+        .map((f) => `<span class="email-summary-fact">${escHtml(f)}</span>`)
+        .join("");
+      show("summary-bar");
     }
 
-    // ─── Render pipeline output ───────────────────────────────────────────────────
-    function showPipelineResult(data) {
-        const { classification, summary, draft } = data;
-
-        // Summary bar
-        if (summary?.one_line_summary) {
-            document.getElementById("summary-headline").textContent =
-                summary.one_line_summary;
-            const factsEl = document.getElementById("summary-facts");
-            factsEl.innerHTML = (summary.key_facts || [])
-                .map(
-                    (f) =>
-                        `<span class="text-[11px] bg-surface-container-low border border-surface-dim px-2 py-0.5 rounded-full text-on-surface-variant">${escHtml(f)}</span>`,
-                )
-                .join("");
-            show("summary-bar");
-        }
-
-        // Category badge on email header
-        if (classification?.category) {
-            const cfg = catCfg(classification.category);
-            const badge = document.getElementById("email-category-badge");
-            badge.textContent = cfg.label;
-            badge.className = `text-[10px] font-bold px-2 py-0.5 rounded-full ${cfg.bg} ${cfg.text}`;
-            badge.classList.remove("hidden");
-        }
-
-        // Confidence badge — format: "AI Confidence: 92%"
-        if (draft?.confidence_score !== undefined) {
-            const score = draft.confidence_score;
-            const pct = Math.round(score * 100);
-            const cb = document.getElementById("confidence-badge");
-            cb.textContent = `AI Confidence: ${pct}%`;
-            cb.className = `text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                score >= 0.75 ? "bg-green-100 text-green-700" :
-                score >= 0.45 ? "bg-orange-100 text-orange-700" :
-                                "bg-surface-container-high text-on-surface-variant"
-            }`;
-            cb.classList.remove("hidden");
-        }
-
-        // Draft textarea
-        hide("draft-loading");
-        hide("draft-empty");
-        show("draft-content");
-        document.getElementById("draft-textarea").value =
-            draft?.draft_reply || "";
-
-        // Action items section
-        const allActions = [
-            ...(classification?.action_items || []),
-            ...(summary?.action_items || []),
-        ].filter((v, i, a) => a.indexOf(v) === i); // deduplicate
-
-        const actSection = document.getElementById("action-items-section");
-        if (allActions.length > 0) {
-            document.getElementById("action-items-list").innerHTML = allActions
-                .map(
-                    (a) =>
-                        `<div class="flex items-start gap-2 text-[12px] text-on-surface-variant">
-         <span class="material-symbols-outlined text-[14px] text-primary mt-0.5 flex-shrink-0">check_circle</span>
-         <span>${escHtml(a)}</span>
-       </div>`,
-                )
-                .join("");
-            actSection.classList.remove("hidden");
-        } else {
-            actSection.classList.add("hidden");
-        }
-
-        // Enable action buttons now that a draft exists
-        ["btn-save-draft", "btn-send-reply", "btn-copy-draft", "btn-regenerate"].forEach((id) => {
-            document.getElementById(id).disabled = false;
-        });
+    if (classification?.category) {
+      const cfg = catCfg(classification.category);
+      const badge = document.getElementById("email-category-badge");
+      badge.textContent = cfg.label;
+      badge.className = `badge-category badge-${classification.category}`;
+      badge.classList.remove("hidden");
     }
 
-    // ─── Draft actions ────────────────────────────────────────────────────────────
-    function copyDraft() {
-        const text = document.getElementById("draft-textarea").value;
-        navigator.clipboard.writeText(text).then(() => {
-            const btn = document.getElementById("btn-copy-draft");
-            const orig = btn.innerHTML;
-            btn.innerHTML =
-                '<span class="material-symbols-outlined text-[16px]">check</span> Copied!';
-            setTimeout(() => {
-                btn.innerHTML = orig;
-            }, 2000);
-        });
+    if (draft?.confidence_score !== undefined) {
+      const score = draft.confidence_score;
+      const pct = Math.round(score * 100);
+      const cb = document.getElementById("confidence-badge");
+      cb.textContent = `AI Confidence: ${pct}%`;
+      const confidenceClass =
+        score >= 0.75
+          ? "badge-confidence-high"
+          : score >= 0.45
+            ? "badge-confidence-medium"
+            : "badge-confidence-low";
+      cb.className = `badge-category ${confidenceClass}`;
+      cb.classList.remove("hidden");
     }
 
-    async function regenerateDraft() {
-        // Guard: need a selected email and an existing pipeline result
-        if (!state.selected) return;
-        const email = state.selected;
-        const pipeline = state.pipeline || email._pipeline;
-        if (!pipeline) return;
+    hide("draft-loading");
+    hide("draft-empty");
+    show("draft-content");
+    document.getElementById("draft-textarea").value = draft?.draft_reply || "";
 
-        // Show spinning icon and disable button during the API call
-        const regenBtn = document.getElementById("btn-regenerate");
-        const regenIcon = document.getElementById("regen-icon");
-        regenBtn.disabled = true;
-        regenIcon.style.animation = "spin 0.8s linear infinite";
-        document.getElementById("draft-textarea").value = "Regenerating…";
+    const allActions = [
+      ...(classification?.action_items || []),
+      ...(summary?.action_items || []),
+    ].filter((v, i, a) => a.indexOf(v) === i);
 
-        try {
-            const res = await fetch("/api/draft", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    email_id: email.id,
-                    subject: email.subject,
-                    body: email.body_plain,
-                    classification: pipeline.classification,
-                    summary: pipeline.summary,
-                }),
-            });
-            const data = await res.json();
-
-            // Update textarea with new draft text
-            document.getElementById("draft-textarea").value = data.draft_reply || "";
-
-            // Refresh confidence badge with new score
-            if (data.confidence_score !== undefined) {
-                const pct = Math.round(data.confidence_score * 100);
-                const cb = document.getElementById("confidence-badge");
-                cb.textContent = `AI Confidence: ${pct}%`;
-                cb.classList.remove("hidden");
-            }
-
-            // Cache the fresh draft on the pipeline object
-            if (pipeline) { pipeline.draft = data; }
-            showToast("Draft regenerated", "success");
-
-        } catch (err) {
-            document.getElementById("draft-textarea").value = "Regeneration failed. Please try again.";
-            showToast("Regeneration failed — check console", "error");
-        } finally {
-            regenBtn.disabled = false;
-            regenIcon.style.animation = "";
-        }
+    const actSection = document.getElementById("action-items-section");
+    if (allActions.length > 0) {
+      document.getElementById("action-items-list").innerHTML = allActions
+        .map(
+          (a) =>
+            `<div class="draft-action-item">
+           <span class="draft-action-item-icon material-symbols-outlined">check_circle</span>
+           <span class="draft-action-item-text">${escHtml(a)}</span>
+         </div>`,
+        )
+        .join("");
+      actSection.classList.remove("hidden");
+    } else {
+      actSection.classList.add("hidden");
     }
 
-    async function sendReply() {
-        if (!state.selected) return;
+    [
+      "btn-save-draft",
+      "btn-send-reply",
+      "btn-copy-draft",
+      "btn-regenerate",
+    ].forEach((id) => {
+      document.getElementById(id).disabled = false;
+    });
+  }
 
-        const email = state.selected;
-        const pipeline = state.pipeline || email._pipeline;
-        const draftText = document.getElementById("draft-textarea").value.trim();
-        const btn = document.getElementById("btn-send-reply");
-        const original = btn.innerHTML;
+  function copyDraft() {
+    const text = document.getElementById("draft-textarea").value;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById("btn-copy-draft");
+      const orig = btn.innerHTML;
+      btn.innerHTML =
+        '<span class="material-symbols-outlined" style="font-size:14px">check</span> Copied!';
+      setTimeout(() => {
+        btn.innerHTML = orig;
+      }, 2000);
+    });
+  }
 
-        if (!email.sender_email) {
-            btn.innerHTML = "Missing recipient";
-            setTimeout(() => {
-                btn.innerHTML = original;
-            }, 2000);
-            return;
-        }
+  async function regenerateDraft() {
+    if (!state.selected) return;
+    const email = state.selected;
+    const pipeline = state.pipeline || email._pipeline;
+    if (!pipeline) return;
 
-        if (!draftText) {
-            btn.innerHTML = "Draft is empty";
-            setTimeout(() => {
-                btn.innerHTML = original;
-            }, 2000);
-            return;
-        }
+    const regenBtn = document.getElementById("btn-regenerate");
+    const regenIcon = document.getElementById("regen-icon");
+    regenBtn.disabled = true;
+    regenIcon.style.animation = "spin 0.8s linear infinite";
+    document.getElementById("draft-textarea").value = "Regenerating…";
 
-        const subject =
-            pipeline?.draft?.suggested_subject ||
-            `Re: ${email.subject || "(no subject)"}`;
+    try {
+      const res = await fetch("/api/draft", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email_id: email.id,
+          subject: email.subject,
+          body: email.body_plain,
+          classification: pipeline.classification,
+          summary: pipeline.summary,
+        }),
+      });
+      const data = await res.json();
+      document.getElementById("draft-textarea").value = data.draft_reply || "";
+      if (data.confidence_score !== undefined) {
+        const pct = Math.round(data.confidence_score * 100);
+        const cb = document.getElementById("confidence-badge");
+        cb.textContent = `AI Confidence: ${pct}%`;
+        cb.classList.remove("hidden");
+      }
+      if (pipeline) pipeline.draft = data;
+      showToast("Draft regenerated", "success");
+    } catch (err) {
+      document.getElementById("draft-textarea").value =
+        "Regeneration failed. Please try again.";
+      showToast("Regeneration failed — check console", "error");
+    } finally {
+      regenBtn.disabled = false;
+      regenIcon.style.animation = "";
+    }
+  }
 
-        btn.disabled = true;
-        btn.innerHTML =
-            '<span class="material-symbols-outlined text-[18px] animate-spin">autorenew</span> Sending...';
+  async function sendReply() {
+    if (!state.selected) return;
+    const email = state.selected;
+    const pipeline = state.pipeline || email._pipeline;
+    const draftText = document.getElementById("draft-textarea").value.trim();
+    const btn = document.getElementById("btn-send-reply");
+    const original = btn.innerHTML;
 
-        try {
-            const res = await fetch("/api/emails/send", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    to: email.sender_email,
-                    subject,
-                    body: draftText,
-                    thread_id: email.thread_id || null,
-                }),
-            });
-            const data = await res.json();
-
-            if (data.error) {
-                throw new Error(data.error);
-            }
-
-            btn.innerHTML =
-                '<span class="material-symbols-outlined text-[18px]">check</span> Sent';
-            setTimeout(() => {
-                btn.innerHTML = original;
-                btn.disabled = false;
-            }, 1800);
-        } catch (err) {
-            btn.innerHTML = "Send failed";
-            setTimeout(() => {
-                btn.innerHTML = original;
-                btn.disabled = false;
-            }, 1800);
-        }
+    if (!email.sender_email) {
+      btn.innerHTML = "Missing recipient";
+      setTimeout(() => {
+        btn.innerHTML = original;
+      }, 2000);
+      return;
+    }
+    if (!draftText) {
+      btn.innerHTML = "Draft is empty";
+      setTimeout(() => {
+        btn.innerHTML = original;
+      }, 2000);
+      return;
     }
 
-    // ─── Toast notifications ──────────────────────────────────────────────────────
-    // Creates a transient toast pill in the bottom-right corner.
-    // type: 'success' | 'error' | 'info'
-    function showToast(message, type) {
-        type = type || "info";
-        const container = document.getElementById("toast-container");
+    const subject =
+      pipeline?.draft?.suggested_subject ||
+      `Re: ${email.subject || "(no subject)"}`;
+    btn.disabled = true;
+    btn.innerHTML =
+      '<span class="material-symbols-outlined" style="font-size:14px;animation:spin 0.8s linear infinite">autorenew</span> Sending...';
 
-        // Choose colour scheme based on type
-        const colours = {
-            success: "bg-green-600 text-white",
-            error:   "bg-error   text-on-error",
-            info:    "bg-primary  text-on-primary",
-        };
-        const icons = { success: "check_circle", error: "error", info: "info" };
+    try {
+      const res = await fetch("/api/emails/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: email.sender_email,
+          subject,
+          body: draftText,
+          thread_id: email.thread_id || null,
+        }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      btn.innerHTML =
+        '<span class="material-symbols-outlined" style="font-size:14px">check</span> Sent';
+      setTimeout(() => {
+        btn.innerHTML = original;
+        btn.disabled = false;
+      }, 1800);
+    } catch (err) {
+      btn.innerHTML = "Send failed";
+      setTimeout(() => {
+        btn.innerHTML = original;
+        btn.disabled = false;
+      }, 1800);
+    }
+  }
 
-        const toast = document.createElement("div");
-        toast.className = [
-            "pointer-events-auto flex items-center gap-2 px-4 py-2.5 rounded-xl shadow-lg",
-            "font-label-md text-[13px] font-semibold toast-enter",
-            colours[type] || colours.info,
-        ].join(" ");
-        toast.innerHTML = [
-            `<span class="material-symbols-outlined text-[16px]" style="font-variation-settings:'FILL' 1">${icons[type] || "info"}</span>`,
-            `<span>${message}</span>`,
-        ].join("");
+  function showToast(message, type) {
+    type = type || "info";
+    const container = document.getElementById("toast-container");
+    const colours = {
+      success: "bg-green-600 text-white",
+      error: "bg-error text-on-error",
+      info: "bg-primary text-on-primary",
+    };
+    const icons = { success: "check_circle", error: "error", info: "info" };
+    const toast = document.createElement("div");
+    toast.className = [
+      "toast pointer-events-auto flex items-center gap-2",
+      colours[type] || colours.info,
+    ].join(" ");
+    toast.innerHTML = [
+      `<span class="material-symbols-outlined" style="font-size:16px;font-variation-settings:'FILL' 1">${icons[type] || "info"}</span>`,
+      `<span>${message}</span>`,
+    ].join("");
+    container.appendChild(toast);
+    setTimeout(function () {
+      toast.classList.add("toast-leave");
+      setTimeout(function () {
+        toast.remove();
+      }, 250);
+    }, 2800);
+  }
 
-        container.appendChild(toast);
-
-        // Auto-remove: fade out at 2.8s, remove DOM node at 3s
-        setTimeout(function() {
-            toast.classList.remove("toast-enter");
-            toast.classList.add("toast-leave");
-            setTimeout(function() { toast.remove(); }, 250);
-        }, 2800);
+  async function saveDraftToGmail() {
+    if (!state.selected) return;
+    const email = state.selected;
+    const pipeline = state.pipeline || email._pipeline;
+    const draftText = document.getElementById("draft-textarea").value.trim();
+    if (!draftText) {
+      showToast("Draft is empty — nothing to save", "error");
+      return;
     }
 
-    // ─── Save to Gmail Drafts ─────────────────────────────────────────────────────
-    // POSTs the current textarea content to /api/drafts/save which creates a
-    // real Gmail draft (not a sent message). Shows a toast on success or failure.
-    async function saveDraftToGmail() {
-        if (!state.selected) { return; }
-        const email   = state.selected;
-        const pipeline = state.pipeline || email._pipeline;
-        const draftText = document.getElementById("draft-textarea").value.trim();
+    const subject =
+      pipeline?.draft?.suggested_subject ||
+      `Re: ${email.subject || "(no subject)"}`;
+    const btn = document.getElementById("btn-save-draft");
+    const originalHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML =
+      '<span class="material-symbols-outlined" style="font-size:16px;animation:spin 0.8s linear infinite">autorenew</span> Saving…';
 
-        if (!draftText) {
-            showToast("Draft is empty — nothing to save", "error");
-            return;
-        }
+    try {
+      const res = await fetch("/api/drafts/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: email.sender_email || "",
+          subject,
+          body: draftText,
+          thread_id: email.thread_id || null,
+        }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      showToast("Draft saved to Gmail ✓", "success");
+    } catch (err) {
+      console.error("[saveDraftToGmail]", err);
+      showToast("Could not save draft: " + err.message, "error");
+    } finally {
+      setTimeout(function () {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+      }, 600);
+    }
+  }
 
-        // Build the reply subject line
-        const subject = pipeline?.draft?.suggested_subject ||
-                        `Re: ${email.subject || "(no subject)"}`;
+  function show(id) {
+    document.getElementById(id)?.classList.remove("hidden");
+  }
+  function hide(id) {
+    document.getElementById(id)?.classList.add("hidden");
+  }
 
-        // Disable button and show saving state
-        const btn = document.getElementById("btn-save-draft");
-        const originalHTML = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin" style="animation:spin 0.8s linear infinite">autorenew</span> Saving…';
+  function updateFolderBadges() {
+    var importantCount = state.emails.filter(function (e) {
+      if (e.is_sent) return false;
+      var cat = e._pipeline?.classification?.category;
+      var score = e._pipeline?.classification?.priority_score || 0;
+      return (
+        !cat ||
+        cat === "urgent" ||
+        cat === "action-required" ||
+        cat === "meeting-request" ||
+        score >= 6
+      );
+    }).length;
 
-        try {
-            const res = await fetch("/api/drafts/save", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    to:        email.sender_email || "",
-                    subject:   subject,
-                    body:      draftText,
-                    thread_id: email.thread_id || null,
-                }),
-            });
-            const data = await res.json();
-
-            if (data.error) {
-                throw new Error(data.error);
-            }
-
-            showToast("Draft saved to Gmail ✓", "success");
-
-        } catch (err) {
-            console.error("[saveDraftToGmail]", err);
-            showToast("Could not save draft: " + err.message, "error");
-        } finally {
-            // Restore button after a short delay so the user sees the spinner
-            setTimeout(function() {
-                btn.disabled = false;
-                btn.innerHTML = originalHTML;
-            }, 600);
-        }
+    var badgeImportant = document.getElementById("badge-important");
+    if (badgeImportant && importantCount > 0) {
+      badgeImportant.textContent = importantCount;
+      badgeImportant.classList.remove("hidden");
+    } else if (badgeImportant) {
+      badgeImportant.classList.add("hidden");
     }
 
-    // ─── DOM helpers ──────────────────────────────────────────────────────────────
-    function show(id) {
-        document.getElementById(id)?.classList.remove("hidden");
+    var allCount = state.emails.length;
+    var badgeAll = document.getElementById("badge-all");
+    if (badgeAll && allCount > 0) {
+      badgeAll.textContent = allCount;
+      badgeAll.classList.remove("hidden");
+    } else if (badgeAll) {
+      badgeAll.classList.add("hidden");
     }
-    function hide(id) {
-        document.getElementById(id)?.classList.add("hidden");
-    }
+  }
 
-    // ─── Folder badge counts ──────────────────────────────────────────────────────
-    // Updates the small number pills on Important and All Mail folder buttons.
-    // Called after every render so counts stay current after sync/filter changes.
-    function updateFolderBadges() {
-        // Important count: non-sent high-priority emails
-        var importantCount = state.emails.filter(function(e) {
-            if (e.is_sent) { return false; }
-            var cat = e._pipeline?.classification?.category;
-            var score = e._pipeline?.classification?.priority_score || 0;
-            return !cat || cat === "urgent" || cat === "action-required" ||
-                   cat === "meeting-request" || score >= 6;
-        }).length;
+  /* ── MD3 Tab switching + indicator ── */
+  function positionIndicator() {
+    var container = document.getElementById('mailbox-tabs');
+    var indicator = document.getElementById('md3-indicator');
+    var activeTab = container && container.querySelector('.md3-tab.active');
+    if (!container || !indicator || !activeTab) return;
+    var containerRect = container.getBoundingClientRect();
+    var tabRect = activeTab.getBoundingClientRect();
+    indicator.style.left = (tabRect.left - containerRect.left) + 'px';
+    indicator.style.width = tabRect.width + 'px';
+  }
 
-        var badgeImportant = document.getElementById("badge-important");
-        if (importantCount > 0) {
-            badgeImportant.textContent = importantCount;
-            badgeImportant.classList.remove("hidden");
-        } else {
-            badgeImportant.classList.add("hidden");
-        }
+  function switchTab(tab) {
+    // Remove active from all tabs
+    var tabs = tab.parentElement.querySelectorAll('.md3-tab');
+    tabs.forEach(function(t) { t.classList.remove('active'); });
+    tab.classList.add('active');
 
-        // All Mail count: total emails in DB
-        var allCount = state.emails.length;
-        var badgeAll = document.getElementById("badge-all");
-        if (allCount > 0) {
-            badgeAll.textContent = allCount;
-            badgeAll.classList.remove("hidden");
-        } else {
-            badgeAll.classList.add("hidden");
-        }
-    }
+    // Create ripple
+    var rect = tab.getBoundingClientRect();
+    var size = Math.max(rect.width, rect.height);
+    var ripple = document.createElement('span');
+    ripple.className = 'md3-ripple';
+    ripple.style.width = ripple.style.height = size + 'px';
+    ripple.style.left = (event.clientX - rect.left - size / 2) + 'px';
+    ripple.style.top = (event.clientY - rect.top - size / 2) + 'px';
+    tab.appendChild(ripple);
+    ripple.addEventListener('animationend', function() { ripple.remove(); });
 
-    // ─── Boot ─────────────────────────────────────────────────────────────────────
-    loadEmails();
+    // Slide indicator
+    positionIndicator();
+  }
+
+  // Position indicator on load & resize
+  document.addEventListener('DOMContentLoaded', function() {
+    // Small delay to let layout settle
+    setTimeout(positionIndicator, 50);
+  });
+  window.addEventListener('resize', positionIndicator);
+  // Also position immediately in case DOM is already ready
+  setTimeout(positionIndicator, 100);
+
+  loadEmails();
 </script>
 {% endblock %}

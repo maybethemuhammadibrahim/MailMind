@@ -1,573 +1,979 @@
-{% extends "base.html" %} {% block title %}Crafter - MailMind{% endblock %} {%
-block header_title %}Crafter{% endblock %} {% block content %}
-<div class="flex flex-row gap-gutter w-full h-full flex-1 min-h-0">
-    <!-- Editor Canvas -->
-    <div
-        class="flex-1 bg-surface-container-lowest rounded-xl shadow-sm border border-surface-variant p-card-padding flex flex-col"
-    >
-        <!-- Header Fields -->
-        <div
-            class="flex flex-col gap-4 mb-6 pb-6 border-b border-surface-variant"
-        >
-            <div class="flex items-center gap-4">
-                <label
-                    class="w-16 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider"
-                    >To</label
-                >
-                <div
-                    class="flex-1 flex gap-2 items-center bg-surface-container-lowest border border-outline-variant rounded-lg px-3 py-2 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all"
-                >
-                    <input
-                        id="crafter-to"
-                        class="flex-1 bg-transparent border-none focus:ring-0 p-0 text-body-lg text-on-surface"
-                        placeholder="Add recipient..."
-                        type="text"
-                    />
-                </div>
-            </div>
-            <div class="flex items-center gap-4">
-                <label
-                    class="w-16 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider"
-                    >Subject</label
-                >
-                <input
-                    id="crafter-subject"
-                    class="flex-1 bg-surface-container-lowest border border-outline-variant rounded-lg px-3 py-2 text-h2 font-h2 focus:border-primary focus:ring-1 focus:ring-primary transition-all text-on-surface"
-                    placeholder="Subject"
-                    type="text"
-                />
-            </div>
-        </div>
-        <!-- Editor Body -->
-        <div class="flex-1 relative flex flex-col">
-            <!-- Formatting Toolbar -->
-            <div
-                class="flex items-center gap-1 mb-4 p-2 bg-surface-container-low rounded-lg border border-surface-variant"
-            >
-                <button
-                    onclick="formatText('bold')"
-                    id="btn-bold"
-                    title="Bold (Ctrl+B)"
-                    class="fmt-btn p-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded transition-colors"
-                >
-                    <span class="material-symbols-outlined text-[20px]"
-                        >format_bold</span
-                    >
-                </button>
-                <button
-                    onclick="formatText('italic')"
-                    id="btn-italic"
-                    title="Italic (Ctrl+I)"
-                    class="fmt-btn p-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded transition-colors"
-                >
-                    <span class="material-symbols-outlined text-[20px]"
-                        >format_italic</span
-                    >
-                </button>
-                <button
-                    onclick="formatText('underline')"
-                    id="btn-underline"
-                    title="Underline (Ctrl+U)"
-                    class="fmt-btn p-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded transition-colors"
-                >
-                    <span class="material-symbols-outlined text-[20px]"
-                        >format_underlined</span
-                    >
-                </button>
-                <div class="w-px h-6 bg-outline-variant mx-1"></div>
-                <button
-                    onclick="formatText('insertUnorderedList')"
-                    id="btn-ul"
-                    title="Bullet List"
-                    class="fmt-btn p-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded transition-colors"
-                >
-                    <span class="material-symbols-outlined text-[20px]"
-                        >format_list_bulleted</span
-                    >
-                </button>
-                <button
-                    onclick="formatText('insertOrderedList')"
-                    id="btn-ol"
-                    title="Numbered List"
-                    class="fmt-btn p-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded transition-colors"
-                >
-                    <span class="material-symbols-outlined text-[20px]"
-                        >format_list_numbered</span
-                    >
-                </button>
-                <div class="w-px h-6 bg-outline-variant mx-1"></div>
-                <button
-                    onclick="formatText('createLink')"
-                    id="btn-link"
-                    title="Insert Link"
-                    class="fmt-btn p-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded transition-colors"
-                >
-                    <span class="material-symbols-outlined text-[20px]"
-                        >link</span
-                    >
-                </button>
-                <button
-                    onclick="formatText('removeFormat')"
-                    title="Clear Formatting"
-                    class="fmt-btn p-1.5 text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface rounded transition-colors ml-auto"
-                >
-                    <span class="material-symbols-outlined text-[20px]"
-                        >format_clear</span
-                    >
-                </button>
-            </div>
-            <!-- Rich Text Editor (contentEditable) -->
-            <div
-                id="crafter-body"
-                contenteditable="true"
-                class="flex-1 w-full border border-outline-variant rounded-lg p-4 text-body-lg text-on-surface bg-surface-container-lowest leading-relaxed overflow-y-auto focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all min-h-[200px]"
-                style="white-space: pre-wrap"
-                data-placeholder="Start typing or use AI to craft your message..."
-            ></div>
-            <!-- Floating AI Action -->
-            <div class="absolute bottom-4 right-4">
-                <button
-                    onclick="generateDraft()"
-                    class="bg-primary text-on-primary px-6 py-3 rounded-full shadow-lg hover:bg-surface-tint transition-all active:scale-95 flex items-center gap-2 font-label-md text-label-md tracking-wide"
-                >
-                    <span
-                        class="material-symbols-outlined text-[18px]"
-                        data-weight="fill"
-                        style="font-variation-settings: &quot;FILL&quot; 1"
-                        >auto_awesome</span
-                    >
-                    Compose with AI
-                </button>
-            </div>
-        </div>
-        <!-- Bottom Action Bar -->
-        <div
-            class="mt-6 pt-4 border-t border-surface-variant flex justify-between items-center"
-        >
-            <button
-                onclick="discardCrafter()"
-                class="text-on-surface-variant hover:text-error transition-colors flex items-center gap-1 text-sm font-label-md"
-            >
-                <span class="material-symbols-outlined text-[18px]"
-                    >delete</span
-                >
-                Discard
-            </button>
-            <div class="flex gap-3">
-                <button
-                    onclick="saveCrafterDraft()"
-                    class="px-4 py-2 rounded-lg border border-outline-variant text-on-surface hover:bg-surface-container-low transition-colors font-label-md text-label-md"
-                >
-                    Save Draft
-                </button>
-                <button
-                    id="crafter-send-btn"
-                    onclick="sendCrafterEmail()"
-                    class="px-6 py-2 rounded-lg bg-on-surface text-surface-container-lowest hover:bg-on-surface/90 transition-colors font-label-md text-label-md flex items-center gap-2"
-                >
-                    Send
-                    <span class="material-symbols-outlined text-[16px]"
-                        >send</span
-                    >
-                </button>
-            </div>
-        </div>
-        <p
-            id="crafter-send-status"
-            class="hidden mt-3 text-sm text-on-surface-variant"
-        ></p>
-    </div>
-    <!-- AI Assistant Sidebar -->
-    <aside class="w-80 flex flex-col gap-gutter shrink-0">
-        <!-- AI Prompt Input -->
-        <div
-            class="bg-surface-container-low rounded-xl p-card-padding border border-surface-variant shadow-sm relative overflow-hidden"
-        >
-            <div
-                class="absolute top-0 right-0 w-32 h-32 bg-tertiary-fixed-dim/20 rounded-full blur-2xl -mr-10 -mt-10 pointer-events-none"
-            ></div>
-            <h3
-                class="font-h2 text-h2 text-on-surface mb-3 flex items-center gap-2"
-            >
-                <span
-                    class="material-symbols-outlined text-[20px] text-primary"
-                    data-weight="fill"
-                    style="font-variation-settings: &quot;FILL&quot; 1"
-                    >auto_awesome</span
-                >
-                AI Writer
-            </h3>
-            <p class="font-body-md text-body-md text-on-surface-variant mb-4">
-                Briefly describe what you want to say, and let the AI draft it
-                for you.
-            </p>
-            <textarea
-                id="ai-prompt"
-                class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-3 text-sm focus:border-primary focus:ring-1 focus:ring-primary transition-all resize-none h-24 mb-3 text-on-surface"
-                placeholder="e.g., Ask Alex for an update on the Q3 report and suggest a meeting next Tuesday."
-            ></textarea>
-            <button
-                id="generate-btn"
-                onclick="generateDraft()"
-                class="w-full bg-primary text-on-primary py-2.5 rounded-lg font-label-md text-label-md hover:bg-surface-tint transition-colors flex justify-center items-center gap-2"
-            >
-                Generate Draft
-                <span class="material-symbols-outlined text-[16px]"
-                    >arrow_forward</span
-                >
-            </button>
-        </div>
-        <!-- Tone Modifiers -->
-        <div
-            class="bg-surface-container-lowest rounded-xl p-card-padding border border-surface-variant shadow-sm"
-        >
-            <h4
-                class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-4"
-            >
-                Tone &amp; Style
-            </h4>
-            <div id="tone-buttons" class="flex flex-wrap gap-2">
-                <button onclick="setTone('professional')" class="tone-btn px-3 py-1.5 rounded-full border border-primary bg-primary/10 text-primary font-body-md text-body-md hover:bg-primary/20 transition-colors" data-tone="professional">Professional</button>
-                <button onclick="setTone('casual')" class="tone-btn px-3 py-1.5 rounded-full border border-outline-variant text-on-surface-variant font-body-md text-body-md hover:bg-surface-container-low transition-colors" data-tone="casual">Casual</button>
-                <button onclick="setTone('direct')" class="tone-btn px-3 py-1.5 rounded-full border border-outline-variant text-on-surface-variant font-body-md text-body-md hover:bg-surface-container-low transition-colors" data-tone="direct">Direct</button>
-                <button onclick="setTone('persuasive')" class="tone-btn px-3 py-1.5 rounded-full border border-outline-variant text-on-surface-variant font-body-md text-body-md hover:bg-surface-container-low transition-colors" data-tone="persuasive">Persuasive</button>
-            </div>
-        </div>
-        <!-- Quick Templates -->
-        <div
-            class="bg-surface-container-lowest rounded-xl p-card-padding border border-surface-variant shadow-sm flex-1"
-        >
-            <h4
-                class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-4"
-            >
-                Quick Prompts
-            </h4>
-            <div class="flex flex-col gap-2">
-                <button onclick="useQuickPrompt('follow_up')" class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container-low border border-transparent hover:border-outline-variant/30 transition-all text-left w-full group">
-                    <span class="p-2 bg-secondary-fixed text-on-secondary-fixed rounded-lg group-hover:bg-secondary-fixed-dim transition-colors"><span class="material-symbols-outlined text-[18px]">replay</span></span>
-                    <div><div class="font-body-md font-semibold text-on-surface">Follow up</div><div class="text-[11px] text-on-surface-variant">Polite nudge on previous email</div></div>
-                </button>
-                <button onclick="useQuickPrompt('schedule_meeting')" class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container-low border border-transparent hover:border-outline-variant/30 transition-all text-left w-full group">
-                    <span class="p-2 bg-tertiary-fixed text-on-tertiary-fixed rounded-lg group-hover:bg-tertiary-fixed-dim transition-colors"><span class="material-symbols-outlined text-[18px]">calendar_month</span></span>
-                    <div><div class="font-body-md font-semibold text-on-surface">Schedule Meeting</div><div class="text-[11px] text-on-surface-variant">Propose times to connect</div></div>
-                </button>
-                <button onclick="useQuickPrompt('polite_decline')" class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container-low border border-transparent hover:border-outline-variant/30 transition-all text-left w-full group">
-                    <span class="p-2 bg-error-container text-on-error-container rounded-lg group-hover:bg-error-container/80 transition-colors"><span class="material-symbols-outlined text-[18px]">close</span></span>
-                    <div><div class="font-body-md font-semibold text-on-surface">Polite Decline</div><div class="text-[11px] text-on-surface-variant">Gracefully say no to an offer</div></div>
-                </button>
-                <button onclick="useQuickPrompt('thank_you')" class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container-low border border-transparent hover:border-outline-variant/30 transition-all text-left w-full group">
-                    <span class="p-2 bg-primary/10 text-primary rounded-lg group-hover:bg-primary/20 transition-colors"><span class="material-symbols-outlined text-[18px]">favorite</span></span>
-                    <div><div class="font-body-md font-semibold text-on-surface">Thank You</div><div class="text-[11px] text-on-surface-variant">Express sincere gratitude</div></div>
-                </button>
-                <button onclick="useQuickPrompt('apology')" class="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-container-low border border-transparent hover:border-outline-variant/30 transition-all text-left w-full group">
-                    <span class="p-2 bg-surface-container-high text-on-surface-variant rounded-lg group-hover:bg-surface-dim transition-colors"><span class="material-symbols-outlined text-[18px]">sentiment_dissatisfied</span></span>
-                    <div><div class="font-body-md font-semibold text-on-surface">Apology</div><div class="text-[11px] text-on-surface-variant">Take responsibility gracefully</div></div>
-                </button>
-            </div>
-        </div>
-    </aside>
-</div>
-
-<!-- Placeholder style for contentEditable -->
+{% extends "base.html" %} {% block title %}Crafter — MailMind{% endblock %} {%
+block page_styles %}
 <style>
-    #crafter-body:empty::before {
-        content: attr(data-placeholder);
-        color: var(--color-outline);
-        pointer-events: none;
+  /* Crafter page styles moved inline for this view */
+  .crafter-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    width: 100%;
+    gap: 20px;
+    align-items: stretch;
+  }
+
+  @media (min-width: 1280px) {
+    .crafter-layout {
+      flex-direction: row;
     }
-    #crafter-body:focus {
-        outline: none;
+  }
+
+  .crafter-compose {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    padding: 20px;
+    min-height: 0;
+  }
+
+  .crafter-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .crafter-field-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .crafter-field-label {
+    width: 56px;
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+
+  .crafter-field-input {
+    flex: 1;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--surface-2);
+    outline: none;
+    font-family: inherit;
+    transition: all 0.15s ease;
+  }
+
+  .crafter-field-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+    background: var(--surface);
+  }
+
+  .crafter-field-input::placeholder {
+    color: var(--text-subtle);
+  }
+
+  .crafter-field-input--subject {
+    font-weight: 600;
+  }
+
+  .crafter-editor-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .fmt-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    padding: 4px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+  }
+
+  .fmt-toolbar-divider {
+    width: 1px;
+    height: 20px;
+    background: var(--border-strong);
+    margin: 0 4px;
+    flex-shrink: 0;
+  }
+
+  .fmt-toolbar-spacer {
+    margin-left: auto;
+  }
+
+  .fmt-btn {
+    border: 0;
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+  }
+
+  .fmt-btn:hover {
+    background: var(--surface-3);
+    color: var(--text);
+  }
+
+  .editor {
+    min-height: 260px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    padding: 16px;
+    background: var(--surface);
+    color: var(--text);
+    box-sizing: border-box;
+    white-space: pre-wrap;
+    font-size: 14px;
+    line-height: 1.65;
+    flex: 1;
+  }
+
+  .editor:empty::before {
+    content: attr(data-placeholder);
+    color: var(--text-subtle);
+    pointer-events: none;
+  }
+
+  .editor:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+
+  .editor ul,
+  .editor ol {
+    padding-left: 1.5rem;
+    margin: 0.5rem 0;
+  }
+
+  .editor ul {
+    list-style-type: disc;
+  }
+
+  .editor ol {
+    list-style-type: decimal;
+  }
+
+  .crafter-ai-float {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+  }
+
+  .crafter-ai-float-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    background: var(--primary);
+    color: var(--primary-contrast);
+    border: none;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+    transition: all 0.15s ease;
+  }
+
+  .crafter-ai-float-btn:hover {
+    opacity: 0.9;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .crafter-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 16px;
+    margin-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .crafter-discard-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: inherit;
+    transition: color 0.15s ease;
+  }
+
+  .crafter-discard-btn:hover {
+    color: var(--danger);
+  }
+
+  .crafter-footer-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .crafter-save-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-body);
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .crafter-save-btn:hover,
+  .tone-btn:hover {
+    background: var(--surface-3);
+    border-color: var(--border-strong);
+  }
+
+  .crafter-send-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 20px;
+    border-radius: 8px;
+    background: var(--primary);
+    color: var(--primary-contrast);
+    border: none;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .crafter-send-btn:hover {
+    opacity: 0.9;
+  }
+
+  .crafter-send-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .crafter-status {
+    margin-top: 12px;
+    font-size: 13px;
+  }
+
+  .crafter-status--success {
+    color: var(--success);
+  }
+
+  .crafter-status--error {
+    color: var(--danger);
+  }
+
+  .crafter-sidebar {
+    width: 100%;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-height: 0;
+  }
+
+  @media (min-width: 1280px) {
+    .crafter-sidebar {
+      width: 320px;
+      align-self: stretch;
     }
-    #crafter-body ul, #crafter-body ol {
-        padding-left: 1.5rem;
-        margin: 0.5rem 0;
-    }
-    #crafter-body ul { list-style-type: disc; }
-    #crafter-body ol { list-style-type: decimal; }
+  }
+
+  .crafter-sidebar-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--panel-bg);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    padding: 16px;
+    min-height: 0;
+  }
+
+  .crafter-sidebar-stack {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .crafter-sidebar-stack .crafter-sidebar-card {
+    flex: 1;
+  }
+
+  .crafter-sidebar-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 8px;
+  }
+
+  .crafter-sidebar-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 0 0 12px;
+    line-height: 1.5;
+  }
+
+  .crafter-section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin: 0 0 12px;
+  }
+
+  .crafter-ai-textarea {
+    width: 100%;
+    height: 96px;
+    resize: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 13px;
+    color: var(--text);
+    background: var(--surface-2);
+    outline: none;
+    font-family: inherit;
+    line-height: 1.5;
+    margin-bottom: 12px;
+    transition: all 0.15s ease;
+  }
+
+  .crafter-ai-textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+    background: var(--surface);
+  }
+
+  .crafter-ai-textarea::placeholder {
+    color: var(--text-subtle);
+  }
+
+  .crafter-generate-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    background: var(--primary);
+    color: var(--primary-contrast);
+    border: none;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .crafter-generate-btn:hover {
+    opacity: 0.9;
+  }
+
+  .crafter-generate-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .crafter-tone-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .tone-btn {
+    border-radius: 6px;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    transition: all 0.15s ease;
+  }
+  .tone-btn.active,
+  .tone-btn.selected {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .crafter-prompts-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .crafter-prompts-badge {
+    font-size: 11px;
+    color: var(--text-subtle);
+  }
+
+  .crafter-prompts-list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-content: flex-start;
+  }
+
+  .quick-prompt {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: inherit;
+    color: var(--text-muted);
+    transition: all 0.15s ease;
+    white-space: nowrap;
+  }
+
+  .quick-prompt:hover {
+    background: var(--surface-3);
+    border-color: var(--border-strong);
+    color: var(--text);
+  }
 </style>
-{% endblock %}
-{% block scripts %}
+{% endblock %} {% block header_title %}Email Crafter{% endblock %} {% block
+content %}
+<div class="crafter-layout">
+  <!-- ═══════════════════════════════════════════════════════
+         LEFT: Compose area
+    ═══════════════════════════════════════════════════════ -->
+  <div class="crafter-compose">
+    <!-- To / Subject fields -->
+    <div class="crafter-fields">
+      <div class="crafter-field-row">
+        <label class="crafter-field-label" for="crafter-to">To</label>
+        <input
+          id="crafter-to"
+          class="crafter-field-input"
+          placeholder="Add recipient..."
+          type="text"
+        />
+      </div>
+      <div class="crafter-field-row">
+        <label class="crafter-field-label" for="crafter-subject">Subject</label>
+        <input
+          id="crafter-subject"
+          class="crafter-field-input crafter-field-input--subject"
+          placeholder="Subject"
+          type="text"
+        />
+      </div>
+    </div>
+
+    <!-- Editor area -->
+    <div class="crafter-editor-wrapper">
+      <!-- Format toolbar -->
+      <div class="fmt-toolbar">
+        <button
+          onclick="formatText('bold')"
+          id="btn-bold"
+          title="Bold (Ctrl+B)"
+          class="fmt-btn"
+        >
+          <span class="material-symbols-outlined" style="font-size: 18px"
+            >format_bold</span
+          >
+        </button>
+        <button
+          onclick="formatText('italic')"
+          id="btn-italic"
+          title="Italic (Ctrl+I)"
+          class="fmt-btn"
+        >
+          <span class="material-symbols-outlined" style="font-size: 18px"
+            >format_italic</span
+          >
+        </button>
+        <button
+          onclick="formatText('underline')"
+          id="btn-underline"
+          title="Underline (Ctrl+U)"
+          class="fmt-btn"
+        >
+          <span class="material-symbols-outlined" style="font-size: 18px"
+            >format_underlined</span
+          >
+        </button>
+        <span class="fmt-toolbar-divider"></span>
+        <button
+          onclick="formatText('insertUnorderedList')"
+          id="btn-ul"
+          title="Bullet List"
+          class="fmt-btn"
+        >
+          <span class="material-symbols-outlined" style="font-size: 18px"
+            >format_list_bulleted</span
+          >
+        </button>
+        <button
+          onclick="formatText('insertOrderedList')"
+          id="btn-ol"
+          title="Numbered List"
+          class="fmt-btn"
+        >
+          <span class="material-symbols-outlined" style="font-size: 18px"
+            >format_list_numbered</span
+          >
+        </button>
+        <span class="fmt-toolbar-divider"></span>
+        <button
+          onclick="formatText('createLink')"
+          id="btn-link"
+          title="Insert Link"
+          class="fmt-btn"
+        >
+          <span class="material-symbols-outlined" style="font-size: 18px"
+            >link</span
+          >
+        </button>
+        <span class="fmt-toolbar-spacer"></span>
+        <button
+          onclick="formatText('removeFormat')"
+          title="Clear Formatting"
+          class="fmt-btn"
+        >
+          <span class="material-symbols-outlined" style="font-size: 18px"
+            >format_clear</span
+          >
+        </button>
+      </div>
+
+      <!-- Contenteditable editor -->
+      <div
+        id="crafter-body"
+        contenteditable="true"
+        class="editor"
+        data-placeholder="Start typing or use AI to craft your message..."
+      ></div>
+
+      <!-- Floating "Compose with AI" button -->
+      <div class="crafter-ai-float">
+        <button onclick="generateDraft()" class="crafter-ai-float-btn">
+          <span
+            class="material-symbols-outlined"
+            style="font-size: 16px; font-variation-settings: &quot;FILL&quot; 1"
+            >auto_awesome</span
+          >
+          Compose with AI
+        </button>
+      </div>
+    </div>
+
+    <!-- Footer: Discard / Save Draft / Send -->
+    <div class="crafter-footer">
+      <button onclick="discardCrafter()" class="crafter-discard-btn">
+        <span class="material-symbols-outlined" style="font-size: 16px"
+          >delete</span
+        >
+        Discard
+      </button>
+      <div class="crafter-footer-actions">
+        <button onclick="saveCrafterDraft()" class="crafter-save-btn">
+          Save Draft
+        </button>
+        <button
+          id="crafter-send-btn"
+          onclick="sendCrafterEmail()"
+          class="crafter-send-btn"
+        >
+          Send
+          <span class="material-symbols-outlined" style="font-size: 16px"
+            >send</span
+          >
+        </button>
+      </div>
+    </div>
+
+    <!-- Status message -->
+    <p id="crafter-send-status" class="crafter-status hidden"></p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+         RIGHT: AI sidebar
+    ═══════════════════════════════════════════════════════ -->
+  <aside class="crafter-sidebar">
+    <!-- AI Writer card -->
+    <div class="crafter-sidebar-card">
+      <h3 class="crafter-sidebar-title">
+        <span class="material-symbols-outlined" style="font-size: 18px"
+          >auto_awesome</span
+        >
+        AI Writer
+      </h3>
+      <p class="crafter-sidebar-desc">
+        Briefly describe what you want to say, and let the AI draft it for you.
+      </p>
+      <textarea
+        id="ai-prompt"
+        class="crafter-ai-textarea"
+        placeholder="e.g., Ask Alex for an update on the Q3 report and suggest a meeting next Tuesday."
+      ></textarea>
+      <button
+        id="generate-btn"
+        onclick="generateDraft()"
+        class="crafter-generate-btn"
+      >
+        Generate Draft
+        <span class="material-symbols-outlined" style="font-size: 16px"
+          >arrow_forward</span
+        >
+      </button>
+    </div>
+
+    <div class="crafter-sidebar-stack">
+      <!-- Tone & Style card -->
+      <div class="crafter-sidebar-card">
+        <h4 class="crafter-section-label">Tone &amp; Style</h4>
+        <div id="tone-buttons" class="crafter-tone-row">
+          <button
+            onclick="setTone('professional')"
+            class="tone-btn active"
+            data-tone="professional"
+          >
+            Professional
+          </button>
+          <button
+            onclick="setTone('casual')"
+            class="tone-btn"
+            data-tone="casual"
+          >
+            Casual
+          </button>
+          <button
+            onclick="setTone('direct')"
+            class="tone-btn"
+            data-tone="direct"
+          >
+            Direct
+          </button>
+          <button
+            onclick="setTone('persuasive')"
+            class="tone-btn"
+            data-tone="persuasive"
+          >
+            Persuasive
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Prompts card -->
+      <div class="crafter-sidebar-card">
+        <div class="crafter-prompts-header">
+          <h4 class="crafter-section-label" style="margin-bottom: 0">
+            Quick Prompts
+          </h4>
+          <span class="crafter-prompts-badge">Templates</span>
+        </div>
+        <div class="crafter-prompts-list">
+          <button onclick="useQuickPrompt('follow_up')" class="quick-prompt">
+            Follow up
+          </button>
+          <button
+            onclick="useQuickPrompt('schedule_meeting')"
+            class="quick-prompt"
+          >
+            Schedule Meeting
+          </button>
+          <button
+            onclick="useQuickPrompt('polite_decline')"
+            class="quick-prompt"
+          >
+            Polite Decline
+          </button>
+          <button onclick="useQuickPrompt('thank_you')" class="quick-prompt">
+            Thank You
+          </button>
+          <!-- <button onclick="useQuickPrompt('apology')" class="quick-prompt">Apology</button> -->
+        </div>
+      </div>
+    </div>
+  </aside>
+</div>
+{% endblock %} {% block scripts %}
 <script>
-    // ---------------------------------------------------------------
-    // Crafter page JavaScript — Phase 9 (Full Implementation)
-    // Rich text formatting, AI generation, tone selection, quick
-    // prompts, send, save-draft, and discard.
-    // ---------------------------------------------------------------
+  let activeTone = "professional";
 
-    let activeTone = "professional";
+  const QUICK_PROMPT_TEXT = {
+    follow_up:
+      "Write a polite follow-up to my previous email. Ask for an update on the matter and offer to help if needed.",
+    schedule_meeting:
+      "Propose a meeting to discuss the topic. Suggest two or three possible time slots and ask for their preference.",
+    polite_decline:
+      "Politely decline the request or invitation. Express gratitude, briefly explain why, and keep the door open for future collaboration.",
+    thank_you:
+      "Write a sincere thank-you email. Acknowledge what the recipient did and express genuine appreciation.",
+    apology:
+      "Write a professional apology email. Take responsibility, explain briefly, and propose a resolution.",
+  };
 
-    // Quick prompt texts
-    const QUICK_PROMPT_TEXT = {
-        follow_up: "Write a polite follow-up to my previous email. Ask for an update on the matter and offer to help if needed.",
-        schedule_meeting: "Propose a meeting to discuss the topic. Suggest two or three possible time slots and ask for their preference.",
-        polite_decline: "Politely decline the request or invitation. Express gratitude, briefly explain why, and keep the door open for future collaboration.",
-        thank_you: "Write a sincere thank-you email. Acknowledge what the recipient did and express genuine appreciation.",
-        apology: "Write a professional apology email. Take responsibility, explain briefly, and propose a resolution.",
-    };
-
-    // ========================
-    // Rich Text Formatting
-    // ========================
-
-    function formatText(command) {
-        // Focus the editor first so execCommand works
-        const editor = document.getElementById("crafter-body");
-        editor.focus();
-
-        if (command === "createLink") {
-            const url = prompt("Enter URL:", "https://");
-            if (url) {
-                document.execCommand("createLink", false, url);
-            }
-            return;
-        }
-
-        // execCommand applies formatting to the current selection
-        document.execCommand(command, false, null);
+  /* ── Formatting commands ── */
+  function formatText(command) {
+    const editor = document.getElementById("crafter-body");
+    editor.focus();
+    if (command === "createLink") {
+      const url = prompt("Enter URL:", "https://");
+      if (url) document.execCommand("createLink", false, url);
+      return;
     }
+    document.execCommand(command, false, null);
+  }
 
-    // Keyboard shortcuts for formatting
-    document.addEventListener("keydown", function(e) {
-        const editor = document.getElementById("crafter-body");
-        if (document.activeElement !== editor) return;
+  document.addEventListener("keydown", function (e) {
+    const editor = document.getElementById("crafter-body");
+    if (document.activeElement !== editor) return;
+    if (e.ctrlKey || e.metaKey) {
+      switch (e.key.toLowerCase()) {
+        case "b":
+          e.preventDefault();
+          formatText("bold");
+          break;
+        case "i":
+          e.preventDefault();
+          formatText("italic");
+          break;
+        case "u":
+          e.preventDefault();
+          formatText("underline");
+          break;
+      }
+    }
+  });
 
-        if (e.ctrlKey || e.metaKey) {
-            switch (e.key.toLowerCase()) {
-                case "b":
-                    e.preventDefault();
-                    formatText("bold");
-                    break;
-                case "i":
-                    e.preventDefault();
-                    formatText("italic");
-                    break;
-                case "u":
-                    e.preventDefault();
-                    formatText("underline");
-                    break;
-            }
-        }
+  /* ── Editor helpers ── */
+  function getEditorText() {
+    return document.getElementById("crafter-body").innerText.trim();
+  }
+
+  function setEditorContent(text) {
+    const html = text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\n/g, "<br>");
+    document.getElementById("crafter-body").innerHTML = html;
+  }
+
+  /* ── Tone selection ── */
+  function setTone(tone) {
+    activeTone = tone;
+    document.querySelectorAll(".tone-btn").forEach((btn) => {
+      if (btn.dataset.tone === tone) {
+        btn.classList.add("active");
+      } else {
+        btn.classList.remove("active");
+      }
     });
+  }
 
-    // Get plain text from the rich editor for API calls
-    function getEditorText() {
-        const editor = document.getElementById("crafter-body");
-        return editor.innerText.trim();
+  /* ── Quick prompts ── */
+  function useQuickPrompt(key) {
+    const textarea = document.getElementById("ai-prompt");
+    if (textarea && QUICK_PROMPT_TEXT[key]) {
+      textarea.value = QUICK_PROMPT_TEXT[key];
+      textarea.focus();
+    }
+  }
+
+  /* ── Generate draft via AI ── */
+  async function generateDraft() {
+    const promptEl = document.getElementById("ai-prompt");
+    const promptText = promptEl.value.trim();
+    const to = document.getElementById("crafter-to").value.trim();
+    const subject = document.getElementById("crafter-subject").value.trim();
+    const btn = document.getElementById("generate-btn");
+
+    if (!promptText) {
+      setCrafterStatus(
+        "Please describe what you want to say in the AI Writer box.",
+        true,
+      );
+      promptEl.focus();
+      return;
     }
 
-    // Get HTML content from the editor
-    function getEditorHTML() {
-        const editor = document.getElementById("crafter-body");
-        return editor.innerHTML.trim();
+    const originalBtn = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML =
+      '<span class="material-symbols-outlined animate-spin" style="font-size:16px">autorenew</span> Generating...';
+    setCrafterStatus("Generating your email with AI...");
+
+    try {
+      const res = await fetch("/api/crafter/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prompt: promptText,
+          tone: activeTone,
+          recipient: to,
+          subject: subject,
+        }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      const emailText = data.generated_email || data.email || data.body || "";
+      if (!emailText)
+        throw new Error("AI returned an empty response. Please try again.");
+      setEditorContent(emailText);
+
+      if (!subject && data.subject_suggestion) {
+        document.getElementById("crafter-subject").value =
+          data.subject_suggestion;
+      }
+
+      const reviewScore = data.review_score || 0;
+      const reviewFeedback = data.review_feedback || "";
+      const scorePercent = Math.round(reviewScore * 100);
+      let qualityMsg = `Draft generated and reviewed — Quality: ${scorePercent}%`;
+      if (reviewFeedback)
+        qualityMsg += ` — ${reviewFeedback.substring(0, 100)}`;
+      setCrafterStatus(qualityMsg);
+    } catch (err) {
+      console.error("[Crafter] Error:", err);
+      setCrafterStatus(err.message || "Failed to generate draft.", true);
+    } finally {
+      btn.innerHTML = originalBtn;
+      btn.disabled = false;
+    }
+  }
+
+  /* ── Status message ── */
+  function setCrafterStatus(message, isError = false) {
+    const el = document.getElementById("crafter-send-status");
+    el.textContent = message;
+    el.classList.remove(
+      "hidden",
+      "crafter-status--success",
+      "crafter-status--error",
+    );
+    el.classList.add(
+      isError ? "crafter-status--error" : "crafter-status--success",
+    );
+    setTimeout(() => {
+      el.classList.add("hidden");
+    }, 5000);
+  }
+
+  /* ── Send email ── */
+  async function sendCrafterEmail() {
+    const to = document.getElementById("crafter-to").value.trim();
+    const subject = document.getElementById("crafter-subject").value.trim();
+    const body = getEditorText();
+    const btn = document.getElementById("crafter-send-btn");
+    const original = btn.innerHTML;
+
+    if (!to || !subject || !body) {
+      setCrafterStatus("To, subject, and message body are required.", true);
+      return;
     }
 
-    // Set content in the editor (as plain text, preserving line breaks)
-    function setEditorContent(text) {
-        const editor = document.getElementById("crafter-body");
-        // Convert newlines to <br> for proper display
-        const html = text
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/\n/g, "<br>");
-        editor.innerHTML = html;
+    btn.disabled = true;
+    btn.innerHTML =
+      '<span class="material-symbols-outlined animate-spin" style="font-size:16px">autorenew</span> Sending...';
+
+    try {
+      const res = await fetch("/api/emails/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ to, subject, body }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+
+      setCrafterStatus("Email sent successfully!");
+      btn.innerHTML =
+        'Sent <span class="material-symbols-outlined" style="font-size:16px">check</span>';
+      setTimeout(() => {
+        btn.innerHTML = original;
+        btn.disabled = false;
+      }, 2000);
+    } catch (err) {
+      setCrafterStatus(err.message || "Failed to send email.", true);
+      btn.innerHTML = original;
+      btn.disabled = false;
+    }
+  }
+
+  /* ── Save draft ── */
+  async function saveCrafterDraft() {
+    const to = document.getElementById("crafter-to").value.trim();
+    const subject = document.getElementById("crafter-subject").value.trim();
+    const body = getEditorText();
+
+    if (!body) {
+      setCrafterStatus("Message body is required to save a draft.", true);
+      return;
     }
 
-    // ========================
-    // Tone Selector
-    // ========================
+    setCrafterStatus("Saving draft to Gmail...");
 
-    function setTone(tone) {
-        activeTone = tone;
-        document.querySelectorAll(".tone-btn").forEach((btn) => {
-            if (btn.dataset.tone === tone) {
-                btn.className = "tone-btn px-3 py-1.5 rounded-full border border-primary bg-primary/10 text-primary font-body-md text-body-md hover:bg-primary/20 transition-colors";
-            } else {
-                btn.className = "tone-btn px-3 py-1.5 rounded-full border border-outline-variant text-on-surface-variant font-body-md text-body-md hover:bg-surface-container-low transition-colors";
-            }
-        });
+    try {
+      const res = await fetch("/api/emails/drafts/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ to, subject, body }),
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      setCrafterStatus("Draft saved to Gmail!");
+    } catch (err) {
+      setCrafterStatus(err.message || "Failed to save draft.", true);
     }
+  }
 
-    // ========================
-    // Quick Prompts
-    // ========================
-
-    function useQuickPrompt(key) {
-        const textarea = document.getElementById("ai-prompt");
-        if (textarea && QUICK_PROMPT_TEXT[key]) {
-            textarea.value = QUICK_PROMPT_TEXT[key];
-            textarea.focus();
-        }
-    }
-
-    // ========================
-    // AI Draft Generation
-    // ========================
-
-    async function generateDraft() {
-        const promptEl = document.getElementById("ai-prompt");
-        const promptText = promptEl.value.trim();
-        const to = document.getElementById("crafter-to").value.trim();
-        const subject = document.getElementById("crafter-subject").value.trim();
-        const btn = document.getElementById("generate-btn");
-
-        if (!promptText) {
-            setCrafterStatus("Please describe what you want to say in the AI Writer box.", true);
-            promptEl.focus();
-            return;
-        }
-
-        const originalBtn = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerHTML = '<span class="material-symbols-outlined text-[16px] animate-spin">autorenew</span> Generating...';
-        setCrafterStatus("Generating your email with AI...");
-
-        try {
-            const res = await fetch("/api/crafter/generate", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    prompt: promptText,
-                    tone: activeTone,
-                    recipient: to,
-                    subject: subject,
-                }),
-            });
-
-            const data = await res.json();
-            console.log("[Crafter] API response:", data);
-
-            if (data.error) throw new Error(data.error);
-
-            // Get the generated email text
-            const emailText = data.generated_email || data.email || data.body || "";
-
-            if (!emailText) {
-                throw new Error("AI returned an empty response. Please try again.");
-            }
-
-            // Set the content in the rich text editor
-            setEditorContent(emailText);
-
-            // If no subject was entered, use the AI suggestion
-            if (!subject && data.subject_suggestion) {
-                document.getElementById("crafter-subject").value = data.subject_suggestion;
-            }
-
-            // Show quality review feedback from the Review Agent
-            const reviewScore = data.review_score || 0;
-            const reviewFeedback = data.review_feedback || "";
-            const scorePercent = Math.round(reviewScore * 100);
-            let qualityMsg = `✨ Draft generated & reviewed — Quality: ${scorePercent}%`;
-            if (reviewFeedback) {
-                qualityMsg += ` — ${reviewFeedback.substring(0, 100)}`;
-            }
-            setCrafterStatus(qualityMsg);
-        } catch (err) {
-            console.error("[Crafter] Error:", err);
-            setCrafterStatus(err.message || "Failed to generate draft.", true);
-        } finally {
-            btn.innerHTML = originalBtn;
-            btn.disabled = false;
-        }
-    }
-
-    // ========================
-    // Status Helper
-    // ========================
-
-    function setCrafterStatus(message, isError = false) {
-        const el = document.getElementById("crafter-send-status");
-        el.textContent = message;
-        el.classList.remove("hidden");
-        el.className = `mt-3 text-sm ${isError ? "text-error" : "text-primary"}`;
-        // Auto-hide after 5 seconds
-        setTimeout(() => {
-            el.classList.add("hidden");
-        }, 5000);
-    }
-
-    // ========================
-    // Send Email via Gmail
-    // ========================
-
-    async function sendCrafterEmail() {
-        const to = document.getElementById("crafter-to").value.trim();
-        const subject = document.getElementById("crafter-subject").value.trim();
-        const body = getEditorText();
-        const btn = document.getElementById("crafter-send-btn");
-        const original = btn.innerHTML;
-
-        if (!to || !subject || !body) {
-            setCrafterStatus("To, subject, and message body are required.", true);
-            return;
-        }
-
-        btn.disabled = true;
-        btn.innerHTML = '<span class="material-symbols-outlined text-[16px] animate-spin">autorenew</span> Sending...';
-
-        try {
-            const res = await fetch("/api/emails/send", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ to, subject, body }),
-            });
-            const data = await res.json();
-            if (data.error) throw new Error(data.error);
-
-            setCrafterStatus("Email sent successfully!");
-            btn.innerHTML = 'Sent <span class="material-symbols-outlined text-[16px]">check</span>';
-            setTimeout(() => { btn.innerHTML = original; btn.disabled = false; }, 2000);
-        } catch (err) {
-            setCrafterStatus(err.message || "Failed to send email.", true);
-            btn.innerHTML = original;
-            btn.disabled = false;
-        }
-    }
-
-    // ========================
-    // Save Draft to Gmail
-    // ========================
-
-    async function saveCrafterDraft() {
-        const to = document.getElementById("crafter-to").value.trim();
-        const subject = document.getElementById("crafter-subject").value.trim();
-        const body = getEditorText();
-
-        if (!body) {
-            setCrafterStatus("Message body is required to save a draft.", true);
-            return;
-        }
-
-        setCrafterStatus("Saving draft to Gmail...");
-
-        try {
-            const res = await fetch("/api/emails/drafts/save", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ to, subject, body }),
-            });
-            const data = await res.json();
-            if (data.error) throw new Error(data.error);
-            setCrafterStatus("Draft saved to Gmail!");
-        } catch (err) {
-            setCrafterStatus(err.message || "Failed to save draft.", true);
-        }
-    }
-
-    // ========================
-    // Discard
-    // ========================
-
-    function discardCrafter() {
-        const body = getEditorText();
-        if (body && !confirm("Discard this draft?")) return;
-        document.getElementById("crafter-to").value = "";
-        document.getElementById("crafter-subject").value = "";
-        document.getElementById("crafter-body").innerHTML = "";
-        document.getElementById("ai-prompt").value = "";
-        const status = document.getElementById("crafter-send-status");
-        status.classList.add("hidden");
-    }
+  /* ── Discard ── */
+  function discardCrafter() {
+    const body = getEditorText();
+    if (body && !confirm("Discard this draft?")) return;
+    document.getElementById("crafter-to").value = "";
+    document.getElementById("crafter-subject").value = "";
+    document.getElementById("crafter-body").innerHTML = "";
+    document.getElementById("ai-prompt").value = "";
+    document.getElementById("crafter-send-status").classList.add("hidden");
+  }
 </script>
 {% endblock %}

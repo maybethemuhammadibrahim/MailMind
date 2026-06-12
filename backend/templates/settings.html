@@ -1,606 +1,724 @@
 {% extends "base.html" %} {% block title %}Settings - AI Assistant{% endblock %}
-{% block header_title %}Settings{% endblock %} {% block content %}
-<div class="max-w-6xl mx-auto w-full">
-    <!-- Page Header -->
-    <div class="mb-8">
-        <h2 class="font-h1 text-[32px] font-bold text-on-surface mb-2">
-            Settings
-        </h2>
-        <p class="font-body-lg text-body-lg text-on-surface-variant">
-            Manage your AI preferences, security, and account details.
-        </p>
-    </div>
-    <!-- Tabs Navigation (Horizontal) -->
-    <div
-        class="flex items-center gap-6 border-b border-surface-container-high mb-8 overflow-x-auto pb-2"
-        style="-ms-overflow-style: none; scrollbar-width: none"
-    >
-        <button
-            class="font-label-md text-label-md font-bold text-primary border-b-2 border-primary pb-2 whitespace-nowrap"
-        >
-            Account Profile
-        </button>
-        <button
-            class="font-label-md text-label-md font-bold text-on-surface-variant hover:text-primary transition-colors pb-2 whitespace-nowrap"
-        >
-            AI Preferences
-        </button>
-        <button
-            class="font-label-md text-label-md font-bold text-on-surface-variant hover:text-primary transition-colors pb-2 whitespace-nowrap"
-        >
-            Notifications
-        </button>
-        <button
-            class="font-label-md text-label-md font-bold text-on-surface-variant hover:text-primary transition-colors pb-2 whitespace-nowrap"
-        >
-            Security
-        </button>
-    </div>
-    <!-- Bento Grid Content -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
-        <!-- Left Column: Profile Card -->
-        <div class="lg:col-span-4 flex flex-col gap-gutter">
-            <div
-                class="bg-surface-container-lowest rounded-xl shadow-sm border border-surface-bright p-card-padding relative overflow-hidden"
-            >
-                <div
-                    class="absolute top-0 left-0 w-full h-24 bg-gradient-to-r from-primary/10 to-secondary/10"
-                ></div>
-                <div class="relative z-10 flex flex-col items-center mt-6">
-                    <!-- Generic avatar — will be replaced with real user data in Phase 7 -->
-                    <div class="relative">
-                        <div
-                            class="w-24 h-24 rounded-full border-4 border-surface-container-lowest shadow-sm bg-surface-container-high flex items-center justify-center"
-                        >
-                            <span
-                                class="material-symbols-outlined text-[48px] text-on-surface-variant/40"
-                                >person</span
-                            >
-                        </div>
-                    </div>
-                    <h3
-                        id="profile-name"
-                        class="font-h2 text-[20px] font-semibold mt-4 text-on-surface-variant"
-                    >
-                        MailMind User
-                    </h3>
-                    <p id="profile-connection" class="font-body-md text-[13px] text-on-surface-variant">
-                        Connected via Gmail
-                    </p>
-                    <div class="w-full mt-6 space-y-4">
-                        <div
-                            class="flex justify-between items-center py-2 border-b border-surface-container-low"
-                        >
-                            <span
-                                class="font-body-md text-[13px] text-on-surface-variant"
-                                >Email</span
-                            >
-                            <span
-                                id="profile-email"
-                                class="font-body-md text-[13px] font-medium text-on-surface"
-                                >—</span
-                            >
-                        </div>
-                        <div
-                            class="flex justify-between items-center py-2 border-b border-surface-container-low"
-                        >
-                            <span
-                                class="font-body-md text-[13px] text-on-surface-variant"
-                                >Role</span
-                            >
-                            <span
-                                class="font-body-md text-[13px] font-medium text-on-surface"
-                                >User</span
-                            >
-                        </div>
-                        <div class="flex justify-between items-center py-2">
-                            <span
-                                class="font-body-md text-[13px] text-on-surface-variant"
-                                >Timezone</span
-                            >
-                            <span
-                                id="profile-timezone"
-                                class="font-body-md text-[13px] font-medium text-on-surface"
-                                >—</span
-                            >
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Right Column: AI & System Settings Bento -->
-        <div class="lg:col-span-8 flex flex-col gap-gutter">
-            <!-- AI Preferences Card -->
-            <div
-                class="bg-surface-container-lowest rounded-xl shadow-sm border border-surface-bright p-card-padding"
-            >
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="font-h2 text-[20px] font-semibold">
-                        AI Preferences
-                    </h3>
-                    <span
-                        class="bg-primary/10 text-primary font-label-md text-[12px] font-bold px-3 py-1 rounded-full"
-                        >Active</span
-                    >
-                </div>
-                <div class="space-y-8">
-                    <!-- Tone of Voice -->
-                    <div>
-                        <div class="flex justify-between items-end mb-2">
-                            <label class="font-body-lg text-[15px] font-medium"
-                                >Tone of Voice</label
-                            >
-                            <span id="tone-label" class="font-body-md text-[13px] text-primary"
-                                >Professional</span
-                            >
-                        </div>
-                        <p
-                            class="font-body-md text-[13px] text-on-surface-variant mb-4"
-                        >
-                            Adjust the default conversational style of generated
-                            emails and drafts.
-                        </p>
-                        <div
-                            id="tone-track"
-                            onclick="onToneClick(event)"
-                            class="relative w-full h-2 bg-surface-container-high rounded-full cursor-pointer"
-                        >
-                            <div
-                                id="tone-fill"
-                                class="absolute top-0 left-0 h-full bg-primary rounded-full pointer-events-none" style="width:100%"
-                            ></div>
-                            <div
-                                id="tone-knob"
-                                class="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-5 h-5 bg-surface-container-lowest border-2 border-primary rounded-full shadow-sm pointer-events-none" style="left:100%"
-                            ></div>
-                        </div>
-                        <div
-                            class="flex justify-between mt-2 font-label-md text-[12px] font-bold text-outline"
-                        >
-                            <span>Casual</span>
-                            <span>Balanced</span>
-                            <span>Formal</span>
-                        </div>
-                    </div>
-                    <!-- Auto-drafting -->
-                    <div
-                        class="flex items-center justify-between p-4 bg-surface-container-low rounded-lg border border-surface-container-high"
-                    >
-                        <div class="flex items-center gap-4">
-                            <div
-                                class="w-10 h-10 bg-secondary/10 text-secondary rounded-lg flex items-center justify-center"
-                            >
-                                <span class="material-symbols-outlined"
-                                    >edit_document</span
-                                >
-                            </div>
-                            <div>
-                                <h4
-                                    class="font-body-lg text-[15px] font-medium"
-                                >
-                                    Auto-drafting sensitivity
-                                </h4>
-                                <p
-                                    class="font-body-md text-[13px] text-on-surface-variant"
-                                >
-                                    Automatically draft replies for incoming
-                                    messages.
-                                </p>
-                            </div>
-                        </div>
-                        <!-- Toggle Switch -->
-                        <button
-                            id="auto-draft-toggle"
-                            onclick="toggleAutoDraft()"
-                            class="w-12 h-6 bg-primary rounded-full relative transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2 focus:ring-offset-surface"
-                        >
-                            <span
-                                id="auto-draft-dot"
-                                class="absolute right-1 top-1 w-4 h-4 bg-surface-container-lowest rounded-full shadow-sm transition-transform"
-                            ></span>
-                        </button>
-                    </div>
-                    <!-- Vocabulary Focus -->
-                    <div>
-                        <label
-                            class="font-body-lg text-[15px] font-medium block mb-3"
-                            >Vocabulary Focus</label
-                        >
-                        <div id="vocab-chips" class="flex flex-wrap gap-2">
-                            <!-- Chips rendered dynamically by JS from /api/settings -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <!-- Gmail Connection Card -->
-            <div
-                id="gmail-card"
-                class="bg-surface-container-lowest rounded-xl shadow-sm border border-surface-bright p-card-padding"
-            >
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-4">
-                        <!-- Gmail icon -->
-                        <div
-                            class="w-10 h-10 rounded-lg flex items-center justify-center bg-red-50"
-                        >
-                            <svg
-                                class="w-6 h-6"
-                                viewBox="0 0 48 48"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <path
-                                    fill="#EA4335"
-                                    d="M6 12l18 11L42 12v-2a2 2 0 00-2-2H8a2 2 0 00-2 2v2z"
-                                />
-                                <path
-                                    fill="#4285F4"
-                                    d="M42 12L24 23 6 12v26a2 2 0 002 2h32a2 2 0 002-2V12z"
-                                />
-                            </svg>
-                        </div>
-                        <div>
-                            <h4 class="font-body-lg text-[15px] font-medium">
-                                Gmail Account
-                            </h4>
-                            <p
-                                id="gmail-status-text"
-                                class="font-body-md text-[13px] text-on-surface-variant mt-0.5"
-                            >
-                                Checking connection...
-                            </p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <!-- Status badge -->
-                        <span
-                            id="gmail-badge"
-                            class="hidden font-label-md text-[12px] font-bold px-3 py-1 rounded-full"
-                        ></span>
-                        <!-- Connect button (shown when not connected) -->
-                        <a
-                            id="gmail-connect-btn"
-                            href="/api/auth/login"
-                            class="hidden px-4 py-2 bg-primary text-on-primary font-label-md text-[12px] font-bold rounded-lg hover:opacity-90 transition-opacity shadow-sm"
-                        >
-                            Connect Gmail
-                        </a>
-                        <!-- Disconnect button (shown when connected) -->
-                        <button
-                            id="gmail-disconnect-btn"
-                            onclick="disconnectGmail()"
-                            class="hidden px-4 py-2 bg-surface-container-lowest border border-outline-variant text-on-surface-variant font-label-md text-[12px] font-bold rounded-lg hover:bg-surface-container-low transition-colors shadow-sm"
-                        >
-                            Disconnect
-                        </button>
-                    </div>
-                </div>
-                <!-- Success banner shown after OAuth redirect -->
-                <div
-                    id="auth-success-banner"
-                    class="hidden mt-4 flex items-center gap-2 bg-green-50 border border-green-200 text-green-800 text-[13px] font-medium px-4 py-3 rounded-lg"
-                >
-                    <span
-                        class="material-symbols-outlined text-[18px] text-green-600"
-                        >check_circle</span
-                    >
-                    Gmail connected successfully! MailMind can now read your
-                    inbox.
-                </div>
-            </div>
+{% block header_title %}Settings{% endblock %} {% block page_styles %}
+<style>
+  /* Simple settings page stylesheet (replaces Tailwind utilities) */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: Inter, system-ui, Arial, Helvetica, sans-serif;
+    color: var(--text);
+    margin: 0;
+    background: var(--bg);
+  }
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px;
+  }
 
-            <!-- Security Mini Card (Bento continuation) -->
-            <div
-                class="bg-surface-container-lowest rounded-xl shadow-sm border border-surface-bright p-card-padding flex items-center justify-between"
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  @media (min-width: 1024px) {
+    .grid {
+      grid-template-columns: 320px 1fr;
+    }
+  }
+  .card {
+    background: var(--panel-bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 12px;
+    padding: 18px;
+    margin: 2vh 0;
+    box-shadow: var(--shadow-sm);
+  }
+  .profile-card {
+    text-align: center;
+  }
+
+  .right-col {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .avatar--big {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--surface-3);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    border: 4px solid var(--panel-bg);
+  }
+  .profile-name {
+    margin-top: 12px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .profile-meta {
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+  .profile-list {
+    margin-top: 14px;
+    text-align: left;
+  }
+  .profile-list .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .ai-card .heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .badge {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 12px;
+  }
+  .badge.active {
+    background: rgba(var(--accent-rgb), 0.12);
+    color: var(--accent);
+  }
+  .tone-label {
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .tone-slider {
+    height: 10px;
+    background: var(--info-soft);
+    border-radius: 999px;
+    position: relative;
+    cursor: pointer;
+  }
+  .tone-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    background: var(--accent);
+    border-radius: 999px;
+    width: 100%;
+  }
+  .tone-knob {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--panel-bg);
+    border: 2px solid var(--accent);
+    box-shadow: var(--shadow-sm);
+  }
+  .tone-scale {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    color: var(--text-muted);
+    font-weight: 700;
+    font-size: 12px;
+  }
+  .row-space {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .toggle {
+    width: 44px;
+    height: 22px;
+    border-radius: 999px;
+    background: var(--border-strong);
+    position: relative;
+    border: 1px solid var(--border-strong);
+    cursor: pointer;
+  }
+  .toggle .dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--panel-bg);
+    position: absolute;
+    top: 1px;
+    left: 2px;
+    transition: left 0.18s;
+  }
+  .toggle.on {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .toggle.on .dot {
+    left: 24px;
+  }
+  .vocab-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .chip {
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--primary-contrast);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+  }
+  .chip.secondary {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+  .gmail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .status-badge {
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 12px;
+  }
+  .status-badge.connected {
+    background: var(--success-soft);
+    color: var(--success-soft-text);
+    border: 1px solid var(--success-soft-border);
+  }
+  .status-badge.not-connected {
+    background: var(--surface-3);
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+  .hidden {
+    display: none;
+  }
+  .success-banner {
+    margin-top: 12px;
+    background: var(--success-soft);
+    border: 1px solid var(--success-soft-border);
+    color: var(--success-soft-text);
+    padding: 10px;
+    border-radius: 8px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .danger {
+    background: var(--rose-soft);
+    border: 1px solid var(--danger-soft-border);
+    padding: 12px;
+    border-radius: 12px;
+  }
+  .danger h3 {
+    color: var(--danger);
+  }
+  .btn {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-strong);
+    background: var(--panel-bg);
+    cursor: pointer;
+  }
+  .btn.primary {
+    background: var(--accent);
+    color: var(--primary-contrast);
+    border-color: var(--accent);
+  }
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    padding: 12px 18px;
+    border-radius: 8px;
+    box-shadow: var(--shadow-md);
+    font-weight: 600;
+  }
+  .toast.info {
+    background: rgba(var(--info-rgb), 0.08);
+    color: var(--info);
+    border: 1px solid rgba(var(--info-rgb), 0.12);
+  }
+  .toast.success {
+    background: var(--success-soft);
+    color: var(--success-soft-text);
+    border: 1px solid var(--success-soft-border);
+  }
+  .toast.error {
+    background: var(--rose-soft);
+    color: var(--danger);
+    border: 1px solid var(--danger-soft-border);
+  }
+</style>
+{% endblock %} {% block content %}
+<!-- <div class="container"> -->
+<!-- Page Header -->
+<!-- <div class="page-header">
+        <h2>Settings</h2>
+        <p>Manage your AI preferences, security, and account details.</p>
+    </div> -->
+<!-- Tabs Navigation (Horizontal) -->
+<!-- <div class="tabs" style="-ms-overflow-style: none; scrollbar-width: none">
+        <div class="tab active">Account Profile</div>
+        <div class="tab">AI Preferences</div>
+        <div class="tab">Notifications</div>
+        <div class="tab">Security</div>
+    </div> -->
+<!-- Bento Grid Content -->
+<div class="grid">
+  <!-- Left Column: Profile Card -->
+  <div class="left-col">
+    <div class="card profile-card">
+      <div class="avatar--big">
+        <span class="material-symbols-outlined">person</span>
+      </div>
+      <h3 id="profile-name" class="profile-name">MailMind User</h3>
+      <p id="profile-connection" class="profile-meta">Connected via Gmail</p>
+      <div class="profile-list">
+        <div class="row">
+          <span>Email</span><span id="profile-email">—</span>
+        </div>
+        <div class="row"><span>Role</span><span>User</span></div>
+        <div class="row">
+          <span>Timezone</span><span id="profile-timezone">—</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Right Column: AI & System Settings -->
+  <div class="right-col">
+    <div class="card ai-card">
+      <div class="heading">
+        <h3>AI Preferences</h3>
+        <span class="badge active">Active</span>
+      </div>
+      <div>
+        <div>
+          <div class="row-space" style="align-items: end; margin-bottom: 6px">
+            <label>Tone of Voice</label>
+            <span id="tone-label" class="tone-label">Professional</span>
+          </div>
+          <p style="color: var(--muted); margin-bottom: 12px">
+            Adjust the default conversational style of generated emails and
+            drafts.
+          </p>
+          <div id="tone-track" onclick="onToneClick(event)" class="tone-slider">
+            <div id="tone-fill" class="tone-fill" style="width: 100%"></div>
+            <div id="tone-knob" class="tone-knob" style="left: 100%"></div>
+          </div>
+          <div class="tone-scale">
+            <span>Casual</span><span>Balanced</span><span>Formal</span>
+          </div>
+        </div>
+        <div style="margin-top: 14px" class="card">
+          <div class="row-space">
+            <div style="display: flex; gap: 12px; align-items: center">
+              <div
+                style="
+                  width: 40px;
+                  height: 40px;
+                  border-radius: 8px;
+                  background: #fff3f2;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                "
+              >
+                <span class="material-symbols-outlined">edit_document</span>
+              </div>
+              <div>
+                <h4 style="margin: 0">Auto-drafting sensitivity</h4>
+                <p style="color: var(--muted); margin: 2px 0 0">
+                  Automatically draft replies for incoming messages.
+                </p>
+              </div>
+            </div>
+            <div>
+              <div
+                id="auto-draft-toggle"
+                class="toggle"
+                onclick="toggleAutoDraft()"
+              >
+                <div id="auto-draft-dot" class="dot"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top: 14px">
+          <label style="display: block; margin-bottom: 8px"
+            >Vocabulary Focus</label
+          >
+          <div id="vocab-chips" class="vocab-chips"></div>
+        </div>
+      </div>
+    </div>
+    <!-- Gmail Connection Card -->
+    <div id="gmail-card" class="card gmail-card">
+      <div class="gmail-row">
+        <div style="display: flex; align-items: center; gap: 12px">
+          <!-- Gmail icon -->
+          <div
+            style="
+              width: 40px;
+              height: 40px;
+              border-radius: 8px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              background: #fee2e2;
+            "
+          >
+            <svg
+              class="w-6 h-6"
+              viewBox="0 0 48 48"
+              xmlns="http://www.w3.org/2000/svg"
             >
+              <path
+                fill="#EA4335"
+                d="M6 12l18 11L42 12v-2a2 2 0 00-2-2H8a2 2 0 00-2 2v2z"
+              />
+              <path
+                fill="#4285F4"
+                d="M42 12L24 23 6 12v26a2 2 0 002 2h32a2 2 0 002-2V12z"
+              />
+            </svg>
+          </div>
+          <div>
+            <h4 style="margin: 0">Gmail Account</h4>
+            <p
+              id="gmail-status-text"
+              style="color: var(--muted); margin-top: 6px"
+            >
+              Checking connection...
+            </p>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px">
+          <span id="gmail-badge" class="status-badge hidden"></span>
+          <a
+            id="gmail-connect-btn"
+            href="/api/auth/login"
+            class="btn primary hidden"
+            >Connect Gmail</a
+          >
+          <button
+            id="gmail-disconnect-btn"
+            onclick="disconnectGmail()"
+            class="btn hidden"
+          >
+            Disconnect
+          </button>
+        </div>
+      </div>
+      <!-- Success banner shown after OAuth redirect -->
+      <div id="auth-success-banner" class="success-banner hidden">
+        <span class="material-symbols-outlined">check_circle</span>
+        Gmail connected successfully! MailMind can now read your inbox.
+      </div>
+    </div>
+
+    <!-- Security Mini Card (Bento continuation) -->
+    <!-- <div class="card" style="display:flex;justify-content:space-between;align-items:center">
                 <div>
-                    <h3
-                        class="font-body-lg text-[15px] font-medium flex items-center gap-2"
-                    >
-                        <span class="material-symbols-outlined text-secondary"
-                            >security</span
-                        >
-                        Two-Factor Authentication
-                    </h3>
-                    <p
-                        class="font-body-md text-[13px] text-on-surface-variant mt-1"
-                    >
-                        Add an extra layer of security to your account.
-                    </p>
+                    <h3 style="display:flex;align-items:center;gap:8px;margin:0"><span class="material-symbols-outlined">security</span> Two-Factor Authentication</h3>
+                    <p style="color:var(--muted);margin-top:6px">Add an extra layer of security to your account.</p>
                 </div>
-                <button
-                    onclick="enable2FA()"
-                    class="px-4 py-2 bg-surface-container-lowest border border-outline-variant text-on-surface font-label-md text-[12px] font-bold rounded-lg hover:bg-surface-container-low transition-colors shadow-sm"
-                >
-                    Enable
-                </button>
-            </div>
+                <button onclick="enable2FA()" class="btn">Enable</button>
+            </div> -->
 
-            <!-- Danger Zone -->
-            <div
-                class="bg-surface-container-lowest rounded-xl shadow-sm border border-red-200 p-card-padding"
-            >
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h3
-                            class="font-body-lg text-[15px] font-medium flex items-center gap-2 text-error"
-                        >
-                            <span class="material-symbols-outlined text-error"
-                                >warning</span
-                            >
-                            Danger Zone
-                        </h3>
-                        <p
-                            class="font-body-md text-[13px] text-on-surface-variant mt-1"
-                        >
-                            Permanently delete all processed emails, todos,
-                            meetings, and orders. Settings will be preserved.
-                        </p>
-                    </div>
-                    <button
-                        onclick="deleteAllData()"
-                        class="px-4 py-2 bg-error text-on-error font-label-md text-[12px] font-bold rounded-lg hover:bg-error/90 transition-colors shadow-sm whitespace-nowrap"
-                    >
-                        Delete All Data
-                    </button>
-                </div>
-            </div>
+    <!-- Danger Zone -->
+    <div class="card danger">
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        "
+      >
+        <div>
+          <h3
+            style="
+              margin: 0;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              color: var(--danger);
+            "
+          >
+            <span class="material-symbols-outlined">warning</span> Danger Zone
+          </h3>
+          <p style="color: var(--muted); margin-top: 6px">
+            Permanently delete all processed emails, todos, meetings, and
+            orders. Settings will be preserved.
+          </p>
         </div>
+        <button
+          onclick="deleteAllData()"
+          class="btn"
+          style="background: var(--danger); color: #fff"
+        >
+          Delete All Data
+        </button>
+      </div>
     </div>
+  </div>
 </div>
+<!-- </div> -->
 {% endblock %} {% block scripts %}
 <script>
-    // ---------------------------------------------------------------
-    // Settings page JavaScript — Phase 11
-    // Wires all UI controls to the /api/settings endpoints so every
-    // preference change is persisted to SQLite immediately.
-    // ---------------------------------------------------------------
+  // ---------------------------------------------------------------
+  // Settings page JavaScript — Phase 11
+  // Wires all UI controls to the /api/settings endpoints so every
+  // preference change is persisted to SQLite immediately.
+  // ---------------------------------------------------------------
 
-    // --- Toast notification (reusable) ---
-    function showSettingsToast(msg, type = "info") {
-        const existing = document.getElementById("settings-toast");
-        if (existing) existing.remove();
+  // --- Toast notification (reusable) ---
+  function showSettingsToast(msg, type = "info") {
+    const existing = document.getElementById("settings-toast");
+    if (existing) existing.remove();
 
-        const colors = {
-            success: "bg-green-100 text-green-800 border-green-300",
-            error: "bg-red-100 text-red-800 border-red-300",
-            info: "bg-primary/10 text-primary border-primary/30",
-        };
+    const toast = document.createElement("div");
+    toast.id = "settings-toast";
+    toast.className = `toast ${type}`;
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  }
 
-        const toast = document.createElement("div");
-        toast.id = "settings-toast";
-        toast.className = `fixed bottom-6 right-6 px-5 py-3 rounded-lg border shadow-lg text-sm font-medium z-50 ${colors[type] || colors.info}`;
-        toast.textContent = msg;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
+  // --- Tone slider logic ---
+  const TONE_LEVELS = ["casual", "balanced", "professional"];
+  let currentTone = "professional";
+
+  function setToneUI(tone) {
+    const index = TONE_LEVELS.indexOf(tone);
+    if (index === -1) return;
+
+    const pct = (index / (TONE_LEVELS.length - 1)) * 100;
+    const bar = document.getElementById("tone-fill");
+    const knob = document.getElementById("tone-knob");
+    const label = document.getElementById("tone-label");
+
+    if (bar) bar.style.width = pct + "%";
+    if (knob) knob.style.left = pct + "%";
+    if (label) label.textContent = tone.charAt(0).toUpperCase() + tone.slice(1);
+
+    currentTone = tone;
+  }
+
+  function onToneClick(event) {
+    const slider = document.getElementById("tone-track");
+    if (!slider) return;
+
+    const rect = slider.getBoundingClientRect();
+    const ratio = (event.clientX - rect.left) / rect.width;
+    const index = Math.round(ratio * (TONE_LEVELS.length - 1));
+    const tone =
+      TONE_LEVELS[Math.max(0, Math.min(index, TONE_LEVELS.length - 1))];
+
+    setToneUI(tone);
+    saveSetting("tone", tone);
+  }
+
+  // --- Auto-draft toggle ---
+  let autoDraftEnabled = true;
+
+  function toggleAutoDraft() {
+    autoDraftEnabled = !autoDraftEnabled;
+    updateToggleUI();
+    saveSetting("auto_draft", autoDraftEnabled ? "true" : "false");
+  }
+
+  function updateToggleUI() {
+    const btn = document.getElementById("auto-draft-toggle");
+    const dot = document.getElementById("auto-draft-dot");
+    if (!btn || !dot) return;
+    // Toggle a simple 'on' class; CSS handles dot position
+    btn.classList.toggle("on", autoDraftEnabled);
+  }
+
+  // --- Vocabulary chips ---
+  let vocabTraits = [];
+
+  function renderVocabChips() {
+    const container = document.getElementById("vocab-chips");
+    if (!container) return;
+
+    let html = "";
+    vocabTraits.forEach((trait) => {
+      html += `<span class="chip" onclick="removeVocab('${trait}')">${trait} <span class="material-symbols-outlined" style="font-size:14px;margin-left:8px">close</span></span>`;
+    });
+    html += `<span class="chip secondary" onclick="addVocabPrompt()"><span class="material-symbols-outlined" style="font-size:16px">add</span> Add Trait</span>`;
+    container.innerHTML = html;
+  }
+
+  function removeVocab(trait) {
+    vocabTraits = vocabTraits.filter((t) => t !== trait);
+    renderVocabChips();
+    saveSetting("vocabulary", vocabTraits.join(","));
+  }
+
+  function addVocabPrompt() {
+    const trait = prompt(
+      "Enter a new writing trait (e.g. Empathetic, Detailed):",
+    );
+    if (trait && trait.trim()) {
+      vocabTraits.push(trait.trim());
+      renderVocabChips();
+      saveSetting("vocabulary", vocabTraits.join(","));
     }
+  }
 
-    // --- Tone slider logic ---
-    const TONE_LEVELS = ["casual", "balanced", "professional"];
-    let currentTone = "professional";
-
-    function setToneUI(tone) {
-        const index = TONE_LEVELS.indexOf(tone);
-        if (index === -1) return;
-
-        const pct = (index / (TONE_LEVELS.length - 1)) * 100;
-        const bar = document.getElementById("tone-fill");
-        const knob = document.getElementById("tone-knob");
-        const label = document.getElementById("tone-label");
-
-        if (bar) bar.style.width = pct + "%";
-        if (knob) knob.style.left = pct + "%";
-        if (label) label.textContent = tone.charAt(0).toUpperCase() + tone.slice(1);
-
-        currentTone = tone;
-    }
-
-    function onToneClick(event) {
-        const slider = document.getElementById("tone-track");
-        if (!slider) return;
-
-        const rect = slider.getBoundingClientRect();
-        const ratio = (event.clientX - rect.left) / rect.width;
-        const index = Math.round(ratio * (TONE_LEVELS.length - 1));
-        const tone = TONE_LEVELS[Math.max(0, Math.min(index, TONE_LEVELS.length - 1))];
-
-        setToneUI(tone);
-        saveSetting("tone", tone);
-    }
-
-    // --- Auto-draft toggle ---
-    let autoDraftEnabled = true;
-
-    function toggleAutoDraft() {
-        autoDraftEnabled = !autoDraftEnabled;
-        updateToggleUI();
-        saveSetting("auto_draft", autoDraftEnabled ? "true" : "false");
-    }
-
-    function updateToggleUI() {
-        const btn = document.getElementById("auto-draft-toggle");
-        const dot = document.getElementById("auto-draft-dot");
-        if (!btn || !dot) return;
-
-        if (autoDraftEnabled) {
-            btn.className = "w-12 h-6 bg-primary rounded-full relative transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2 focus:ring-offset-surface";
-            dot.className = "absolute right-1 top-1 w-4 h-4 bg-surface-container-lowest rounded-full shadow-sm transition-transform";
-        } else {
-            btn.className = "w-12 h-6 bg-surface-container-high rounded-full relative transition-colors focus:outline-none focus:ring-2 focus:ring-primary/30 focus:ring-offset-2 focus:ring-offset-surface";
-            dot.className = "absolute left-1 top-1 w-4 h-4 bg-surface-container-lowest rounded-full shadow-sm transition-transform";
-        }
-    }
-
-    // --- Vocabulary chips ---
-    let vocabTraits = [];
-
-    function renderVocabChips() {
-        const container = document.getElementById("vocab-chips");
-        if (!container) return;
-
-        let html = "";
-        vocabTraits.forEach((trait) => {
-            html += `<span class="px-3 py-1.5 bg-primary text-on-primary font-body-md text-[13px] rounded-full cursor-pointer flex items-center gap-1" onclick="removeVocab('${trait}')">
-                ${trait}
-                <span class="material-symbols-outlined text-[14px]">close</span>
-            </span>`;
-        });
-        html += `<span class="px-3 py-1.5 bg-surface-container-high text-on-surface-variant font-body-md text-[13px] rounded-full hover:bg-surface-dim transition-colors cursor-pointer border border-outline-variant flex items-center gap-1" onclick="addVocabPrompt()">
-            <span class="material-symbols-outlined text-[16px]">add</span>
-            Add Trait
-        </span>`;
-        container.innerHTML = html;
-    }
-
-    function removeVocab(trait) {
-        vocabTraits = vocabTraits.filter((t) => t !== trait);
-        renderVocabChips();
-        saveSetting("vocabulary", vocabTraits.join(","));
-    }
-
-    function addVocabPrompt() {
-        const trait = prompt("Enter a new writing trait (e.g. Empathetic, Detailed):");
-        if (trait && trait.trim()) {
-            vocabTraits.push(trait.trim());
-            renderVocabChips();
-            saveSetting("vocabulary", vocabTraits.join(","));
-        }
-    }
-
-    // --- Save a single setting via PATCH ---
-    async function saveSetting(key, value) {
-        try {
-            const body = {};
-            body[key] = value;
-            await fetch("/api/settings/ai", {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body),
-            });
-            showSettingsToast("Setting saved", "success");
-        } catch (err) {
-            console.error("Failed to save setting:", err);
-            showSettingsToast("Failed to save", "error");
-        }
-    }
-
-    // --- Delete all data ---
-    async function deleteAllData() {
-        const confirmed = confirm(
-            "⚠️ This will permanently delete ALL processed emails, todos, meetings, and orders.\n\nYour settings will be preserved.\n\nAre you sure?"
-        );
-        if (!confirmed) return;
-
-        try {
-            const res = await fetch("/api/settings/data", { method: "DELETE" });
-            const data = await res.json();
-            if (data.success) {
-                showSettingsToast("All data deleted successfully", "success");
-            } else {
-                showSettingsToast(data.error || "Delete failed", "error");
-            }
-        } catch (err) {
-            showSettingsToast("Failed to delete data", "error");
-        }
-    }
-
-    // --- 2FA placeholder ---
-    function enable2FA() {
-        showSettingsToast("Two-Factor Authentication is coming soon!", "info");
-    }
-
-    // --- Load settings on page load ---
-    async function loadSettings() {
-        try {
-            const res = await fetch("/api/settings");
-            const data = await res.json();
-
-            // Tone
-            if (data.tone) setToneUI(data.tone);
-
-            // Auto-draft
-            if (data.auto_draft !== undefined) {
-                autoDraftEnabled = data.auto_draft === "true";
-                updateToggleUI();
-            }
-
-            // Vocabulary
-            if (data.vocabulary) {
-                vocabTraits = data.vocabulary.split(",").filter((t) => t.trim());
-                renderVocabChips();
-            }
-        } catch (err) {
-            console.error("Failed to load settings:", err);
-        }
-    }
-
-    // --- Gmail status check (already existed, preserved) ---
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("auth") === "success") {
-        document.getElementById("auth-success-banner").classList.remove("hidden");
-        window.history.replaceState({}, "", "/settings");
-    }
-
-    async function checkGmailStatus() {
-        try {
-            const res = await fetch("/api/auth/status");
-            const data = await res.json();
-
-            const badge = document.getElementById("gmail-badge");
-            const statusText = document.getElementById("gmail-status-text");
-            const connectBtn = document.getElementById("gmail-connect-btn");
-            const disconnectBtn = document.getElementById("gmail-disconnect-btn");
-
-            if (data.connected) {
-                statusText.textContent = "Connected — MailMind can read your inbox";
-                badge.textContent = "Connected";
-                badge.className = "font-label-md text-[12px] font-bold px-3 py-1 rounded-full bg-green-100 text-green-700";
-                badge.classList.remove("hidden");
-                disconnectBtn.classList.remove("hidden");
-                connectBtn.classList.add("hidden");
-
-                // Update profile card with Gmail info
-                if (data.email) {
-                    document.getElementById("profile-email").textContent = data.email;
-                    const name = data.email.split("@")[0];
-                    document.getElementById("profile-name").textContent = name.charAt(0).toUpperCase() + name.slice(1);
-                    document.getElementById("profile-connection").textContent = "Connected via Gmail";
-                }
-            } else {
-                statusText.textContent = "Not connected — click Connect Gmail to authorise";
-                badge.textContent = "Not connected";
-                badge.className = "font-label-md text-[12px] font-bold px-3 py-1 rounded-full bg-surface-container-high text-on-surface-variant";
-                badge.classList.remove("hidden");
-                connectBtn.classList.remove("hidden");
-                disconnectBtn.classList.add("hidden");
-            }
-        } catch (err) {
-            console.error("Could not reach /api/auth/status:", err);
-            document.getElementById("gmail-status-text").textContent = "Could not check status — is the server running?";
-        }
-    }
-
-    async function disconnectGmail() {
-        try {
-            const res = await fetch("/api/auth/logout");
-            const data = await res.json();
-            if (data.success) {
-                checkGmailStatus();
-            } else {
-                alert(data.message || "Disconnect failed.");
-            }
-        } catch (err) {
-            console.error("Disconnect error:", err);
-        }
-    }
-
-    // --- Populate timezone ---
+  // --- Save a single setting via PATCH ---
+  async function saveSetting(key, value) {
     try {
-        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        document.getElementById("profile-timezone").textContent = tz;
-    } catch(e) {}
+      const body = {};
+      body[key] = value;
+      await fetch("/api/settings/ai", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      showSettingsToast("Setting saved", "success");
+    } catch (err) {
+      console.error("Failed to save setting:", err);
+      showSettingsToast("Failed to save", "error");
+    }
+  }
 
-    // Run on page load
-    loadSettings();
-    checkGmailStatus();
+  // --- Delete all data ---
+  async function deleteAllData() {
+    const confirmed = confirm(
+      "⚠️ This will permanently delete ALL processed emails, todos, meetings, and orders.\n\nYour settings will be preserved.\n\nAre you sure?",
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch("/api/settings/data", { method: "DELETE" });
+      const data = await res.json();
+      if (data.success) {
+        showSettingsToast("All data deleted successfully", "success");
+      } else {
+        showSettingsToast(data.error || "Delete failed", "error");
+      }
+    } catch (err) {
+      showSettingsToast("Failed to delete data", "error");
+    }
+  }
+
+  // --- 2FA placeholder ---
+  function enable2FA() {
+    showSettingsToast("Two-Factor Authentication is coming soon!", "info");
+  }
+
+  // --- Load settings on page load ---
+  async function loadSettings() {
+    try {
+      const res = await fetch("/api/settings");
+      const data = await res.json();
+
+      // Tone
+      if (data.tone) setToneUI(data.tone);
+
+      // Auto-draft
+      if (data.auto_draft !== undefined) {
+        autoDraftEnabled = data.auto_draft === "true";
+        updateToggleUI();
+      }
+
+      // Vocabulary
+      if (data.vocabulary) {
+        vocabTraits = data.vocabulary.split(",").filter((t) => t.trim());
+        renderVocabChips();
+      }
+    } catch (err) {
+      console.error("Failed to load settings:", err);
+    }
+  }
+
+  // --- Gmail status check (already existed, preserved) ---
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("auth") === "success") {
+    document.getElementById("auth-success-banner").classList.remove("hidden");
+    window.history.replaceState({}, "", "/settings");
+  }
+
+  async function checkGmailStatus() {
+    try {
+      const res = await fetch("/api/auth/status");
+      const data = await res.json();
+
+      const badge = document.getElementById("gmail-badge");
+      const statusText = document.getElementById("gmail-status-text");
+      const connectBtn = document.getElementById("gmail-connect-btn");
+      const disconnectBtn = document.getElementById("gmail-disconnect-btn");
+
+      if (data.connected) {
+        statusText.textContent = "Connected — MailMind can read your inbox";
+        badge.textContent = "Connected";
+        badge.className = "status-badge connected";
+        badge.classList.remove("hidden");
+        disconnectBtn.classList.remove("hidden");
+        connectBtn.classList.add("hidden");
+
+        // Update profile card with Gmail info
+        if (data.email) {
+          document.getElementById("profile-email").textContent = data.email;
+          const name = data.email.split("@")[0];
+          document.getElementById("profile-name").textContent =
+            name.charAt(0).toUpperCase() + name.slice(1);
+          document.getElementById("profile-connection").textContent =
+            "Connected via Gmail";
+        }
+      } else {
+        statusText.textContent =
+          "Not connected — click Connect Gmail to authorise";
+        badge.textContent = "Not connected";
+        badge.className = "status-badge not-connected";
+        badge.classList.remove("hidden");
+        connectBtn.classList.remove("hidden");
+        disconnectBtn.classList.add("hidden");
+      }
+    } catch (err) {
+      console.error("Could not reach /api/auth/status:", err);
+      document.getElementById("gmail-status-text").textContent =
+        "Could not check status — is the server running?";
+    }
+  }
+
+  async function disconnectGmail() {
+    try {
+      const res = await fetch("/api/auth/logout");
+      const data = await res.json();
+      if (data.success) {
+        checkGmailStatus();
+      } else {
+        alert(data.message || "Disconnect failed.");
+      }
+    } catch (err) {
+      console.error("Disconnect error:", err);
+    }
+  }
+
+  // --- Populate timezone ---
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    document.getElementById("profile-timezone").textContent = tz;
+  } catch (e) {}
+
+  // Run on page load
+  loadSettings();
+  checkGmailStatus();
 </script>
 {% endblock %}
