@@ -15,7 +15,7 @@ block page_styles %}
       system-ui,
       -apple-system,
       sans-serif;
-    color: var(--text, #0f172a);
+    color: var(--text);
     padding: 0;
     display: flex;
     flex-direction: column;
@@ -40,7 +40,7 @@ block page_styles %}
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--text-subtle, #94a3b8);
+    color: var(--text-subtle);
   }
   .hm-greeting__name {
     font-size: 26px;
@@ -49,7 +49,7 @@ block page_styles %}
     letter-spacing: -0.02em;
   }
   .hm-greeting__name .hm-name-accent {
-    background: linear-gradient(90deg, var(--accent, #3b82f6), #6366f1);
+    background: linear-gradient(90deg, var(--accent), var(--accent));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -79,18 +79,18 @@ block page_styles %}
     font-size: 16px;
   }
   .hm-btn--ghost {
-    background: var(--surface, #fff);
-    color: var(--text-body, #334155);
-    border: 1px solid var(--border, #e8edf3);
+    background: var(--surface);
+    color: var(--text-body);
+    border: 1px solid var(--border);
     padding: 8px 14px;
     box-shadow: var(--shadow-sm);
   }
   .hm-btn--ghost:hover {
-    background: var(--surface-2, #f8fafc);
-    border-color: var(--border-strong, #dbe4ee);
+    background: var(--surface-2);
+    border-color: var(--border-strong);
   }
   .hm-btn--primary {
-    background: var(--primary, #0f172a);
+    background: var(--primary);
     color: #fff;
     padding: 8px 16px;
     box-shadow: 0 2px 8px rgba(15, 23, 42, 0.18);
